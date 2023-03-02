@@ -1,6 +1,6 @@
 #include "./include/Parser.h"
 
-Parser::Parser(std::string p_content, Program &p_program) : program(p_program)  {
+Parser::Parser(std::string p_content, Program &p_program) : program(p_program), labelCount(0) {
     content = p_content;
     program = p_program;
     cursor = 0;
@@ -19,10 +19,81 @@ void Parser::init() {
 
     getChar();
     skipWhite();
-    while (parsingToBeDone()) {
-        expression();
+    while (look != EOF) {
+        statement();
     }
 }
+
+void Parser::block() {
+    // What's the purpose of blocks?
+    statement();
+}
+
+void Parser::statement() {
+
+    std::string nextToken = lookaheadToken();
+    
+    if (!isAlpha(look)) {
+        // All keywords all in alpha, so this must be something else
+        expression();
+        return;
+    }
+
+    if (nextToken == "END") {
+        matchString("END");
+        return;
+    }
+
+    if (nextToken == "IF")  {
+        ifStatement();
+        return;
+    }
+
+    expression();
+    
+}
+
+void Parser::ifStatement() {
+    matchString("IF");
+    std::string labelFalse = getNewLabel();
+    condition(labelFalse);
+    statement();
+    emitInstruction(labelFalse + ":");
+    
+}
+
+void Parser::condition(std::string labelFalse) {
+
+    match('(');
+    std::string name1 = getName();
+    matchString("==");
+    std::string name2 = getName();
+    match(')');
+    emitInstruction("mov r8, qword[" + name1 + "]");
+    emitInstruction("mov r9, qword[" + name2 + "]");
+    emitInstruction("cmp r8, r9");
+    emitInstruction("jne " + labelFalse);
+
+    // emitInstruction("cmp r8,r8");
+    
+
+}
+
+std::string Parser::lookaheadToken() {
+    // Looks ahead until a white space, digit or end of cursor is met
+    std::string token = "";
+    int lookCursor = cursor - 1;
+    while (
+        lookCursor < cursor_max &
+        !isDigit(content[lookCursor]) &
+        !isWhite(content[lookCursor])
+    ) {
+        token.push_back(content[lookCursor]);
+        lookCursor++;
+    }
+    return token;
+}
+
 
 void Parser::getChar() {
     // We need to allow going over the string buffer by one byte
@@ -37,7 +108,7 @@ void Parser::getChar() {
 }
 
 void Parser::printLookInfo() {
-    printf("look is %c. Content is %c, cursor is %d. Content length: %d.\n", look, content[cursor],cursor, cursor_max);
+    printf("; look is %c. Content is %c, cursor is %d. Content length: %d.\n", look, content[cursor],cursor, cursor_max);
 }
 
 void Parser::error(std::string error_message) {
@@ -55,6 +126,12 @@ void Parser::match(char x) {
         return;
     }
     expected(std::string("" + look)); // TODO:
+}
+
+void Parser::matchString(std::string str) {
+    for (auto c: str) {
+        match(c);
+    }
 }
 
 bool Parser::isAlpha(char x) {
@@ -102,8 +179,12 @@ std::string Parser::getNum() {
 
 void Parser::emitVariable(std::string out) {
 
+    // Terrible way to check if variable has been declared;
     std::string variableDeclaration = out + " resq 1"; // Every variable is 64 bits :)
-    program.addVariable(variableDeclaration);
+    if (!program.inVariables(variableDeclaration)) {
+        program.addVariable(variableDeclaration);
+    }
+    
 }
 
 
@@ -249,7 +330,11 @@ void Parser::divide() {
     emitInstruction("mov r8, rax");// Store quotient into r8 like all calculations
 }
 
+std::string Parser::getNewLabel() {
+    labelCount += 2;
+    return "LBL_" + std::to_string(labelCount);
 
+}
 
 
 

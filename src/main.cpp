@@ -14,7 +14,7 @@ void construct_program(std::vector<std::string> &ir) {
 int main(int argc, char *argv[]) {
 
     // The first argument is the path to the file containing the sourcecode to compile
-    std::string filename;
+    char* filename;
 
     for (int i = 0; i < argc; ++i) {
         if (i == 1) {
@@ -23,17 +23,21 @@ int main(int argc, char *argv[]) {
     }
 
     // Read from the text file
-    std::ifstream sourceFile(filename);
+    FILE* pFile;
+    pFile = fopen(filename,"r");
+    if (pFile==NULL) perror("Error opening file");
 
-    std::string content = "", tmp;
-        
+    std::string content = "";
+    char tmp;
+
     // Read the file line by line into a single string
-    while (getline(sourceFile, tmp)) {
-        content += tmp;
-    }
+    do {
+        tmp = getc(pFile);
+        content.push_back(tmp);
+    } while (tmp != EOF);
 
     // Close the file
-    sourceFile.close();
+    fclose(pFile);
 
     // Init parser and result data structure
     Program pr;

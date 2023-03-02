@@ -1,3 +1,6 @@
-aasi= 75 +  4+99
-    b=13333+3
-c=aasi+b
+aasi = 3
+kana = 3
+IF (aasi == kana)
+aasi = aasi + kana
+END
+aasi

@@ -13,6 +13,7 @@ class Program {
         void addVariable(std::string variable);
         void buildProgram();
         void outputLine(std::string s);
+        bool inVariables(std::string variable);
 
 
     private:

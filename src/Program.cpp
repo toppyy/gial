@@ -15,6 +15,14 @@ void Program::addVariable(std::string variable) {
     variables.push_back(variable);
 }
 
+bool Program::inVariables(std::string variable) {
+    for (auto var: variables) {
+        if (var == variable) {
+            return true;
+        }
+    }
+    return false;
+}
 
 void Program::outputLine(std::string s) {
     std::cout << s << "\n";
