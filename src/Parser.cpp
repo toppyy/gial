@@ -16,7 +16,9 @@ void Parser::incrementCursor() {
 }
 
 void Parser::init() {
+
     getChar();
+    skipWhite();
     while (parsingToBeDone()) {
         expression();
     }
@@ -49,6 +51,7 @@ void Parser::expected(std::string expected_thing) {
 void Parser::match(char x) {
     if (x == look) {
         getChar();
+        skipWhite();
         return;
     }
     expected(std::string("" + look)); // TODO:
@@ -78,6 +81,7 @@ std::string Parser::getName() {
         token.push_back(look);
         getChar();
     }
+    skipWhite();
 
     return token;
 }
@@ -92,6 +96,7 @@ std::string Parser::getNum() {
         value.push_back(look);
         getChar();
     }
+    skipWhite();
     return value;
 }
 
@@ -201,6 +206,15 @@ bool Parser::isAddOp(char x) {
 
 bool Parser::isAlphaNumeric(char x) {
     return isAlpha(x) | isDigit(x);
+}
+
+bool Parser::isWhite(char x) {
+    return x == ' ' | x == 10; // 10 = TAB
+}
+void Parser::skipWhite() {
+    while (isWhite(look)) {
+        getChar();
+    }
 }
 
 void Parser::add() {

@@ -17,6 +17,8 @@ class Parser {
         bool isAlphaNumeric(char x);
         bool isDigit(char x);
         bool isAddOp(char x);
+        bool isWhite(char x);
+        void skipWhite();
         bool parsingToBeDone();
         void incrementCursor();
         std::string getName();
