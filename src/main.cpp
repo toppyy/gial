@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <fstream> 
 #include <string>
 #include "./include/Parser.h"
@@ -28,10 +29,13 @@ int main(int argc, char *argv[]) {
     // Close the file
     sourceFile.close();
 
+    // Init parser and result data structure
+    std::vector<std::string> ir = std::vector<std::string>();
+
     Parser prsr = Parser(content);
  
     // Do the parsing
-    prsr.init();
+    prsr.init(&ir);
     prsr.expression();
 
 

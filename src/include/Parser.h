@@ -1,12 +1,13 @@
 #pragma once
 #include<string>
+#include<vector>
 #include<iostream>
 #include<exception>
 
 class Parser {
     public:
         Parser(std::string p_content);
-        void init();
+        void init(std::vector<std::string> &ir);
         void error(std::string error_message);
         void expected(std::string expected_thing);
         void getChar();
