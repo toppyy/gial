@@ -11,7 +11,7 @@ void Parser::init() {
 }
 
 void Parser::getChar() {
-    // We need to allow going over the string buffer
+    // We need to allow going over the string buffer by one byte
     // The logic looks 'ahead' one character
     if (cursor >= cursor_max + 1) {
         std::string err_msg = "Unexpected end!\n";
@@ -79,12 +79,21 @@ void Parser::emit(std::string out) {
 }
 
 void Parser::emitLine(std::string out) {
+    std::cout << "\t";
     emit(out);
     std::cout << "\n";
 }
 
 
 void Parser::factor() {
+    // If an opening parenthesis is met, start an another expression recursively
+    // This works because nothing is emitted before the 'inner most' parenthesis have been met
+    if (look == '(') {
+        match('(');
+        expression();
+        match(')');
+        return;
+    }
     std::string instr = "mov r8, ";
     instr.push_back(getNum());
     emitLine(instr);
@@ -105,8 +114,17 @@ void Parser::term() {
 }
 
 void Parser::expression() {
-   term();
-    while (look == '+' | look == '-') {
+
+    // Trick: Add a zero to start calculations with
+    // This way -3 + 3 becomes 0 - 3 + 3
+    if (isAddOp(look)) {
+        emitLine("mov r8, 0");
+    } else {
+        term();
+    }
+
+    
+    while (isAddOp(look)) {
         emitLine("push r8");
         if (look == '+') {
             add();
@@ -117,6 +135,10 @@ void Parser::expression() {
         }
     }
 }   
+
+bool Parser::isAddOp(char x) {
+    return x == '+' | x == '-';
+}
 
 void Parser::add() {
     match('+');
@@ -142,14 +164,12 @@ void Parser::multiply() {
 }
 
 void Parser::divide() {
-
     match('/');             // Consume the division character. 'look' now has the divisor
     factor();               // Moves divisor to register (r8)
     emitLine("pop rax");    // Pop the value we want to divided from stack (stack uses 64 bits, so we must use rax)
     emitLine("cdq");        // convert dword in eax to qword in edx:eax
     emitLine("idiv r8");    // divisor. Now rax has the quotient. We forget the remainder
     emitLine("mov r8, rax");// Store quotient into r8 like all calculations
-
 }
 
 

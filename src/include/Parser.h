@@ -13,6 +13,7 @@ class Parser {
         void match(char x);
         bool isAlpha(char x);
         bool isDigit(char x);
+        bool isAddOp(char x);
         char getName();
         char getNum();
         void emit(std::string out);

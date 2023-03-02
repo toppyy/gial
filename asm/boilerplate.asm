@@ -35,28 +35,18 @@ global _start
 
 _start:
 
+    mov r8, 0
+	push r8
+	mov r8, 1
+	pop r9
+	sub r9, r8
+	mov r8, r9
+	push r8
+	mov r8, 3
+	pop r9
+	add r8, r9
 
-    mov r8, 8
-    push r8
-    mov r8, 2
-    pop rax
-    imul rax, r8
-    mov r8, rax
-    push r8
-    mov r8, 2
-    pop rax
-    cdq
-    idiv r8
-    mov r8, rax
-    push r8
-    mov r8, 5
-    pop r9
-    add r8, r9
-    push r8
-    mov r8, 2
-    pop r9
-    sub r9, r8
-    mov r8, r9
+
 
 
 
