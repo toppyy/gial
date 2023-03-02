@@ -14,12 +14,13 @@ class Parser {
         void getChar();
         void match(char x);
         bool isAlpha(char x);
+        bool isAlphaNumeric(char x);
         bool isDigit(char x);
         bool isAddOp(char x);
         bool parsingToBeDone();
         void incrementCursor();
-        char getName();
-        char getNum();
+        std::string getName();
+        std::string getNum();
         void emitVariable(std::string out);
         void emitInstruction(std::string out);
         void term();
@@ -31,7 +32,7 @@ class Parser {
         void factor();
         void divide();
         void multiply();
-        void assignment(char name);
+        void assignment(std::string name);
 
     private:
         std::string content;

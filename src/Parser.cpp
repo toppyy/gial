@@ -66,23 +66,33 @@ bool Parser::isDigit(char x) {
     return x >= 48 & x <= 57; // 0-9
 }
 
-char Parser::getName() {
+std::string Parser::getName() {
+
+    std::string token = "";
+    
     if (!isAlpha(look)) {
         expected("Name");
     }
-    char rtrn = look;
-    getChar();
-    return rtrn;
+
+    while (isAlphaNumeric(look)) {
+        token.push_back(look);
+        getChar();
+    }
+
+    return token;
 }
 
 
-char Parser::getNum() {
+std::string Parser::getNum() {
+    std::string value = "";
     if (!isDigit(look)) {
         expected("Integer");
     }
-    char rtrn = look;
-    getChar();
-    return rtrn;
+    while (isDigit(look)) {
+        value.push_back(look);
+        getChar();
+    }
+    return value;
 }
 
 void Parser::emitVariable(std::string out) {
@@ -113,8 +123,7 @@ void Parser::factor() {
         ident(); // Checks if it's a function or a variable name
         return;
     }
-    instr = "mov r8, ";
-    instr.push_back(getNum());
+    instr = "mov r8, " + getNum();
     emitInstruction(instr);
 }   
 
@@ -153,15 +162,14 @@ void Parser::expression() {
 
 void Parser::ident() {
     // short for 'identity'?
-    char name = getName();
+    std::string name = getName();
     std::string instr;
 
     // check if the name is a name of a function (not a variable)
     if (look == '(') {
         match('(');
         match(')'); // Currently can match only empty argument lists
-        instr = "call ";
-        instr.push_back(name);
+        instr = "call " + name;
         emitInstruction(instr);
         return;
     }
@@ -172,31 +180,27 @@ void Parser::ident() {
         assignment(name);
         return;
     }
-    instr = "mov r8, qword[";
-    instr.push_back(name);
-    instr += "]";
+    instr = "mov r8, qword[" + name + "]";
     emitInstruction(instr);
     return;
 }
 
-void Parser::assignment(char name) {
+void Parser::assignment(std::string name) {
+
     match('=');
     expression();
-
-    std::string instr = "";
-    instr.push_back(name); // Stupid char -> string conversion
-    emitVariable(instr);
+    emitVariable(name);
 
     // Instruction to assign r8 to variable
-    instr = "mov qword[";
-    instr.push_back(name);
-    instr.push_back(']');
-    instr += ", r8";
-    emitInstruction(instr);
+    emitInstruction( "mov qword[" + name + "], r8" );
 }
 
 bool Parser::isAddOp(char x) {
     return x == '+' | x == '-';
+}
+
+bool Parser::isAlphaNumeric(char x) {
+    return isAlpha(x) | isDigit(x);
 }
 
 void Parser::add() {
