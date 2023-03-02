@@ -41,12 +41,10 @@ int main(int argc, char *argv[]) {
  
     // Do the parsing
     prsr.init();
-    prsr.expression();
+    prsr.assignment();
 
-    // Print ir representation of program
-    for (auto instruction: pr.getInstructions()) {
-        std::cout << "\t" + instruction + "\n";
-    }
+    // Build the program
+    pr.buildProgram();
 
     // Finished  
     std::cout << "\n\n";

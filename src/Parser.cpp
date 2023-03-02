@@ -24,7 +24,7 @@ void Parser::getChar() {
 }
 
 void Parser::printLookInfo() {
-    printf("look is %c. Content is %c, cursor is %d.\n", look, content[cursor],cursor);
+    printf("look is %c. Content is %c, cursor is %d. Content length: %d.\n", look, content[cursor],cursor, cursor_max);
 }
 
 void Parser::error(std::string error_message) {
@@ -75,7 +75,9 @@ char Parser::getNum() {
 }
 
 void Parser::emitVariable(std::string out) {
-    program.addVariable(out);
+
+    std::string variableDeclaration = out + " resq 1"; // Every variable is 64 bits :)
+    program.addVariable(variableDeclaration);
 }
 
 
@@ -97,10 +99,7 @@ void Parser::factor() {
     std::string instr;
 
     if (isAlpha(look)) {
-        instr = "mov ";
-        instr.push_back(getName());
-        instr += "0, r8";
-        emitInstruction(instr);
+        ident(); // Checks if it's a function or a variable name
         return;
     }
     instr = "mov r8, ";
@@ -116,8 +115,6 @@ void Parser::term() {
             multiply();
         } else if (look == '/') {
             divide();
-        } else {
-            expected("Mulop");
         }
     }
 }
@@ -139,11 +136,57 @@ void Parser::expression() {
             add();
         } else if (look == '-') {
             minus();
-        } else {
-            expected("Addop");
         }
     }
 }   
+
+
+void Parser::ident() {
+    // short for 'identity'?
+    char name = getName();
+
+    std::string instr;
+
+    // check if the name is a name of a function (not a variable)
+    if (look = '(') {
+        match('(');
+        match(')'); // Currently can match only empty argument lists
+        instr = "call ";
+        instr.push_back(name);
+        emitInstruction(instr);
+        return;
+    }
+    // Reserve space for a variable:
+    //   when will this happen? 
+    //   atm variables are introduced by assignment?
+    instr = "";
+    instr.push_back(name); // Stupid char -> string conversion
+    emitVariable(instr);
+
+    instr = "mov ";
+    instr.push_back(name);
+    instr += "0, r8";
+    emitInstruction(instr);
+    return;
+}
+
+void Parser::assignment() {
+    char name = getName();
+    match('=');
+    expression();
+
+    std::string instr = "";
+    instr.push_back(name); // Stupid char -> string conversion
+    emitVariable(instr);
+
+
+    // Instruction to assign r8 to variable
+    instr = "mov qword[";
+    instr.push_back(name);
+    instr.push_back(']');
+    instr += ", r8";
+    emitInstruction(instr);
+}
 
 bool Parser::isAddOp(char x) {
     return x == '+' | x == '-';
@@ -176,7 +219,7 @@ void Parser::divide() {
     match('/');             // Consume the division character. 'look' now has the divisor
     factor();               // Moves divisor to register (r8)
     emitInstruction("pop rax");    // Pop the value we want to divided from stack (stack uses 64 bits, so we must use rax)
-    emitInstruction("cdq");        // convert dword in eax to qword in edx:eax
+    emitInstruction("cdq");        // convert qword in eax to qword in edx:eax
     emitInstruction("idiv r8");    // divisor. Now rax has the quotient. We forget the remainder
     emitInstruction("mov r8, rax");// Store quotient into r8 like all calculations
 }

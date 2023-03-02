@@ -22,12 +22,14 @@ class Parser {
         void emitInstruction(std::string out);
         void term();
         void add();
+        void ident();
         void minus();
         void expression();
         void printLookInfo();
         void factor();
         void divide();
         void multiply();
+        void assignment();
 
     private:
         std::string content;
