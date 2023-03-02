@@ -1,7 +1,8 @@
 #include "./include/Parser.h"
 
-Parser::Parser(std::string p_content) {
+Parser::Parser(std::string p_content, Program &p_program) : program(p_program)  {
     content = p_content;
+    program = p_program;
     cursor = 0;
     cursor_max = p_content.length();
 }
@@ -73,15 +74,13 @@ char Parser::getNum() {
     return rtrn;
 }
 
-
-void Parser::emit(std::string out) {
-    std::cout << out;
+void Parser::emitVariable(std::string out) {
+    program.addVariable(out);
 }
 
-void Parser::emitLine(std::string out) {
-    std::cout << "\t";
-    emit(out);
-    std::cout << "\n";
+
+void Parser::emitInstruction(std::string out) {
+    program.addInstruction(out);
 }
 
 
@@ -94,15 +93,25 @@ void Parser::factor() {
         match(')');
         return;
     }
-    std::string instr = "mov r8, ";
+    
+    std::string instr;
+
+    if (isAlpha(look)) {
+        instr = "mov ";
+        instr.push_back(getName());
+        instr += "0, r8";
+        emitInstruction(instr);
+        return;
+    }
+    instr = "mov r8, ";
     instr.push_back(getNum());
-    emitLine(instr);
+    emitInstruction(instr);
 }   
 
 void Parser::term() {
     factor();
     while (look == '*' | look == '/') {
-        emitLine("push r8");
+        emitInstruction("push r8");
         if (look == '*') {
             multiply();
         } else if (look == '/') {
@@ -118,14 +127,14 @@ void Parser::expression() {
     // Trick: Add a zero to start calculations with
     // This way -3 + 3 becomes 0 - 3 + 3
     if (isAddOp(look)) {
-        emitLine("mov r8, 0");
+        emitInstruction("mov r8, 0");
     } else {
         term();
     }
 
     
     while (isAddOp(look)) {
-        emitLine("push r8");
+        emitInstruction("push r8");
         if (look == '+') {
             add();
         } else if (look == '-') {
@@ -143,33 +152,33 @@ bool Parser::isAddOp(char x) {
 void Parser::add() {
     match('+');
     term();
-    emitLine("pop r9");
-    emitLine("add r8, r9");
+    emitInstruction("pop r9");
+    emitInstruction("add r8, r9");
 }   
 
 void Parser::minus() {
     match('-');
     term();
-    emitLine("pop r9");
-    emitLine("sub r9, r8");
-    emitLine("mov r8, r9");
+    emitInstruction("pop r9");
+    emitInstruction("sub r9, r8");
+    emitInstruction("mov r8, r9");
 }
 
 void Parser::multiply() {
     match('*');
     factor();                 // Moves multiplier to register (r8)
-    emitLine("pop rax");      // The other operand is now in rax
-    emitLine("imul rax, r8"); // (signed) multiplication
-    emitLine("mov r8, rax");  // Store result into r8 like all calculations
+    emitInstruction("pop rax");      // The other operand is now in rax
+    emitInstruction("imul rax, r8"); // (signed) multiplication
+    emitInstruction("mov r8, rax");  // Store result into r8 like all calculations
 }
 
 void Parser::divide() {
     match('/');             // Consume the division character. 'look' now has the divisor
     factor();               // Moves divisor to register (r8)
-    emitLine("pop rax");    // Pop the value we want to divided from stack (stack uses 64 bits, so we must use rax)
-    emitLine("cdq");        // convert dword in eax to qword in edx:eax
-    emitLine("idiv r8");    // divisor. Now rax has the quotient. We forget the remainder
-    emitLine("mov r8, rax");// Store quotient into r8 like all calculations
+    emitInstruction("pop rax");    // Pop the value we want to divided from stack (stack uses 64 bits, so we must use rax)
+    emitInstruction("cdq");        // convert dword in eax to qword in edx:eax
+    emitInstruction("idiv r8");    // divisor. Now rax has the quotient. We forget the remainder
+    emitInstruction("mov r8, rax");// Store quotient into r8 like all calculations
 }
 
 

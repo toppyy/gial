@@ -3,11 +3,12 @@
 #include<vector>
 #include<iostream>
 #include<exception>
+#include "./Program.h"
 
 class Parser {
     public:
-        Parser(std::string p_content);
-        void init(std::vector<std::string> &ir);
+        Parser(std::string p_content, Program &p_program);
+        void init();
         void error(std::string error_message);
         void expected(std::string expected_thing);
         void getChar();
@@ -17,8 +18,8 @@ class Parser {
         bool isAddOp(char x);
         char getName();
         char getNum();
-        void emit(std::string out);
-        void emitLine(std::string out);
+        void emitVariable(std::string out);
+        void emitInstruction(std::string out);
         void term();
         void add();
         void minus();
@@ -33,5 +34,6 @@ class Parser {
         char look;
         int  cursor;
         int  cursor_max;
+        Program &program;
 
 };

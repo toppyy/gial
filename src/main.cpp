@@ -3,6 +3,12 @@
 #include <fstream> 
 #include <string>
 #include "./include/Parser.h"
+#include "./include/Program.h"
+
+
+void construct_program(std::vector<std::string> &ir) {
+    // Prepare 
+}
 
 
 int main(int argc, char *argv[]) {
@@ -30,17 +36,19 @@ int main(int argc, char *argv[]) {
     sourceFile.close();
 
     // Init parser and result data structure
-    std::vector<std::string> ir = std::vector<std::string>();
-
-    Parser prsr = Parser(content);
+    Program pr;
+    Parser prsr = Parser(content, pr);
  
     // Do the parsing
-    prsr.init(&ir);
+    prsr.init();
     prsr.expression();
 
+    // Print ir representation of program
+    for (auto instruction: pr.getInstructions()) {
+        std::cout << "\t" + instruction + "\n";
+    }
 
-    // Finished
-  
+    // Finished  
     std::cout << "\n\n";
     
     return 0;
