@@ -7,8 +7,19 @@ Parser::Parser(std::string p_content, Program &p_program) : program(p_program)  
     cursor_max = p_content.length();
 }
 
+bool Parser::parsingToBeDone() {
+    return cursor < cursor_max;
+}
+
+void Parser::incrementCursor() {
+    cursor += 1;
+}
+
 void Parser::init() {
     getChar();
+    while (parsingToBeDone()) {
+        expression();
+    }
 }
 
 void Parser::getChar() {
@@ -120,9 +131,8 @@ void Parser::term() {
 }
 
 void Parser::expression() {
-
     // Trick: Add a zero to start calculations with
-    // This way -3 + 3 becomes 0 - 3 + 3
+    // This way -3 + 3 becomes 0 - 3 + 3    
     if (isAddOp(look)) {
         emitInstruction("mov r8, 0");
     } else {
@@ -144,11 +154,10 @@ void Parser::expression() {
 void Parser::ident() {
     // short for 'identity'?
     char name = getName();
-
     std::string instr;
 
     // check if the name is a name of a function (not a variable)
-    if (look = '(') {
+    if (look == '(') {
         match('(');
         match(')'); // Currently can match only empty argument lists
         instr = "call ";
@@ -156,29 +165,27 @@ void Parser::ident() {
         emitInstruction(instr);
         return;
     }
-    // Reserve space for a variable:
-    //   when will this happen? 
-    //   atm variables are introduced by assignment?
-    instr = "";
-    instr.push_back(name); // Stupid char -> string conversion
-    emitVariable(instr);
 
-    instr = "mov ";
+    // ATM variables are introduced by assignment only, but no error is thrown here if 
+    // a non-declared variable is used
+    if (look == '=') {
+        assignment(name);
+        return;
+    }
+    instr = "mov r8, qword[";
     instr.push_back(name);
-    instr += "0, r8";
+    instr += "]";
     emitInstruction(instr);
     return;
 }
 
-void Parser::assignment() {
-    char name = getName();
+void Parser::assignment(char name) {
     match('=');
     expression();
 
     std::string instr = "";
     instr.push_back(name); // Stupid char -> string conversion
     emitVariable(instr);
-
 
     // Instruction to assign r8 to variable
     instr = "mov qword[";

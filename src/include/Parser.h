@@ -16,6 +16,8 @@ class Parser {
         bool isAlpha(char x);
         bool isDigit(char x);
         bool isAddOp(char x);
+        bool parsingToBeDone();
+        void incrementCursor();
         char getName();
         char getNum();
         void emitVariable(std::string out);
@@ -29,7 +31,7 @@ class Parser {
         void factor();
         void divide();
         void multiply();
-        void assignment();
+        void assignment(char name);
 
     private:
         std::string content;

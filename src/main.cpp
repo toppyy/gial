@@ -41,8 +41,7 @@ int main(int argc, char *argv[]) {
  
     // Do the parsing
     prsr.init();
-    prsr.assignment();
-
+    
     // Build the program
     pr.buildProgram();
 
