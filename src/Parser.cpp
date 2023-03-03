@@ -118,7 +118,11 @@ void Parser::repeatStatement() {
 void Parser::ifStatement() {
     matchString("IF");
     std::string labelFalse = getNewLabel();
-    condition(labelFalse);
+    //condition(labelFalse);
+    boolExpression(); // Sets r8 to 0/1 depending on the evaluation
+    // Compare it and determine whether to run 'block'
+    emitInstruction("cmp r8, 1");
+    emitInstruction("jne " + labelFalse); // jump to 'labelFalse' if evaluates to false
     block();
     emitInstruction(labelFalse + ":");
     matchString("ENDIF");
@@ -135,6 +139,58 @@ void Parser::whileStatement() {
     emitInstruction("jmp " + labelTrue);
     emitInstruction(labelFalse + ":");
     matchString("ENDWHILE");    
+}
+
+
+void Parser::boolExpression() {
+    asmComment("BOOL EXPR");
+    // Try to parse a boolean expression
+    // boolExpression = (boolTerm operator boolTerm)
+    // but recursive: so (boolExpression operator boolTerm) is also valid
+    if (look == '(') {
+        match('(');
+        boolExpression();
+        match(')');
+        
+    } else {
+        boolTerm();
+    }
+    std::string nextToken = lookaheadToken();
+    while (
+        nextToken == "AND" |
+        nextToken == "OR"
+    ) {
+        
+        matchString(nextToken); // eat the token
+        emitInstruction("push r8");
+        boolExpression();
+        emitInstruction("pop r9");
+        
+        if (nextToken == "AND") {
+            emitInstruction("and r8, r9");
+        }
+        if (nextToken == "OR") {
+            emitInstruction("or r8, r9");
+        }
+        nextToken = lookaheadToken();
+    }
+}
+
+void Parser::boolTerm() {
+    
+    expression();
+    emitInstruction("push r8");
+    std::string op = logoperator();
+    expression();
+    emitInstruction("pop r9");
+    emitInstruction("cmp r9, r8");
+    std::string labelFalse = getNewLabel();
+    emitInstruction("mov r8, 0");
+    emitInstruction(op + " " + labelFalse);
+    emitInstruction("mov r8, 1");
+    emitInstruction(labelFalse + ":");
+    // R8 is now 0/1 depending on the comparison
+    
 }
 
 void Parser::condition(std::string labelFalse) {
@@ -224,8 +280,8 @@ void Parser::getChar() {
     cursor++;    
 }
 
-void Parser::printLookInfo() {
-    printf("; look is %c. Content is %c, cursor is %d. Content length: %d.\n", look, content[cursor],cursor, cursor_max);
+void Parser::printLookInfo(char info) {
+    printf("; %d -> look is %c. Content is %c, cursor is %d. Content length: %d.\n", info, look, content[cursor],cursor, cursor_max);
 }
 
 void Parser::error(std::string error_message) {

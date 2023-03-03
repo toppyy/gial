@@ -36,7 +36,7 @@ class Parser {
         void ident();
         void minus();
         void expression();
-        void printLookInfo();
+        void printLookInfo(char info);
         void factor();
         void divide();
         void multiply();
@@ -45,6 +45,9 @@ class Parser {
         void repeatStatement();
         void whileStatement();
         void printStatement();
+        void boolExpression();
+        void boolTerm();
+        void relOp();
         void asmComment(std::string comment);
 
     private:
