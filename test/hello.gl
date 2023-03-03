@@ -3,5 +3,14 @@ kana = 4
 sika = 0
 REPEAT 11
     sika = sika + 1
+    IF (sika == kana)
+        PRINT S 75
+        PRINT S 65
+        PRINT S 78
+        PRINT S 65
+        PRINT L        
+    ENDIF
+    PRINT D sika
+    PRINT L
 ENDREPEAT
 sika

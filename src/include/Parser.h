@@ -44,6 +44,7 @@ class Parser {
         void ifStatement();
         void repeatStatement();
         void whileStatement();
+        void printStatement();
         void asmComment(std::string comment);
 
     private:

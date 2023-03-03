@@ -26,18 +26,22 @@ void Parser::block() {
         look != EOF
     ) {
         nextToken = lookaheadToken();
-   
+
         if (nextToken == "IF")  {
             ifStatement();
-            return;
+            continue;
         }
         if (nextToken == "WHILE")  {
             whileStatement();
-            return;
+            continue;;
         }
         if (nextToken == "REPEAT")  {
             repeatStatement();
-            return;
+            continue;
+        }
+        if (nextToken == "PRINT")  {
+            printStatement();
+            continue;
         }
 
         expression();
@@ -46,6 +50,41 @@ void Parser::block() {
 
 bool Parser::isNextToken(std::string keyword) {
     return keyword == lookaheadToken();
+}
+void Parser::printStatement() {
+    // implements 
+    // PRINT D identifier   --> Interpret identifier as integer
+    // PRINT S identifier   --> Interpret identifier as ASCII-character
+    // PRINT L              --> Print a newline
+
+    matchString("PRINT");
+    asmComment("PRINT STARTS");
+
+    std::string type = getName();
+
+    if (type == "D") {
+        expression(); // The expression is now in r8
+        emitInstruction("mov rdi, r8");
+        emitInstruction("call PrintInteger ");
+        return;
+    }
+
+    if (type == "L") {
+        emitInstruction("mov dil, LF");
+        emitInstruction("call PrintASCII");
+        return;
+    }
+
+
+    if (type == "S") {
+        expression();
+        emitInstruction("mov rdi, r8");
+        emitInstruction("call PrintASCII");
+        return;
+    }
+
+    expected("PRINT expects D,L or S, e.g PRINT D identifier");
+
 }
 
 void Parser::repeatStatement() {
@@ -56,7 +95,7 @@ void Parser::repeatStatement() {
     //
     matchString("REPEAT");
     std::string n = getNum();
-    asmComment("REPEAT STARTS");
+
     std::string labelRepetition  = getNewLabel();
 
     emitInstruction("mov r8, 0");   // Init counter
@@ -159,7 +198,7 @@ std::string Parser::logoperator() {
 }
 
 std::string Parser::lookaheadToken() {
-    // Looks ahead until a white space, digit or end of cursor is met
+    // Looks ahead until a white space or end of cursor is met
     std::string token = "";
     int lookCursor = cursor - 1;
     while (

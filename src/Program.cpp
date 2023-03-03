@@ -46,10 +46,6 @@ void Program::buildProgram() {
     outputLine("global _start");
     outputLine("_start:");
     
-    instructions.push_back("mov rdi, r8");
-    instructions.push_back("call PrintInteger ");
-    instructions.push_back("mov dil, LF");
-    instructions.push_back("call PrintASCII");
 
     // Print instructions
     for (auto instruction: instructions) {
