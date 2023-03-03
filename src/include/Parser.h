@@ -49,6 +49,7 @@ class Parser {
         void boolTerm();
         void relOp();
         void asmComment(std::string comment);
+        std::string getCharLiteral();
 
     private:
         std::string content;

@@ -53,12 +53,11 @@ bool Parser::isNextToken(std::string keyword) {
 }
 void Parser::printStatement() {
     // implements 
-    // PRINT D identifier   --> Interpret identifier as integer
+    // PRINT D identifier   --> Interpret identifier as integer, transform to ASCII and print
     // PRINT S identifier   --> Interpret identifier as ASCII-character
     // PRINT L              --> Print a newline
 
     matchString("PRINT");
-    asmComment("PRINT STARTS");
 
     std::string type = getName();
 
@@ -82,10 +81,27 @@ void Parser::printStatement() {
         emitInstruction("call PrintASCII");
         return;
     }
+    if (type == "C") {
+        std::string charLiteral = getCharLiteral();
+        emitInstruction("mov rdi, '" + charLiteral + "'");
+        emitInstruction("call PrintASCII");
+        return;
+    }
 
     expected("PRINT expects D,L or S, e.g PRINT D identifier");
 
 }
+
+std::string Parser::getCharLiteral() {
+    std::string rtrn = "";
+    match('\'');
+    char literal = look;
+    getChar();
+    match('\'');
+    rtrn.push_back(literal);
+    return rtrn;
+}
+
 
 void Parser::repeatStatement() {
     // implements
@@ -143,7 +159,6 @@ void Parser::whileStatement() {
 
 
 void Parser::boolExpression() {
-    asmComment("BOOL EXPR");
     // Try to parse a boolean expression
     // boolExpression = (boolTerm operator boolTerm)
     // but recursive: so (boolExpression operator boolTerm) is also valid

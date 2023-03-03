@@ -1,6 +1,9 @@
-ascii = 65
-IF ((ascii > 64 AND ascii > 3) AND (1!=1))
-PRINT S 65
-PRINT S 66
-ENDIF
-PRINT L
+montako = 10
+REPEAT 10
+    PRINT C 'H'
+    PRINT C 'E'
+    PRINT C 'L'
+    PRINT C 'L'
+    PRINT C 'O'
+    PRINT L
+ENDREPEAT
