@@ -22,6 +22,7 @@ void Parser::block() {
     while (
         !isNextToken("ENDIF") &
         !isNextToken("ENDWHILE") &
+        !isNextToken("ENDREPEAT") &
         look != EOF
     ) {
         nextToken = lookaheadToken();
@@ -34,6 +35,10 @@ void Parser::block() {
             whileStatement();
             return;
         }
+        if (nextToken == "REPEAT")  {
+            repeatStatement();
+            return;
+        }
 
         expression();
     }
@@ -43,13 +48,41 @@ bool Parser::isNextToken(std::string keyword) {
     return keyword == lookaheadToken();
 }
 
+void Parser::repeatStatement() {
+    // implements
+    //  REPEAT n
+    //      [code to be repeated n times]
+    //  ENDREPEAT
+    //
+    matchString("REPEAT");
+    std::string n = getNum();
+    asmComment("REPEAT STARTS");
+    std::string labelRepetition  = getNewLabel();
+
+    emitInstruction("mov r8, 0");   // Init counter
+    emitInstruction(labelRepetition + ":");
+    emitInstruction("push r8");     // Push counter onto stack
+    
+    block();
+
+    emitInstruction("pop r8");                 // Pop counter from stack
+    emitInstruction("inc r8");                 // Increment counter from stack
+    emitInstruction("cmp r8, " + n);           // Compare counter to n
+    emitInstruction("jl " + labelRepetition);  // If it's less than n, jmp to labelTrue
+
+    matchString("ENDREPEAT");
+
+}
+
+
+
 void Parser::ifStatement() {
     matchString("IF");
     std::string labelFalse = getNewLabel();
     condition(labelFalse);
     block();
     emitInstruction(labelFalse + ":");
-    matchString("ENDIF");    
+    matchString("ENDIF");
     
 }
 

@@ -1,9 +1,7 @@
 zasi = 10
 kana = 4
-sika = 1
-IF (zasi == (1+8))
-    IF (kana >= sika)
-        sika = sika + 7
-    ENDIF    
-ENDIF
+sika = 0
+REPEAT 11
+    sika = sika + 1
+ENDREPEAT
 sika
