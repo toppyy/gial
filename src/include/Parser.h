@@ -27,8 +27,6 @@ class Parser {
         std::string getNewLabel();
         std::string lookaheadToken();
         bool isNextToken(std::string keyword);
-        bool parsingToBeDone();
-        void incrementCursor();
         std::string getName();
         std::string getNum();
         void emitVariable(std::string out);

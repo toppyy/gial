@@ -7,49 +7,36 @@ Parser::Parser(std::string p_content, Program &p_program) : program(p_program), 
     cursor_max = p_content.length();
 }
 
-bool Parser::parsingToBeDone() {
-    return cursor < cursor_max;
-}
-
-void Parser::incrementCursor() {
-    cursor += 1;
-}
 
 void Parser::init() {
 
     getChar();
     skipWhite();
-    while (look != EOF) {
-        statement();
-    }
+    block();
 }
 
 void Parser::block() {
-    // What's the purpose of blocks?
-    statement();
-}
 
-void Parser::statement() {
+    std::string nextToken = "?";
 
-    std::string nextToken = lookaheadToken();
-    
-    if (!isAlpha(look)) {
-        // All keywords all in alpha, so this must be something else
+    while (
+        !isNextToken("ENDIF") &
+        !isNextToken("ENDWHILE") &
+        look != EOF
+    ) {
+        nextToken = lookaheadToken();
+   
+        if (nextToken == "IF")  {
+            ifStatement();
+            return;
+        }
+        if (nextToken == "WHILE")  {
+            whileStatement();
+            return;
+        }
+
         expression();
-        return;
     }
-
-    if (nextToken == "IF")  {
-        ifStatement();
-        return;
-    }
-    if (nextToken == "WHILE")  {
-        whileStatement();
-        return;
-    }
-
-    expression();
-    
 }
 
 bool Parser::isNextToken(std::string keyword) {
@@ -60,10 +47,10 @@ void Parser::ifStatement() {
     matchString("IF");
     std::string labelFalse = getNewLabel();
     condition(labelFalse);
-    while (!isNextToken("ENDIF")) {
-        statement();
-    }    emitInstruction(labelFalse + ":");
+    block();
+    emitInstruction(labelFalse + ":");
     matchString("ENDIF");    
+    
 }
 
 void Parser::whileStatement() {
@@ -72,21 +59,17 @@ void Parser::whileStatement() {
     std::string labelTrue  = getNewLabel();
     emitInstruction(labelTrue + ":");
     condition(labelFalse);
-    while (!isNextToken("ENDWHILE")) {
-        statement();
-    }
+    block();
     emitInstruction("jmp " + labelTrue);
     emitInstruction(labelFalse + ":");
     matchString("ENDWHILE");    
 }
 
 void Parser::condition(std::string labelFalse) {
-
     match('(');
     expression();
     emitInstruction("push r8");
     std::string op = logoperator();
-    
     expression();
     match(')');
     emitInstruction("pop r9");
@@ -148,7 +131,6 @@ std::string Parser::lookaheadToken() {
     int lookCursor = cursor - 1;
     while (
         lookCursor < cursor_max &
-        !isDigit(content[lookCursor]) &
         !isWhite(content[lookCursor])
     ) {
         token.push_back(content[lookCursor]);
@@ -330,6 +312,11 @@ void Parser::ident() {
     // ATM variables are introduced by assignment only, but no error is thrown here if 
     // a non-declared variable is used
     if (look == '=') {
+        // Check if this is actually a condition, not an assignment. If a condition, do nothing.
+        // We don't want to consume anything, so don't use match, but look-a-head next token
+        if (isNextToken("==")) {
+            return;
+        }
         assignment(name);
         return;
     }

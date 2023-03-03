@@ -1,7 +1,9 @@
-aasi = 10
+zasi = 10
 kana = 4
 sika = 1
-IF (aasi > (5+5))
-sika = sika + 7
+IF (zasi == (1+8))
+    IF (kana >= sika)
+        sika = sika + 7
+    ENDIF    
 ENDIF
 sika
