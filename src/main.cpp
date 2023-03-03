@@ -6,10 +6,6 @@
 #include "./include/Program.h"
 
 
-void construct_program(std::vector<std::string> &ir) {
-    // Prepare 
-}
-
 
 int main(int argc, char *argv[]) {
 

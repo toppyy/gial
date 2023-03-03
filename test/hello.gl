@@ -1,9 +1,7 @@
-montako = 10
-REPEAT 10
-    PRINT C 'H'
-    PRINT C 'E'
-    PRINT C 'L'
-    PRINT C 'L'
-    PRINT C 'O'
-    PRINT L
+montako = 15
+a = 66
+REPEAT montako
+    PRINT
+    PRINTINT a
+    PRINT a
 ENDREPEAT

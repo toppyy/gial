@@ -19,6 +19,7 @@ class Parser {
         bool isDigit(char x);
         bool isAddOp(char x);
         bool isWhite(char x);
+        bool isEOL(char x);
         void skipWhite();
         void block();
         void statement();
@@ -45,6 +46,8 @@ class Parser {
         void repeatStatement();
         void whileStatement();
         void printStatement();
+        void printIntStatement();
+        void printLine();
         void boolExpression();
         void boolTerm();
         void relOp();

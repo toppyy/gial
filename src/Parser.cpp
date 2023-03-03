@@ -43,6 +43,10 @@ void Parser::block() {
             printStatement();
             continue;
         }
+        if (nextToken == "PRINTINT")  {
+            printIntStatement();
+            continue;
+        }
 
         expression();
     }
@@ -51,45 +55,73 @@ void Parser::block() {
 bool Parser::isNextToken(std::string keyword) {
     return keyword == lookaheadToken();
 }
-void Parser::printStatement() {
-    // implements 
-    // PRINT D identifier   --> Interpret identifier as integer, transform to ASCII and print
-    // PRINT S identifier   --> Interpret identifier as ASCII-character
-    // PRINT L              --> Print a newline
 
-    matchString("PRINT");
+void Parser::printLine() {
+    emitInstruction("mov dil, LF");
+    emitInstruction("call PrintASCII");
+    return;
+}
 
-    std::string type = getName();
-
-    if (type == "D") {
-        expression(); // The expression is now in r8
-        emitInstruction("mov rdi, r8");
-        emitInstruction("call PrintInteger ");
-        return;
-    }
-
-    if (type == "L") {
-        emitInstruction("mov dil, LF");
-        emitInstruction("call PrintASCII");
-        return;
-    }
-
-
-    if (type == "S") {
+void Parser::printIntStatement() {
+    matchString("PRINTINT");
+    
+    if (isAlpha(look)) {
+        // it's a variable. Interpret content as integer
+        std::string varname = getName();
+        emitInstruction("mov rdi, qword[" + varname + "]");
+    } else {
+        // it's an expression
         expression();
         emitInstruction("mov rdi, r8");
-        emitInstruction("call PrintASCII");
+    }
+    emitInstruction("call PrintInteger ");
+    return;
+
+}
+
+void Parser::printStatement() {
+    
+    matchString("PRINT");
+    
+    if (isEOL(look)) {
+        // just 'PRINT' prints a new line
+        printLine();
         return;
     }
-    if (type == "C") {
+
+    if (look == '\'') {
         std::string charLiteral = getCharLiteral();
         emitInstruction("mov rdi, '" + charLiteral + "'");
         emitInstruction("call PrintASCII");
         return;
     }
 
-    expected("PRINT expects D,L or S, e.g PRINT D identifier");
+    if (look == 'I') { // I as in integer
+        match('I');
+        if (isAlpha(look)) {
+            // it's a variable. Interpret content as integer
+            std::string varname = getName();
+            emitInstruction("mov rdi, qword[" + varname + "]");
+        } else {
+            // it's an expression
+            expression();
+            emitInstruction("mov rdi, r8");
 
+        }
+        emitInstruction("call PrintInteger ");
+        return;
+    }
+
+
+    if (isAlpha(look)) {
+        // it's a variable. Interpret content as integer
+        std::string varname = getName();
+        emitInstruction("mov rdi, qword[" + varname + "]");
+        emitInstruction("call PrintASCII");
+        return;
+    }
+    
+    expected("PRINT expected a variable, character literal (or nothing).");
 }
 
 std::string Parser::getCharLiteral() {
@@ -110,7 +142,14 @@ void Parser::repeatStatement() {
     //  ENDREPEAT
     //
     matchString("REPEAT");
-    std::string n = getNum();
+
+    // n is either a integer or a variable ref
+    std::string n;
+    if (isDigit(look)) {
+       n = getNum();
+    }  else {
+       n =  "qword[" + getName() + "]";
+    }
 
     std::string labelRepetition  = getNewLabel();
 
@@ -274,7 +313,8 @@ std::string Parser::lookaheadToken() {
     int lookCursor = cursor - 1;
     while (
         lookCursor < cursor_max &
-        !isWhite(content[lookCursor])
+        !isWhite(content[lookCursor]) &
+        content[lookCursor] != 10 // 10 = LF
     ) {
         token.push_back(content[lookCursor]);
         lookCursor++;
@@ -289,7 +329,6 @@ void Parser::getChar() {
     if (cursor >= cursor_max + 1) {
         std::string err_msg = "Unexpected end!\n";
         error(err_msg);
-        
     }
     look = content[cursor];
     cursor++;    
@@ -385,6 +424,10 @@ void Parser::emitInstruction(std::string out) {
 }
 
 
+bool Parser::isEOL(char x) {
+    return x == 10;
+}
+
 void Parser::factor() {
     // If an opening parenthesis is met, start an another expression recursively
     // This works because nothing is emitted before the 'inner most' parenthesis have been met
@@ -399,6 +442,11 @@ void Parser::factor() {
 
     if (isAlpha(look)) {
         ident(); // Checks if it's a function or a variable name
+        return;
+    }
+
+    if (isEOL(look)) {
+        match(10);
         return;
     }
     instr = "mov r8, " + getNum();
@@ -487,7 +535,7 @@ bool Parser::isAlphaNumeric(char x) {
 }
 
 bool Parser::isWhite(char x) {
-    return x == ' ' | x == 10; // 10 = TAB
+    return x == ' ' | x == 9; // 9 = TAB
 }
 void Parser::skipWhite() {
     while (isWhite(look)) {
