@@ -79,6 +79,10 @@ void Parser::printIntStatement() {
 
 }
 
+void Parser::charLiteral(std::string charliteral) {
+    
+}
+
 void Parser::printStatement() {
     
     matchString("PRINT");
@@ -90,28 +94,20 @@ void Parser::printStatement() {
     }
 
     if (look == '\'') {
-        std::string charLiteral = getCharLiteral();
-        emitInstruction("mov rdi, '" + charLiteral + "'");
-        emitInstruction("call PrintASCII");
-        return;
-    }
+        match('\'');
+        std::string instr;
+        while(look != '\'') {
 
-    if (look == 'I') { // I as in integer
-        match('I');
-        if (isAlpha(look)) {
-            // it's a variable. Interpret content as integer
-            std::string varname = getName();
-            emitInstruction("mov rdi, qword[" + varname + "]");
-        } else {
-            // it's an expression
-            expression();
-            emitInstruction("mov rdi, r8");
-
+            instr = "mov rdi, '";
+            instr.push_back(look);
+            instr += "'";
+            emitInstruction(instr);
+            emitInstruction("call PrintASCII");
+            getChar();
         }
-        emitInstruction("call PrintInteger ");
+        match('\'')
         return;
     }
-
 
     if (isAlpha(look)) {
         // it's a variable. Interpret content as integer
