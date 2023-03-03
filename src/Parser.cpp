@@ -10,6 +10,7 @@ Parser::Parser(std::string p_content, Program &p_program) : program(p_program), 
 
 void Parser::init() {
 
+    skipEOL();
     getChar();
     skipWhite();
     block();
@@ -47,7 +48,6 @@ void Parser::block() {
             printIntStatement();
             continue;
         }
-
         expression();
     }
 }
@@ -80,11 +80,11 @@ void Parser::printIntStatement() {
 }
 
 void Parser::printStatement() {
-    
     matchString("PRINT");
     
     if (isEOL(look)) {
         // just 'PRINT' prints a new line
+        getChar();
         printLine();
         return;
     }
@@ -93,7 +93,6 @@ void Parser::printStatement() {
         match('\'');
         std::string instr;
         while(look != '\'') {
-
             instr = "mov rdi, '";
             instr.push_back(look);
             instr += "'";
@@ -155,8 +154,8 @@ void Parser::repeatStatement() {
 void Parser::ifStatement() {
     matchString("IF");
     std::string labelFalse = getNewLabel();
-    //condition(labelFalse);
-    boolExpression(); // Sets r8 to 0/1 depending on the evaluation
+    // Sets r8 to 0/1 depending on the evaluation
+    boolExpression();
     // Compare it and determine whether to run 'block'
     emitInstruction("cmp r8, 1");
     emitInstruction("jne " + labelFalse); // jump to 'labelFalse' if evaluates to false
@@ -170,8 +169,15 @@ void Parser::whileStatement() {
     matchString("WHILE");
     std::string labelFalse = getNewLabel();
     std::string labelTrue  = getNewLabel();
+    
     emitInstruction(labelTrue + ":");
-    condition(labelFalse);
+    // Sets r8 to 0/1 depending on the evaluation
+    boolExpression();
+    
+    // Compare it and determine whether to run 'block'
+    emitInstruction("cmp r8, 1");
+    // jump to 'labelFalse' if evaluates to false
+    emitInstruction("jne " + labelFalse); 
     block();
     emitInstruction("jmp " + labelTrue);
     emitInstruction(labelFalse + ":");
@@ -212,8 +218,13 @@ void Parser::boolExpression() {
     }
 }
 
-void Parser::boolTerm() {
-    
+void Parser::skipEOL() {
+    while(isEOL(look)) {
+        getChar();
+    }
+}
+
+void Parser::boolTerm() {   
     expression();
     emitInstruction("push r8");
     std::string op = logoperator();
@@ -226,20 +237,8 @@ void Parser::boolTerm() {
     emitInstruction("mov r8, 1");
     emitInstruction(labelFalse + ":");
     // R8 is now 0/1 depending on the comparison
-    
 }
 
-void Parser::condition(std::string labelFalse) {
-    match('(');
-    expression();
-    emitInstruction("push r8");
-    std::string op = logoperator();
-    expression();
-    match(')');
-    emitInstruction("pop r9");
-    emitInstruction("cmp r9, r8");
-    emitInstruction(op + " " + labelFalse);
-}
 
 
 
@@ -294,9 +293,12 @@ std::string Parser::lookaheadToken() {
     std::string token = "";
     int lookCursor = cursor - 1;
     while (
-        lookCursor < cursor_max &
-        !isWhite(content[lookCursor]) &
-        content[lookCursor] != 10 // 10 = LF
+        isAlphaNumeric(content[lookCursor])
+        //lookCursor < cursor_max &
+        //!isWhite(content[lookCursor]) &
+        //content[lookCursor] != 10       // 10 = LF
+        //content[lookCursor] >= 65     &
+        //content[lookCursor] >= 90
     ) {
         token.push_back(content[lookCursor]);
         lookCursor++;
@@ -317,7 +319,16 @@ void Parser::getChar() {
 }
 
 void Parser::printLookInfo(char info) {
-    printf("; %d -> look is %c. Content is %c, cursor is %d. Content length: %d.\n", info, look, content[cursor],cursor, cursor_max);
+
+    char contentAtm =  content[cursor];
+    if (contentAtm ==10 | contentAtm == 13 ) {
+        contentAtm = '?'; // Don't want to put out newline
+    }
+    char lookAtm = look;
+    if (lookAtm ==10 | lookAtm == 13 | lookAtm == 32) {
+        lookAtm= '?'; // Don't want to put out newline
+    }
+    printf("; %d -> look is %c (%d). Content is %c (%d), cursor is %d. Content length: %d.\n", info, lookAtm, look, contentAtm, content[cursor] ,cursor, cursor_max);
 }
 
 void Parser::error(std::string error_message) {
@@ -411,6 +422,7 @@ bool Parser::isEOL(char x) {
 }
 
 void Parser::factor() {
+
     // If an opening parenthesis is met, start an another expression recursively
     // This works because nothing is emitted before the 'inner most' parenthesis have been met
     if (look == '(') {
@@ -431,8 +443,13 @@ void Parser::factor() {
         match(10);
         return;
     }
-    instr = "mov r8, " + getNum();
-    emitInstruction(instr);
+    if (isDigit(look)) {
+        instr = "mov r8, " + getNum();
+        emitInstruction(instr);
+        return;
+    }
+    printLookInfo(65);
+    getChar(); // ??
 }   
 
 void Parser::term() {
@@ -517,7 +534,7 @@ bool Parser::isAlphaNumeric(char x) {
 }
 
 bool Parser::isWhite(char x) {
-    return x == ' ' | x == 9; // 9 = TAB
+    return x == ' ' | x == 9 | x == 32; // 9 = TAB
 }
 void Parser::skipWhite() {
     while (isWhite(look)) {

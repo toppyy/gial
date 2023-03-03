@@ -21,9 +21,9 @@ class Parser {
         bool isWhite(char x);
         bool isEOL(char x);
         void skipWhite();
+        void skipEOL();
         void block();
         void statement();
-        void condition(std::string labelFalse);
         std::string logoperator();
         std::string getNewLabel();
         std::string lookaheadToken();

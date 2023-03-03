@@ -1,7 +1,23 @@
-montako = 15
-a = 66
-REPEAT montako
-    PRINT
-    PRINTINT a
-    PRINT 'hello, world!'
-ENDREPEAT
+montako = 29
+keko = 0
+laskuri = 0
+raja = 15
+kierroksia = 0
+WHILE (kierroksia < 5)
+    REPEAT montako
+        IF (laskuri < raja)
+            keko = keko + 1
+        ENDIF
+        IF (laskuri >= raja)
+            keko = keko - 1
+        ENDIF
+        REPEAT keko
+            PRINT '*'
+            PRINT '*'
+        ENDREPEAT
+        PRINT
+        laskuri = laskuri + 1
+    ENDREPEAT
+    laskuri = 0
+    keko = 0
+ENDWHILE
