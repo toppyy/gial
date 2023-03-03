@@ -1,9 +1,8 @@
-aasi = 5
+aasi = 10
 kana = 4
-sika = 3
+sika = 0
 IF (aasi > kana)
-IF (aasi > sika)
-aasi = sika + kana + aasi
+aasi = aasi - 1
+sika = sika + 1
 ENDIF
-ENDIF
-aasi
+sika

@@ -26,6 +26,7 @@ class Parser {
         std::string logoperator();
         std::string getNewLabel();
         std::string lookaheadToken();
+        bool isNextToken(std::string keyword);
         bool parsingToBeDone();
         void incrementCursor();
         std::string getName();
@@ -43,6 +44,7 @@ class Parser {
         void multiply();
         void assignment(std::string name);
         void ifStatement();
+        void whileStatement();
 
     private:
         std::string content;

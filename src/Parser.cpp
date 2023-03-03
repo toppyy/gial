@@ -43,19 +43,43 @@ void Parser::statement() {
         ifStatement();
         return;
     }
+    if (nextToken == "WHILE")  {
+        whileStatement();
+        return;
+    }
 
     expression();
     
+}
+
+bool Parser::isNextToken(std::string keyword) {
+    return keyword == lookaheadToken();
 }
 
 void Parser::ifStatement() {
     matchString("IF");
     std::string labelFalse = getNewLabel();
     condition(labelFalse);
-    statement();
-    emitInstruction(labelFalse + ":");
+    while (!isNextToken("ENDIF")) {
+        statement();
+    }    emitInstruction(labelFalse + ":");
     matchString("ENDIF");    
 }
+
+void Parser::whileStatement() {
+    matchString("WHILE");
+    std::string labelFalse = getNewLabel();
+    std::string labelTrue  = getNewLabel();
+    emitInstruction(labelTrue + ":");
+    condition(labelFalse);
+    while (!isNextToken("ENDWHILE")) {
+        statement();
+    }
+    emitInstruction("jmp " + labelTrue);
+    emitInstruction(labelFalse + ":");
+    matchString("ENDWHILE");    
+}
+
 
 void Parser::condition(std::string labelFalse) {
 
