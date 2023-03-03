@@ -45,6 +45,7 @@ class Parser {
         void assignment(std::string name);
         void ifStatement();
         void whileStatement();
+        void asmComment(std::string comment);
 
     private:
         std::string content;

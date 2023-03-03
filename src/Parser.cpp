@@ -80,19 +80,21 @@ void Parser::whileStatement() {
     matchString("ENDWHILE");    
 }
 
-
 void Parser::condition(std::string labelFalse) {
 
     match('(');
-    std::string name1 = getName();
+    expression();
+    emitInstruction("push r8");
     std::string op = logoperator();
-    std::string name2 = getName();
+    
+    expression();
     match(')');
-    emitInstruction("mov r8, qword[" + name1 + "]");
-    emitInstruction("mov r9, qword[" + name2 + "]");
-    emitInstruction("cmp r8, r9");
+    emitInstruction("pop r9");
+    emitInstruction("cmp r9, r8");
     emitInstruction(op + " " + labelFalse);
 }
+
+
 
 std::string Parser::logoperator() {
     // TODO: all fails should throw with list of accepted operators
@@ -402,4 +404,6 @@ std::string Parser::getNewLabel() {
 }
 
 
-
+void Parser::asmComment(std::string comment) {
+    emitInstruction("; " + comment);
+}
