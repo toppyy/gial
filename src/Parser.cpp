@@ -39,11 +39,6 @@ void Parser::statement() {
         return;
     }
 
-    if (nextToken == "END") {
-        matchString("END");
-        return;
-    }
-
     if (nextToken == "IF")  {
         ifStatement();
         return;
@@ -59,24 +54,66 @@ void Parser::ifStatement() {
     condition(labelFalse);
     statement();
     emitInstruction(labelFalse + ":");
-    
+    matchString("ENDIF");    
 }
 
 void Parser::condition(std::string labelFalse) {
 
     match('(');
     std::string name1 = getName();
-    matchString("==");
+    std::string op = logoperator();
     std::string name2 = getName();
     match(')');
     emitInstruction("mov r8, qword[" + name1 + "]");
     emitInstruction("mov r9, qword[" + name2 + "]");
     emitInstruction("cmp r8, r9");
-    emitInstruction("jne " + labelFalse);
+    emitInstruction(op + " " + labelFalse);
+}
 
-    // emitInstruction("cmp r8,r8");
+std::string Parser::logoperator() {
+    // TODO: all fails should throw with list of accepted operators
+
+    // ==
+    if (look == '=') {
+        match('=');
+        match('=');
+        return "jne";
+    }
+
+    // != 
+    if (look == '!') {
+        match('!');
+        match('=');
+        return "je";
+    }
+
+    // these are sort of backwards, but we use the comparison
+    // to jump in case of FALSE. So we want an operator
+    // that is a negation of the operator specified in the program.
+
+    // >= or >
+    if (look == '>') {
+        match('>');
+        if (look == '=') {
+            match('=');
+            return "jl";
+        }
+        return "jle"; 
+    }
+    
+    // <= or <
+    if (look == '<') {
+        match('<');
+        if (look == '=') {
+            match('=');
+            return "jg";
+        }
+        return "jge";
+    } 
     
 
+    expected(" ==, !=, >=, <=");
+    return ""; // Unreachable
 }
 
 std::string Parser::lookaheadToken() {
@@ -125,7 +162,11 @@ void Parser::match(char x) {
         skipWhite();
         return;
     }
-    expected(std::string("" + look)); // TODO:
+    std::string msg = "character ";
+    msg.push_back(x);
+    msg += ", got : ";
+    msg.push_back(look);
+    expected(msg);
 }
 
 void Parser::matchString(std::string str) {

@@ -1,6 +1,9 @@
-aasi = 3
-kana = 3
-IF (aasi == kana)
-aasi = aasi + kana
-END
+aasi = 5
+kana = 4
+sika = 3
+IF (aasi > kana)
+IF (aasi > sika)
+aasi = sika + kana + aasi
+ENDIF
+ENDIF
 aasi

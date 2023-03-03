@@ -23,6 +23,7 @@ class Parser {
         void block();
         void statement();
         void condition(std::string labelFalse);
+        std::string logoperator();
         std::string getNewLabel();
         std::string lookaheadToken();
         bool parsingToBeDone();
