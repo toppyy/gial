@@ -3,5 +3,5 @@ a = 66
 REPEAT montako
     PRINT
     PRINTINT a
-    PRINT a
+    PRINT 'hello, world!'
 ENDREPEAT

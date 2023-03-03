@@ -79,10 +79,6 @@ void Parser::printIntStatement() {
 
 }
 
-void Parser::charLiteral(std::string charliteral) {
-    
-}
-
 void Parser::printStatement() {
     
     matchString("PRINT");
@@ -105,7 +101,7 @@ void Parser::printStatement() {
             emitInstruction("call PrintASCII");
             getChar();
         }
-        match('\'')
+        match('\'');
         return;
     }
 
@@ -118,16 +114,6 @@ void Parser::printStatement() {
     }
     
     expected("PRINT expected a variable, character literal (or nothing).");
-}
-
-std::string Parser::getCharLiteral() {
-    std::string rtrn = "";
-    match('\'');
-    char literal = look;
-    getChar();
-    match('\'');
-    rtrn.push_back(literal);
-    return rtrn;
 }
 
 
