@@ -32,7 +32,12 @@ void Program::buildProgram() {
     // Responsible for putting instructions and variable declarations in their place
     // to create a complete program
 
+    // Constants and libraries
+    outputLine("STDIN       equ 0");
+    outputLine("STDOUT      equ 1");
+    outputLine("SYS_READ    equ 0");
     outputLine("LF equ 10");
+
     outputLine("extern PrintInteger");
     outputLine("extern PrintASCII");
 

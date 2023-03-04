@@ -30,7 +30,7 @@ class Parser {
         bool isNextToken(std::string keyword);
         std::string getName();
         std::string getNum();
-        void emitVariable(std::string out);
+        void emitVariable(std::string out, int bytes);
         void emitInstruction(std::string out);
         void term();
         void add();
@@ -46,6 +46,7 @@ class Parser {
         void repeatStatement();
         void whileStatement();
         void printStatement();
+        void inputStatement();
         void printIntStatement();
         void printLine();
         void boolExpression();

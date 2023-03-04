@@ -50,8 +50,15 @@ void Parser::block() {
             // Lead's to all kind's of trouble if not used correctly.
             // So therefore SAN must be accompanied with NY
             matchString(nextToken);
-            matchString("SNAA");
+            nextToken = lookaheadToken();
+            if (nextToken == "SNAA") {
+                matchString("SNAA");
+                inputStatement();
+                continue;
+            }
+            matchString("NY");
             printStatement();
+            
             continue;
         }
         if (nextToken == "PRINTINT")  {
@@ -72,6 +79,35 @@ void Parser::printLine() {
     emitInstruction("call PrintASCII");
     return;
 }
+
+void Parser::inputStatement() {
+    
+    std::string bufferName = getName();
+    std::string labelInputLoop = getNewLabel();
+    std::string labelLoopOut = getNewLabel();
+    
+    std::string bufferRef = "byte[" + bufferName + " + r9]";
+
+    emitVariable(bufferName, 100);                  // Reserve space for input buffer (100 bytes)
+    
+    emitInstruction("mov r9, 0");                   // Init character count -loop
+    emitInstruction(labelInputLoop + ":");          // Loop to read characters one-by-one from input
+    emitInstruction("mov rax, SYS_READ");           // Specify system call
+    emitInstruction("mov rdi, STDIN");              // Reading from standard input
+    emitInstruction("lea rsi, " + bufferRef);       // Specify address of the space reserved for input
+    emitInstruction("mov rdx, 1");                  // Read one byte (=character) at a time
+    emitInstruction("syscall"); 
+
+    emitInstruction("cmp " + bufferRef + ", LF");   // Is the input character LF?
+    emitInstruction("je " + labelLoopOut);          //  If yes, stop reading by jumping out loop
+    emitInstruction("inc r9");                      //  If no, increment character count
+    emitInstruction("jmp " + labelInputLoop);       // And jump back to reading another character
+
+    emitInstruction(labelLoopOut + ":");
+
+
+}
+
 
 void Parser::printIntStatement() {
     
@@ -403,10 +439,13 @@ std::string Parser::getNum() {
     return value;
 }
 
-void Parser::emitVariable(std::string out) {
+void Parser::emitVariable(std::string out, int bytes = 1) {
 
+    std::string variableDeclaration = out + " resq "; // Every variable is 64 bits :)
+    variableDeclaration  += std::to_string(bytes);
+    
     // Terrible way to check if variable has been declared;
-    std::string variableDeclaration = out + " resq 1"; // Every variable is 64 bits :)
+    // TODO: This does not protect agaings declaring the same variable with different length
     if (!program.inVariables(variableDeclaration)) {
         program.addVariable(variableDeclaration);
     }
