@@ -4,20 +4,20 @@
 
 The compiler translates giäl to assembly for x86. The assembler targeted is [NASM](https://www.nasm.us). It is written in C++.
 
-The project follows Jack Crenshaws's [Let's Build a Compiler](https://compilers.iecc.com/crenshaw/) article series. Jack writes in Turbo Pascal and targets 68000, so code's been re-written, but ideas remain. This is also why it's a top-down compiler in one monolithic class responsible for everything from lexing to code generation (atm I have not reached the parts in which a separate lexer is created).
+The project follows Jack Crenshaws's [Let's Build a Compiler](https://compilers.iecc.com/crenshaw/) article series. Jack writes in Turbo Pascal and targets 68000, so code's been re-written, but I've stolen the ideas. This is also why it's a top-down compiler in one monolithic class responsible for everything from lexing to code generation (atm I have not reached the parts in which a separate lexer is created).
 
-# Hello, world!
+# Hello, world! / Terveissi!
 
 The canonical hello world! -example in *giäl* is simply:
 
     SAN 'hello world!'
 
-To extend the example, let's translate "hello world" into Rauma (it's terveissi!) and print it five times using a while-loop:
+To extend the example, let's translate "hello world" into Rauma (it's *terveissi!*) and print it five times using a while-loop:
 
     i = 0
     GUNNES (i < 5)
-        SAN 'Terveissi!'
-        SAN
+        SAN SNÄÄ 'Terveissi!'
+        SAN SNÄÄ
         i = i + 1    
     NYLOPPUS
 
@@ -41,10 +41,11 @@ In giäl, keywords are written in CAPS. The following table lists keywords of gi
 | TRUE  | GYL              |       
 | FALSE | FALSKI           |
 | BREAK | PORI             |
-| PRINT | SAN              |
+| PRINT | SAN SNÄÄ         |
 | IF    | GUHA             |
 | END   | NYLOPPUS         |  
 | WHILE | GUNNES           |
 | STRING | SANAMBÄTK       |
 | RETURN | TOIST           |
 
+(If you have trouble with encoding's you can replace 'Ä' with 'A' in the keywords. This is what the compiler does anyways. So SAN SNÄÄ is equal to SAN SNAA.)

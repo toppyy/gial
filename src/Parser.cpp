@@ -46,7 +46,11 @@ void Parser::block() {
             continue;
         }
         if (nextToken == "SAN")  {
+            // This is unfortunate. To look ahead two tokens, we must eat the first.
+            // Lead's to all kind's of trouble if not used correctly.
+            // So therefore SAN must be accompanied with NY
             matchString(nextToken);
+            matchString("SNAA");
             printStatement();
             continue;
         }

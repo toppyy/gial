@@ -1,6 +1,8 @@
+
 i = 0
 GUNNES (i < 5)
-    SAN 'Terveissi!'
-    SAN
+    SAN SNÄÄ 'Terveissi!'
+    SAN SNÄÄ
     i = i + 1    
 NYLOPPUS
+
