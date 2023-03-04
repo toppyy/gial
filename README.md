@@ -49,3 +49,28 @@ In giäl, keywords are written in CAPS. The following table lists keywords of gi
 | REPEAT | TOIST           |
 
 (If you have trouble with encoding's you can replace 'Ä' with 'A' in the keywords. This is what the compiler does anyways. So SAN SNÄÄ is equal to SAN SNAA.)
+
+
+## Compiling
+
+Assuming you have G++ and nasm at your disposal, follow these steps.
+
+First, build the compiler under build/
+
+    mkdir -p build
+    g++ src/main.cpp src/Parser.cpp src/Program.cpp -o ./build/gl
+    
+Compile the program written in *giäl* and pipe the result into an .asm file. Compiling the example from above:
+
+    ./build/gl example/terveissi.gl > ./build/terveissi.asm
+
+Assemble and link with ASCII:
+
+    nasm -f elf64 build/ASCII.asm -o build/ASCII.o
+    nasm -f elf64 build/terveissi.asm -o build/terveissi.o
+    ld -o ./build/terveissi.out ./build/terveissi.o ./asm/ASCII.o
+
+Run the program:
+
+    ./build/terveissi.out
+
