@@ -12,16 +12,7 @@ The canonical [hello world! -example](https://en.wikipedia.org/wiki/%22Hello,_Wo
 
     SAN SNÄÄ 'hello world!'
 
-To extend the example, let's translate "hello world" into Rauma (it's *terveissi!*) and print it five times using a while-loop:
-
-    i = 0
-    GUNNES (i < 5)
-        SAN SNÄÄ 'Terveissi!'
-        SAN SNÄÄ
-        i = i + 1    
-    NYLOPPUS
-
-To illustrate the use some of the keywords, the above would look something like this in pseudocode:
+To illustrate the use giäl, let's extend the example by translating "hello world" into Rauma (it's *terveissi!*) and print it five times using a while-loop: That would look something like this in pseudocode:
 
     i = 0
     WHILE (i < 5)
@@ -31,6 +22,23 @@ To illustrate the use some of the keywords, the above would look something like 
     END WHILE
 
 The output being (of course) the string 'Terveissi!' printed out five times.
+
+In *giäl* the same can be achieved with:
+
+    i = 0
+    GUNNES (i < 5)
+        SAN SNÄÄ 'Terveissi!'
+        SAN SNÄÄ
+        i = i + 1    
+    NYLOPPUS
+
+Alternatively one can use a construct for repeating a block of code *N*-times:
+
+    TOIST 5 
+        SAN SNÄÄ 'Terveissi!'
+        SAN SNÄÄ
+    NYLOPPUS
+
 
 ## Syntax
 
@@ -48,7 +56,7 @@ In giäl, keywords are written in CAPS. The following table lists keywords of gi
 | STRING | SANAMBÄTK       |
 | REPEAT | TOIST           |
 
-(If you have trouble with encoding's you can replace 'Ä' with 'A' in the keywords. This is what the compiler does anyways. So SAN SNÄÄ is equal to SAN SNAA.)
+(If you have trouble with the encoding you can replace 'Ä' with 'A' in the keywords. This is what the compiler does anyways. So SAN SNÄÄ is equal to SAN SNAA.)
 
 
 ## Compiling
