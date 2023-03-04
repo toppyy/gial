@@ -10,7 +10,7 @@ The project follows Jack Crenshaws's [Let's Build a Compiler](https://compilers.
 
 The canonical hello world! -example in *giäl* is simply:
 
-    SAN 'hello world!'
+    SAN SNÄÄ 'hello world!'
 
 To extend the example, let's translate "hello world" into Rauma (it's *terveissi!*) and print it five times using a while-loop:
 
@@ -53,7 +53,7 @@ In giäl, keywords are written in CAPS. The following table lists keywords of gi
 
 ## Compiling
 
-Assuming you have G++ and nasm at your disposal, follow these steps.
+Assuming you have g++ and nasm at your disposal, follow these steps.
 
 First, build the compiler under build/
 
