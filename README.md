@@ -46,6 +46,6 @@ In giäl, keywords are written in CAPS. The following table lists keywords of gi
 | END   | NYLOPPUS         |  
 | WHILE | GUNNES           |
 | STRING | SANAMBÄTK       |
-| RETURN | TOIST           |
+| REPEAT | TOIST           |
 
 (If you have trouble with encoding's you can replace 'Ä' with 'A' in the keywords. This is what the compiler does anyways. So SAN SNÄÄ is equal to SAN SNAA.)
