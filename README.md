@@ -8,7 +8,7 @@ The project follows Jack Crenshaws's [Let's Build a Compiler](https://compilers.
 
 # Hello, world! / Terveissi!
 
-The canonical hello world! -example in *giäl* is simply:
+The canonical [hello world! -example](https://en.wikipedia.org/wiki/%22Hello,_World!%22_program) in *giäl* is simply:
 
     SAN SNÄÄ 'hello world!'
 
