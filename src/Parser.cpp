@@ -19,32 +19,39 @@ void Parser::init() {
 void Parser::block() {
 
     std::string nextToken = "?";
+    std::string endToken = "NYLOPPUS";
 
     while (
-        !isNextToken("ENDIF") &
-        !isNextToken("ENDWHILE") &
-        !isNextToken("ENDREPEAT") &
+        !isNextToken(endToken) &
         look != EOF
     ) {
         nextToken = lookaheadToken();
 
-        if (nextToken == "IF")  {
+        if (nextToken == "GUHA")  {
+            matchString(nextToken);
             ifStatement();
+            matchString(endToken);
             continue;
         }
-        if (nextToken == "WHILE")  {
+        if (nextToken == "GUNNES")  {
+            matchString(nextToken);
             whileStatement();
+            matchString(endToken);
             continue;;
         }
-        if (nextToken == "REPEAT")  {
+        if (nextToken == "TOIST")  {
+            matchString(nextToken);
             repeatStatement();
+            matchString(endToken);
             continue;
         }
-        if (nextToken == "PRINT")  {
+        if (nextToken == "SANS")  {
+            matchString(nextToken);
             printStatement();
             continue;
         }
         if (nextToken == "PRINTINT")  {
+            matchString(nextToken);
             printIntStatement();
             continue;
         }
@@ -63,7 +70,6 @@ void Parser::printLine() {
 }
 
 void Parser::printIntStatement() {
-    matchString("PRINTINT");
     
     if (isAlpha(look)) {
         // it's a variable. Interpret content as integer
@@ -80,7 +86,6 @@ void Parser::printIntStatement() {
 }
 
 void Parser::printStatement() {
-    matchString("PRINT");
     
     if (isEOL(look)) {
         // just 'PRINT' prints a new line
@@ -112,7 +117,7 @@ void Parser::printStatement() {
         return;
     }
     
-    expected("PRINT expected a variable, character literal (or nothing).");
+    expected("SANS expected a variable, character literal (or nothing).");
 }
 
 
@@ -122,7 +127,6 @@ void Parser::repeatStatement() {
     //      [code to be repeated n times]
     //  ENDREPEAT
     //
-    matchString("REPEAT");
 
     // n is either a integer or a variable ref
     std::string n;
@@ -145,14 +149,11 @@ void Parser::repeatStatement() {
     emitInstruction("cmp r8, " + n);           // Compare counter to n
     emitInstruction("jl " + labelRepetition);  // If it's less than n, jmp to labelTrue
 
-    matchString("ENDREPEAT");
-
 }
 
 
 
 void Parser::ifStatement() {
-    matchString("IF");
     std::string labelFalse = getNewLabel();
     // Sets r8 to 0/1 depending on the evaluation
     boolExpression();
@@ -161,12 +162,10 @@ void Parser::ifStatement() {
     emitInstruction("jne " + labelFalse); // jump to 'labelFalse' if evaluates to false
     block();
     emitInstruction(labelFalse + ":");
-    matchString("ENDIF");
-    
+   
 }
 
 void Parser::whileStatement() {
-    matchString("WHILE");
     std::string labelFalse = getNewLabel();
     std::string labelTrue  = getNewLabel();
     
@@ -181,7 +180,6 @@ void Parser::whileStatement() {
     block();
     emitInstruction("jmp " + labelTrue);
     emitInstruction(labelFalse + ":");
-    matchString("ENDWHILE");    
 }
 
 

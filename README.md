@@ -12,12 +12,13 @@ In giäl, keywords are written in CAPS. The following table lists keywords of gi
 
 | conventional term | giäl |
 | ----- |----------------- |
-| TRUE  | GYL          |       
+| TRUE  | GYL              |       
 | FALSE | FALSKI           |
 | BREAK | PORI             |
 | PRINT | SAN SNÄÄ         |
-| IF    | GUHA             |  
+| IF    | GUHA             |
+| END   | NYLOPPUS         |  
 | WHILE | GUNNES           |
 | STRING | SANAMBÄTK       |
-| RETURN |
+| RETURN | TOIST           |
 
