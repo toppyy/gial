@@ -45,7 +45,7 @@ void Parser::block() {
             matchString(endToken);
             continue;
         }
-        if (nextToken == "SANS")  {
+        if (nextToken == "SAN")  {
             matchString(nextToken);
             printStatement();
             continue;

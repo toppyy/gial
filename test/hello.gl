@@ -1,6 +1,6 @@
 i = 0
 GUNNES (i < 5)
-    SANS 'Terveissi!'
-    SANS
+    SAN 'Terveissi!'
+    SAN
     i = i + 1    
 NYLOPPUS
