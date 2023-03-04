@@ -66,7 +66,7 @@ Compile the program written in *giäl* and pipe the result into an .asm file. Co
 
 Assemble and link with ASCII:
 
-    nasm -f elf64 build/ASCII.asm -o build/ASCII.o
+    nasm -f elf64 asm/ASCII.asm -o build/ASCII.o
     nasm -f elf64 build/terveissi.asm -o build/terveissi.o
     ld -o ./build/terveissi.out ./build/terveissi.o ./asm/ASCII.o
 
