@@ -10,7 +10,7 @@ The project follows Jack Crenshaws's [Let's Build a Compiler](https://compilers.
 
 The canonical [hello world! -example](https://en.wikipedia.org/wiki/%22Hello,_World!%22_program) in *giäl* is simply:
 
-    SAN SNÄÄ 'hello world!'
+    SAN NY 'hello world!'
 
 To illustrate the use giäl, let's extend the example by translating "hello world" into Rauma (it's *terveissi!*) and print it five times using a while-loop: That would look something like this in pseudocode:
 
@@ -27,16 +27,16 @@ In *giäl* the same can be achieved with:
 
     i = 0
     GUNNES (i < 5)
-        SAN SNÄÄ 'Terveissi!'
-        SAN SNÄÄ
+        SAN NY 'Terveissi!'
+        SAN NY
         i = i + 1    
     NYLOPPUS
 
 Alternatively one can use a construct for repeating a block of code *N*-times:
 
     TOIST 5 
-        SAN SNÄÄ 'Terveissi!'
-        SAN SNÄÄ
+        SAN NY 'Terveissi!'
+        SAN NY
     NYLOPPUS
 
 
@@ -49,7 +49,8 @@ In giäl, keywords are written in CAPS. The following table lists keywords of gi
 | TRUE  | GYL              |       
 | FALSE | FALSKI           |
 | BREAK | PORI             |
-| PRINT | SAN SNÄÄ         |
+| PRINT | SAN NY           |
+| INPUT | SAN SNÄÄ         |
 | IF    | GUHA             |
 | END   | NYLOPPUS         |  
 | WHILE | GUNNES           |
