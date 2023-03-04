@@ -448,8 +448,7 @@ void Parser::factor() {
         emitInstruction(instr);
         return;
     }
-    printLookInfo(65);
-    getChar(); // ??
+    getChar(); // ?
 }   
 
 void Parser::term() {
@@ -470,6 +469,7 @@ void Parser::expression() {
     if (isAddOp(look)) {
         emitInstruction("mov r8, 0");
     } else {
+        skipWhite(); // All terms start with a non-white character
         term();
     }
 
