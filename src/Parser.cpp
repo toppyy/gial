@@ -66,6 +66,10 @@ void Parser::block() {
             printIntStatement();
             continue;
         }
+        if (nextToken == "OLGO") {
+            matchString(nextToken);
+            letStatement();
+        }
         expression();
     }
 }
@@ -79,6 +83,14 @@ void Parser::printLine() {
     emitInstruction("call PrintASCII");
     return;
 }
+
+void Parser::letStatement() {
+
+    std::string varName = getName();
+    emitVariable(varName, 100);
+
+}
+
 
 void Parser::inputStatement() {
     
@@ -104,6 +116,8 @@ void Parser::inputStatement() {
     emitInstruction("jmp " + labelInputLoop);       // And jump back to reading another character
 
     emitInstruction(labelLoopOut + ":");
+    emitInstruction("inc r9");
+    emitInstruction("mov " + bufferRef + ", 0");     // Null-terminate the string
 
 
 }
@@ -150,10 +164,25 @@ void Parser::printStatement() {
     }
 
     if (isAlpha(look)) {
-        // it's a variable. Interpret content as integer
-        std::string varname = getName();
-        emitInstruction("mov rdi, qword[" + varname + "]");
+        // it's a variable. Interpret content as ASCII-string
+        // iterate until NULL
+        std::string varname     = getName();
+        std::string loopStart   = getNewLabel();
+
+
+        asmComment("Printing variable;");
+        emitInstruction("mov r11, 0");
+        
+        emitInstruction(loopStart + ":");
+        emitInstruction("push r11");
+        emitInstruction("mov rdi, qword[" + varname + " + r11]");
         emitInstruction("call PrintASCII");
+        emitInstruction("pop r11");
+        emitInstruction("inc r11");
+        emitInstruction("mov r8, qword[" + varname + " + r11]");
+        emitInstruction("cmp r8, 0");
+        emitInstruction("jne " + loopStart);
+
         return;
     }
     

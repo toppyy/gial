@@ -43,6 +43,7 @@ class Parser {
         void multiply();
         void assignment(std::string name);
         void ifStatement();
+        void letStatement();
         void repeatStatement();
         void whileStatement();
         void printStatement();
