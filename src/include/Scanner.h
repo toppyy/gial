@@ -28,6 +28,7 @@ class Scanner {
         std::vector<Token> getTokens();
 
         std::string lookAheadName();
+        char peekCharacter();
 
         Token scan();
         Token handleName(std::string name);

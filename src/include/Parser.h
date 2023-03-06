@@ -1,5 +1,6 @@
 #pragma once
 #include<string>
+#include <bits/stdc++.h>
 #include<vector>
 #include<iostream>
 #include<exception>
@@ -11,11 +12,13 @@ class Parser {
     public:
         Parser(Scanner &p_scanner, Program &p_program);
         void init();
+        void mapStatementToFunction(std::string statement);
+
         void error(std::string error_message);
         void expected(std::string expected_thing);
         
 
-
+        void matchEndStatement();
         void matchToken(std::string expected_content);
         void getToken();
 
@@ -46,10 +49,19 @@ class Parser {
         bool isAddOp(char x);
         Name getName();
 
+        // Parsing boolean expressions ---------
+
+        std::string mapOperatorToInstruction();
+        void boolExpression();
+        void boolTerm();
+        void relOp();
+
         // Statements ---------------------------
 
         void printStatement();
-  
+        void printIntStatement();
+        void inputStatement();
+        void ifStatement();
 
         // 
 
@@ -58,30 +70,19 @@ class Parser {
         void match(char x);
         void matchString(std::string str);
         
-        bool isDigit(char x);
-        bool isAddOp(char x);
-        bool isWhite(char x);
-        bool isEOL(char x);
-        void skipWhite();
-        void skipEOL();
+        
+        
         void statement();
-        std::string logoperator();
         std::string lookAheadToken();
         bool isNextToken(std::string keyword);
-        std::string getName();
-        std::string getNum();
-        void emitVariable(std::string out, int bytes);
-        void ifStatement();
+        
         void letStatement();
         void repeatStatement();
         void whileStatement();
-        void inputStatement();
-        void printIntStatement();
-        void printLine();
-        void boolExpression();
-        void boolTerm();
-        void relOp();
+        
+        
         */
+
         
 
     private:
@@ -92,5 +93,7 @@ class Parser {
         int  cursor;
         int  token_count;
         Program &program;
+        std::set<std::string> keywords; 
+
 
 };

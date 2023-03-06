@@ -68,13 +68,16 @@ int main(int argc, char *argv[]) {
     Scanner scnr = Scanner(content);
     scnr.init();
 
+    // for (auto t: scnr.getTokens()) { // REMOVE
+    //     std::cout << "token " << t.getContent() << ".\n";
+    // }
 
     Parser prsr = Parser(scnr, pr);
  
-    // Do the parsing
+    // // Do the parsing
     prsr.init();
     
-    // Build the program
+    // // Build the program
     pr.buildProgram();
 
     // Finished  

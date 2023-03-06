@@ -1,10 +1,26 @@
 #include "./include/Parser.h"
 
-Parser::Parser(Scanner & p_scanner, Program &p_program) : program(p_program), labelCount(0) {
+
+Parser::Parser(Scanner & p_scanner, Program &p_program) : 
+                                        program(p_program),
+                                        labelCount(0),
+                                        look(Token("EOF")),
+                                        lookChar(0),
+                                        tokens(std::vector<Token> {}),
+                                        cursor(0),
+                                        token_count(0)
+                                        {
     tokens = p_scanner.getTokens();
     program = p_program;
     cursor = 0;
     token_count = tokens.size();
+
+    keywords.insert("GUNNES");
+    keywords.insert("GUHA");
+    keywords.insert("SAN NY");
+    keywords.insert("SAN JOTTAI");
+    keywords.insert("SAN SNAA");
+    keywords.insert("SAN LUGU");
 }
 
 
@@ -14,67 +30,94 @@ void Parser::init() {
     block();
 }
 
-void Parser::block() {
+void Parser::mapStatementToFunction(std::string statement ) {
+    if (statement == "SAN NY")  {
+        printStatement();
+        return;
+    }
 
-    std::string nextToken = "?";
-    std::string endToken = "NYLOPPUS";
+    if (statement == "SAN NY")  {
+        printStatement();            
+        return;
+    }
 
-    while (
-        look.getContent() != "NYLOPPUS" &
-        look.getContent() != "EOF"
-    ) {
-        
-        nextToken = look.getContent();
+    if (statement == "SAN JOTTAI") {
+        emitLine();
+        return;
+    }
 
-        if (nextToken == "SAN NY")  {
-            matchToken(nextToken);
-            printStatement();            
-            continue;
-        }
+    if (statement == "SAN LUGU")  {
+        printIntStatement();
+        return;
+    }
 
-        if (nextToken == "SAN JOTTAI") {
-            matchToken(nextToken);
-            emitLine();
-            continue;
-        }
+    if (statement == "SAN SNAA")  {
+        inputStatement();
+        return;
+    }
 
+    if (statement == "GUHA")  {        
+        ifStatement();
+        return;
+    }
         /*
-        if (nextToken == "GUHA")  {
-            
-            ifStatement();
-            matchString(endToken);
-            continue;
-        }
         
-        if (nextToken == "GUNNES")  {
-            matchString(nextToken);
+        if (statement == "GUNNES")  {
+            matchString(statement);
             whileStatement();
             matchString(endToken);
             continue;;
         }
-        if (nextToken == "TOIST")  {
-            matchString(nextToken);
+        if (statement == "TOIST")  {
+            matchString(statement);
             repeatStatement();
             matchString(endToken);
             continue;
         }
 
-        if (nextToken == "PRINTINT")  {
-            matchString(nextToken);
-            printIntStatement();
-            continue;
-        }
-        if (nextToken == "OLGO") {
-            matchString(nextToken);
+
+        if (statement == "OLGO") {
+            matchString(statement);
             letStatement();
         }
         */
-        expression();
-        getToken();
-        
-    }
+
+
 }
 
+
+void Parser::block() {
+    std::string nextToken = "?";
+    std::string endToken = "NYLOPPUS";
+
+    void (*statement_p)(int);
+
+    while (
+        look.getContent() != "NYLOPPUS" &
+        look.getContent() != "EOF" &
+        cursor < (token_count-1)
+    ) {
+        nextToken = look.getContent();
+
+        if (look.length() == 0) {
+            std::cout << "EMPTY TOKEN!?\n";
+            break;
+        }
+
+        if (keywords.count(nextToken) > 0) {
+            matchToken(nextToken);
+            mapStatementToFunction(nextToken);
+            continue;
+        }
+
+
+        expression();
+        getToken();
+    }
+    // std::cout << "exited block with " + look.getContent() + "\n"; // REMOVE
+}
+
+/* ---------- STATEMENTS ----------------------------------------------------------------------------------------------------------------  */
 void Parser::printStatement() {
         
 
@@ -82,15 +125,16 @@ void Parser::printStatement() {
         
         matchToken("\'");
         std::string instr;
-
-        while(lookChar != '\'') {
+        
+        std::string strToPrint = look.getContent();
+        for (auto c: strToPrint) {
             instr = "mov rdi, '";
-            instr.push_back(lookChar);
+            instr.push_back(c);
             instr += "'";
             emitInstruction(instr);
-            emitInstruction("call PrintASCII");
-            getToken();
+            emitInstruction("call PrintASCII");            
         }
+        getToken();
         matchToken("\'");
         return;
     }
@@ -123,26 +167,33 @@ void Parser::printStatement() {
     error("SANS NY expected a variable, character literal (or nothing). Got: " + look.getContent());
 }
 
+
+void Parser::printIntStatement() {
+    
+    if (look.isName) {
+        // it's a variable. Interpret content as integer
+        Name var = getName();
+        emitInstruction("mov rdi, qword[" + var.getContent() + "]");
+    } else {
+        // it's an expression
+        expression();
+        emitInstruction("mov rdi, r8");
+    }
+    emitInstruction("call PrintInteger ");
+    return;
+
+}
+
 void Parser::emitLine() {
     emitInstruction("mov dil, LF");
     emitInstruction("call PrintASCII");
     return;
 }
 
-
-/*
-
-void Parser::letStatement() {
-
-    std::string varName = getName();
-    emitVariable(varName, 100);
-
-}
-
-
 void Parser::inputStatement() {
     
-    std::string bufferName = getName();
+    Name varName = getName();
+    std::string bufferName = varName.getContent();
     std::string labelInputLoop = getNewLabel();
     std::string labelLoopOut = getNewLabel();
     
@@ -171,21 +222,35 @@ void Parser::inputStatement() {
 }
 
 
-void Parser::printIntStatement() {
-    
-    if (isAlpha(look)) {
-        // it's a variable. Interpret content as integer
-        std::string varname = getName();
-        emitInstruction("mov rdi, qword[" + varname + "]");
-    } else {
-        // it's an expression
-        expression();
-        emitInstruction("mov rdi, r8");
-    }
-    emitInstruction("call PrintInteger ");
-    return;
+void Parser::ifStatement() {
+    std::string labelFalse = getNewLabel();
+    // Sets r8 to 0/1 depending on the evaluation
+    boolExpression();
+    // std::cout << "boolexpr end: " + look.getContent() + ", "; // REMOVE
+    // printf("look is %d, %c\n", lookChar, lookChar);    // REMOVE
+
+    // Compare it and determine whether to run 'block'
+    emitInstruction("cmp r8, 1");
+    emitInstruction("jne " + labelFalse); // jump to 'labelFalse' if evaluates to false
+    block();
+    emitInstruction(labelFalse + ":");
+    matchEndStatement();
+}
+
+/* ------- END STATEMENTS ----------------------------------------------------------------------------------------------------------------  */
+
+/*
+
+void Parser::letStatement() {
+
+    std::string varName = getName();
+    emitVariable(varName, 100);
 
 }
+
+
+
+
 
 
 
@@ -221,17 +286,6 @@ void Parser::repeatStatement() {
 
 
 
-void Parser::ifStatement() {
-    std::string labelFalse = getNewLabel();
-    // Sets r8 to 0/1 depending on the evaluation
-    boolExpression();
-    // Compare it and determine whether to run 'block'
-    emitInstruction("cmp r8, 1");
-    emitInstruction("jne " + labelFalse); // jump to 'labelFalse' if evaluates to false
-    block();
-    emitInstruction(labelFalse + ":");
-   
-}
 
 void Parser::whileStatement() {
     std::string labelFalse = getNewLabel();
@@ -251,108 +305,6 @@ void Parser::whileStatement() {
 }
 
 
-void Parser::boolExpression() {
-    // Try to parse a boolean expression
-    // boolExpression = (boolTerm operator boolTerm)
-    // but recursive: so (boolExpression operator boolTerm) is also valid
-    if (look == '(') {
-        match('(');
-        boolExpression();
-        match(')');
-        
-    } else {
-        boolTerm();
-    }
-    std::string nextToken = lookAheadToken();
-    while (
-        nextToken == "AND" |
-        nextToken == "OR"
-    ) {
-        
-        matchString(nextToken); // eat the token
-        emitInstruction("push r8");
-        boolExpression();
-        emitInstruction("pop r9");
-        
-        if (nextToken == "AND") {
-            emitInstruction("and r8, r9");
-        }
-        if (nextToken == "OR") {
-            emitInstruction("or r8, r9");
-        }
-        nextToken = lookAheadToken();
-    }
-}
-
-void Parser::skipEOL() {
-    while(isEOL(look)) {
-        getChar();
-    }
-}
-
-void Parser::boolTerm() {   
-    expression();
-    emitInstruction("push r8");
-    std::string op = logoperator();
-    expression();
-    emitInstruction("pop r9");
-    emitInstruction("cmp r9, r8");
-    std::string labelFalse = getNewLabel();
-    emitInstruction("mov r8, 0");
-    emitInstruction(op + " " + labelFalse);
-    emitInstruction("mov r8, 1");
-    emitInstruction(labelFalse + ":");
-    // R8 is now 0/1 depending on the comparison
-}
-
-
-
-
-std::string Parser::logoperator() {
-    // TODO: all fails should throw with list of accepted operators
-
-    // ==
-    if (look == '=') {
-        match('=');
-        match('=');
-        return "jne";
-    }
-
-    // != 
-    if (look == '!') {
-        match('!');
-        match('=');
-        return "je";
-    }
-
-    // these are sort of backwards, but we use the comparison
-    // to jump in case of FALSE. So we want an operator
-    // that is a negation of the operator specified in the program.
-
-    // >= or >
-    if (look == '>') {
-        match('>');
-        if (look == '=') {
-            match('=');
-            return "jl";
-        }
-        return "jle"; 
-    }
-    
-    // <= or <
-    if (look == '<') {
-        match('<');
-        if (look == '=') {
-            match('=');
-            return "jg";
-        }
-        return "jge";
-    } 
-    
-
-    expected(" ==, !=, >=, <=");
-    return ""; // Unreachable
-}
 
 Token Parser::lookAheadToken() {
     return Token("");
@@ -514,6 +466,7 @@ void Parser::error(std::string error_message) {
 
 void Parser::expected(std::string expected_thing) {
     error("Expected: " + expected_thing + "\n");
+    return;
 }
 
 
@@ -552,6 +505,10 @@ void Parser::matchToken(std::string expected_content) {
     expected(msg);
 }
 
+void Parser::matchEndStatement() {
+    matchToken("NYLOPPUS");
+}
+
 
 /* ----------------------- PARSING EXPRESSION ---------------------------- */
 
@@ -574,6 +531,9 @@ void Parser::expression() {
             minus();
         }
     }
+    // std::cout << "Returning expression \\w content " + look.getContent() + ", ";
+    // printf(" lookchar %d, %c\n", lookChar, lookChar); // REMOVE
+
 }   
 
 
@@ -614,6 +574,7 @@ void Parser::factor() {
     if (isDigit(lookChar)) {
         instr = "mov r8, " + nextToken.getContent();
         emitInstruction(instr);
+        getToken();
         return;
     }
 
@@ -622,8 +583,7 @@ void Parser::factor() {
     }
 
 
-    std::cout << "Should have not reached token \\w content " + nextToken.getContent() + ", ";
-    printf(" lookchar %d, %c\n", lookChar, lookChar); // REMOVE
+    error("Should have not reached token \\w content " + nextToken.getContent());
     return;
 }   
 
@@ -726,3 +686,111 @@ bool Parser::isDigit(char x) {
     return x >= 48 & x <= 57; // 0-9
 }
 
+/* ------------------------ Parse boolean expressions -------------------------------------------------------- */
+
+void Parser::boolExpression() {
+    // Try to parse a boolean expression
+    // boolExpression = (boolTerm operator boolTerm)
+    // but recursive: so (boolExpression operator boolTerm) is also valid
+    if (lookChar == '(') {
+        matchToken("(");
+        boolExpression();
+        matchToken(")");
+        
+    } else {
+        boolTerm();
+    }
+    std::string nextTokenContent = look.getContent();
+    while (
+        nextTokenContent == "AND" |
+        nextTokenContent == "OR"
+    ) {
+        
+        matchToken(nextTokenContent); // eat the token
+        emitInstruction("push r8");
+        boolExpression();
+        emitInstruction("pop r9");
+        
+        if (nextTokenContent == "AND") {
+            emitInstruction("and r8, r9");
+        }
+        if (nextTokenContent == "OR") {
+            emitInstruction("or r8, r9");
+        }
+        nextTokenContent = look.getContent();
+    }
+}
+
+void Parser::boolTerm() {   
+    // std::cout << "boolterm: " + look.getContent() + ", "; // REMOVE
+    // printf("look is %d, %c\n", lookChar, lookChar);    // REMOVE
+
+    expression();
+    emitInstruction("push r8");
+    std::string op = mapOperatorToInstruction();
+    expression();
+    emitInstruction("pop r9");
+    emitInstruction("cmp r9, r8");
+    std::string labelFalse = getNewLabel();
+    emitInstruction("mov r8, 0");
+    emitInstruction(op + " " + labelFalse);
+    emitInstruction("mov r8, 1");
+    emitInstruction(labelFalse + ":");
+    // R8 is now 0/1 depending on the comparison
+
+    // std::cout << "boolterm end: " + look.getContent() + ", "; // REMOVE
+    // printf("look is %d, %c\n", lookChar, lookChar);    // REMOVE
+
+}
+
+
+
+
+std::string Parser::mapOperatorToInstruction() {
+    // TODO: all fails should throw with list of accepted operators
+
+    std::string lookOp = look.getContent();
+    // ==
+    if (lookOp == "==") {
+        matchToken("==");
+        return "jne";
+    }
+
+    // != 
+    if (lookOp == "!=") {
+        matchToken("!=");
+        return "je";
+    }
+
+    // these are sort of backwards, but we use the comparison
+    // to jump in case of FALSE. So we want an operator
+    // that is a negation of the operator specified in the program.
+
+    // >= or >
+    if (lookOp == ">") {
+        matchToken(">");
+        return "jle"; 
+    }
+
+
+    if (lookOp == ">=") {
+        matchToken(">=");
+        return "jl";
+    }
+    
+    // <= or <
+    if (lookOp == "<") {
+        matchToken("<");
+        return "jge"; 
+    }
+
+
+    if (lookOp == "<=") {
+        matchToken("<=");
+        return "jg";
+    }
+
+
+    expected(" ==, !=, >=, <=, <, <, got: " + look.getContent());
+    return ""; // Unreachable
+}

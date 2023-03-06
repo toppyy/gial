@@ -6,7 +6,7 @@
 
 
 
-Scanner::Scanner(std::string p_content)  {
+Scanner::Scanner(std::string p_content) : content(""), cursor(0), cursor_max(0), look(0) {
     content = p_content;
     cursor = 0;
     cursor_max = p_content.length();
@@ -18,6 +18,7 @@ Scanner::Scanner(std::string p_content)  {
     keywords.insert("SAN NY");
     keywords.insert("SAN JOTTAI");
     keywords.insert("SAN SNAA");
+    keywords.insert("SAN LUGU");
 }
 
 void Scanner::init() {
@@ -63,6 +64,7 @@ Token Scanner::handleName(std::string name) {
 Token Scanner::scan() {
     skipWhite();
     
+
     if (isAlpha(look)) {
         std::string name = getName();
         return handleName(name);
@@ -80,7 +82,33 @@ Token Scanner::scan() {
     if (look == -1) {
         return Token("EOF");
     }
+    // Special cases are logical operators with multiple characters
+    // So peek ahead a bit
+    // std::string peek = lookAheadName().substr(0,1);
+    // std::cout << "pkee: " << peek << "\n";
+    char peek = peekCharacter();
+
+    if (peek == '=' ) {
+        if (look == '=') {
+            getChar();
+            getChar();
+            return Token("==");
+        }
+        if (look == '<') {
+            getChar();
+            getChar();
+            return Token("<=");
+        }
+        if (look == '>') {
+            getChar();
+            getChar();
+            return Token(">=");
+        }
+
+    }
+
     
+
     std::string rtrn = "";
     rtrn.push_back(look);
     getChar();
@@ -88,6 +116,9 @@ Token Scanner::scan() {
     return Token(rtrn);
 }
 
+char Scanner::peekCharacter() {
+    return content[cursor];
+}
 
 std::string Scanner::lookAheadName() {
     // Looks ahead until a white space or end of cursor is met
