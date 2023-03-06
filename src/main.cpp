@@ -3,6 +3,7 @@
 #include <fstream> 
 #include <string>
 #include "./include/Parser.h"
+#include "./include/Scanner.h"
 #include "./include/Program.h"
 
 
@@ -64,7 +65,11 @@ int main(int argc, char *argv[]) {
 
     // Init parser and result data structure
     Program pr;
-    Parser prsr = Parser(content, pr);
+    Scanner scnr = Scanner(content);
+    scnr.init();
+
+
+    Parser prsr = Parser(scnr, pr);
  
     // Do the parsing
     prsr.init();
