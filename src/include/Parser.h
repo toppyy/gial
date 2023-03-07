@@ -62,24 +62,12 @@ class Parser {
         void printIntStatement();
         void inputStatement();
         void ifStatement();
-
-        // 
-
+        void whileStatement();
+        
         /*
-        void getChar();
-        void match(char x);
-        void matchString(std::string str);
-        
-        
-        
-        void statement();
-        std::string lookAheadToken();
-        bool isNextToken(std::string keyword);
         
         void letStatement();
         void repeatStatement();
-        void whileStatement();
-        
         
         */
 

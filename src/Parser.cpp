@@ -56,8 +56,13 @@ void Parser::mapStatementToFunction(std::string statement ) {
         return;
     }
 
-    if (statement == "GUHA")  {        
+    if (statement == "GUHA")  {
         ifStatement();
+        return;
+    }
+
+    if (statement == "GUNNES")  {        
+        whileStatement();
         return;
     }
         /*
@@ -90,7 +95,6 @@ void Parser::block() {
     std::string nextToken = "?";
     std::string endToken = "NYLOPPUS";
 
-    void (*statement_p)(int);
 
     while (
         look.getContent() != "NYLOPPUS" &
@@ -98,10 +102,10 @@ void Parser::block() {
         cursor < (token_count-1)
     ) {
         nextToken = look.getContent();
-
-        if (look.length() == 0) {
-            std::cout << "EMPTY TOKEN!?\n";
-            break;
+        
+        if (lookChar == 0) {
+            getToken();
+            continue;
         }
 
         if (keywords.count(nextToken) > 0) {
@@ -110,9 +114,7 @@ void Parser::block() {
             continue;
         }
 
-
         expression();
-        getToken();
     }
     // std::cout << "exited block with " + look.getContent() + "\n"; // REMOVE
 }
@@ -226,8 +228,6 @@ void Parser::ifStatement() {
     std::string labelFalse = getNewLabel();
     // Sets r8 to 0/1 depending on the evaluation
     boolExpression();
-    // std::cout << "boolexpr end: " + look.getContent() + ", "; // REMOVE
-    // printf("look is %d, %c\n", lookChar, lookChar);    // REMOVE
 
     // Compare it and determine whether to run 'block'
     emitInstruction("cmp r8, 1");
@@ -236,6 +236,28 @@ void Parser::ifStatement() {
     emitInstruction(labelFalse + ":");
     matchEndStatement();
 }
+
+
+
+void Parser::whileStatement() {
+    std::string labelFalse = getNewLabel();
+    std::string labelTrue  = getNewLabel();
+    
+    emitInstruction(labelTrue + ":");
+    // Sets r8 to 0/1 depending on the evaluation
+    boolExpression();
+    
+    // Compare it and determine whether to run 'block'
+    emitInstruction("cmp r8, 1");
+    // jump to 'labelFalse' if evaluates to false
+    emitInstruction("jne " + labelFalse); 
+    block();
+    emitInstruction("jmp " + labelTrue);
+    emitInstruction(labelFalse + ":");
+    matchEndStatement();
+}
+
+
 
 /* ------- END STATEMENTS ----------------------------------------------------------------------------------------------------------------  */
 
@@ -286,147 +308,6 @@ void Parser::repeatStatement() {
 
 
 
-
-void Parser::whileStatement() {
-    std::string labelFalse = getNewLabel();
-    std::string labelTrue  = getNewLabel();
-    
-    emitInstruction(labelTrue + ":");
-    // Sets r8 to 0/1 depending on the evaluation
-    boolExpression();
-    
-    // Compare it and determine whether to run 'block'
-    emitInstruction("cmp r8, 1");
-    // jump to 'labelFalse' if evaluates to false
-    emitInstruction("jne " + labelFalse); 
-    block();
-    emitInstruction("jmp " + labelTrue);
-    emitInstruction(labelFalse + ":");
-}
-
-
-
-Token Parser::lookAheadToken() {
-    return Token("");
-}
-
-
-
-
-void Parser::match(char x) {
-    if (x == look) {
-        getChar();
-        skipWhite();
-        return;
-    }
-    std::string msg = "character ";
-    msg.push_back(x);
-    msg += ", got : ";
-    msg.push_back(look);
-    expected(msg);
-}
-
-void Parser::matchString(std::string str) {
-    for (auto c: str) {
-        match(c);
-    }
-}
-
-std::string Parser::getName() {
-
-    std::string token = "";
-    
-    if (!isAlpha(look)) {
-        expected("Name");
-    }
-
-    while (isAlphaNumeric(look)) {
-        token.push_back(look);
-        getChar();
-    }
-    skipWhite();
-
-    return token;
-}
-
-
-std::string Parser::getNum() {
-    std::string value = "";
-    if (!isDigit(look)) {
-        expected("Integer");
-    }
-    while (isDigit(look)) {
-        value.push_back(look);
-        getChar();
-    }
-    skipWhite();
-    return value;
-}
-
-
-
-
-bool Parser::isEOL(char x) {
-    return x == 10;
-}
-
-bool Parser::isAddOp(char x) {
-    return x == '+' | x == '-';
-}
-
-bool Parser::isAlphaNumeric(char x) {
-    return isAlpha(x) | isDigit(x);
-}
-
-bool Parser::isWhite(char x) {
-    return x == ' ' | x == 9 | x == 32; // 9 = TAB
-}
-void Parser::skipWhite() {
-    while (isWhite(look)) {
-        getChar();
-    }
-}
-
-void Parser::add() {
-    match('+');
-    term();
-    emitInstruction("pop r9");
-    emitInstruction("add r8, r9");
-}   
-
-void Parser::minus() {
-    match('-');
-    term();
-    emitInstruction("pop r9");
-    emitInstruction("sub r9, r8");
-    emitInstruction("mov r8, r9");
-}
-
-void Parser::multiply() {
-    match('*');
-    factor();                 // Moves multiplier to register (r8)
-    emitInstruction("pop rax");      // The other operand is now in rax
-    emitInstruction("imul rax, r8"); // (signed) multiplication
-    emitInstruction("mov r8, rax");  // Store result into r8 like all calculations
-}
-
-void Parser::divide() {
-    match('/');             // Consume the division character. 'look' now has the divisor
-    factor();               // Moves divisor to register (r8)
-    emitInstruction("pop rax");    // Pop the value we want to divided from stack (stack uses 64 bits, so we must use rax)
-    emitInstruction("cdq");        // convert qword in eax to qword in edx:eax
-    emitInstruction("idiv r8");    // divisor. Now rax has the quotient. We forget the remainder
-    emitInstruction("mov r8, rax");// Store quotient into r8 like all calculations
-}
-
-bool Parser::isWhite(char x) {
-    return x == ' ' | x == 9 | x == 32; // 9 = TAB
-}
-void Parser::skipWhite() {
-    while (isWhite(look)) {
-        getChar();
-    }
-}
 
 
 */
@@ -551,7 +432,7 @@ void Parser::term() {
 }
 
 void Parser::factor() {
-    //printf("Factor %d, %c\n", lookChar, lookChar); // REMOVE
+    // printf("Factor %d, %c\n", lookChar, lookChar); // REMOVE
     
     // If an opening parenthesis is met, start an another expression recursively
     // This works because nothing is emitted before the 'inner most' parenthesis have been met
@@ -625,7 +506,14 @@ void Parser::ident() {
 void Parser::assignment(Name name) {
 
     matchToken("=");
+
+
     expression();
+
+    // std::cout << "assignemnt: " + name.getContent() + ", "; // REMOVE
+    // printf("look is %d, %c\n", lookChar, lookChar);    // REMOVE
+
+
     emitVariable(name.getContent());
 
     // Instruction to assign r8 to variable
@@ -738,8 +626,6 @@ void Parser::boolTerm() {
     emitInstruction(labelFalse + ":");
     // R8 is now 0/1 depending on the comparison
 
-    // std::cout << "boolterm end: " + look.getContent() + ", "; // REMOVE
-    // printf("look is %d, %c\n", lookChar, lookChar);    // REMOVE
 
 }
 
