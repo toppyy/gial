@@ -17,6 +17,8 @@ Parser::Parser(Scanner & p_scanner, Program &p_program) :
 
     keywords.insert("GUNNES");
     keywords.insert("GUHA");
+    keywords.insert("OLGO");
+    keywords.insert("TOIST");
     keywords.insert("SAN NY");
     keywords.insert("SAN JOTTAI");
     keywords.insert("SAN SNAA");
@@ -65,27 +67,16 @@ void Parser::mapStatementToFunction(std::string statement ) {
         whileStatement();
         return;
     }
-        /*
         
-        if (statement == "GUNNES")  {
-            matchString(statement);
-            whileStatement();
-            matchString(endToken);
-            continue;;
-        }
-        if (statement == "TOIST")  {
-            matchString(statement);
-            repeatStatement();
-            matchString(endToken);
-            continue;
-        }
+    if (statement == "TOIST")  {
+        repeatStatement();
+        return;
+    }
 
-
-        if (statement == "OLGO") {
-            matchString(statement);
-            letStatement();
-        }
-        */
+    if (statement == "OLGO") {
+        letStatement();
+        return;
+    }
 
 
 }
@@ -257,23 +248,11 @@ void Parser::whileStatement() {
     matchEndStatement();
 }
 
-
-
-/* ------- END STATEMENTS ----------------------------------------------------------------------------------------------------------------  */
-
-/*
-
 void Parser::letStatement() {
-
-    std::string varName = getName();
-    emitVariable(varName, 100);
+    Name varName = getName();
+    emitVariable(varName.getContent(), 100);
 
 }
-
-
-
-
-
 
 
 void Parser::repeatStatement() {
@@ -285,10 +264,12 @@ void Parser::repeatStatement() {
 
     // n is either a integer or a variable ref
     std::string n;
-    if (isDigit(look)) {
-       n = getNum();
-    }  else {
-       n =  "qword[" + getName() + "]";
+    if (look.isNumber) {
+       n = look.getContent();
+    }  else if (look.isName) {
+       n =  "qword[" + look.getContent() + "]";
+    } else {
+        error("Expected a number or a variable name after TOIST. Got: " + look.getContent());
     }
 
     std::string labelRepetition  = getNewLabel();
@@ -303,14 +284,14 @@ void Parser::repeatStatement() {
     emitInstruction("inc r8");                 // Increment counter from stack
     emitInstruction("cmp r8, " + n);           // Compare counter to n
     emitInstruction("jl " + labelRepetition);  // If it's less than n, jmp to labelTrue
-
+    matchEndStatement();
 }
 
 
 
+/* ------- END STATEMENTS ----------------------------------------------------------------------------------------------------------------  */
 
 
-*/
 std::string Parser::getNewLabel() {
     labelCount += 2;
     return "LBL_" + std::to_string(labelCount);

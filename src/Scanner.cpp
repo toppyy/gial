@@ -15,6 +15,8 @@ Scanner::Scanner(std::string p_content) : content(""), cursor(0), cursor_max(0),
     // List keywords
     keywords.insert("GUNNES");
     keywords.insert("GUHA");
+    keywords.insert("OLGO");
+    keywords.insert("TOIST");
     keywords.insert("SAN NY");
     keywords.insert("SAN JOTTAI");
     keywords.insert("SAN SNAA");
