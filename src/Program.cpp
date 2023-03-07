@@ -1,7 +1,14 @@
 #include "./include/Program.h"
 
-Program::Program()  {
-}
+Program::Program() :
+        instructions(std::vector<std::string> {}),
+        variables(std::vector<std::string> {}),
+        icount(0)
+        ,variables2(std::unordered_map<std::string, Variable > {})
+          {
+            int icount = 0;
+            instructions = std::vector<std::string> {};
+          }
 
 std::vector<std::string> Program::getInstructions() {
     return instructions;
@@ -9,10 +16,20 @@ std::vector<std::string> Program::getInstructions() {
 
 void Program::addInstruction(std::string instruction) {
     instructions.push_back(instruction);
+    icount++;
 }
 
 void Program::addVariable(std::string variable) {
     variables.push_back(variable);
+}
+
+void Program::addVariable2(std::string identifier, int size, std::string type) {
+    Variable var;
+    var.identifier = identifier;
+    var.size = size;
+    var.type = type;
+    variables2.insert({ identifier,var });
+
 }
 
 bool Program::inVariables(std::string variable) {

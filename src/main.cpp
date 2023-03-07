@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
     fclose(pFile);
 
     // Init parser and result data structure
-    Program pr;
+    Program pr = Program();
     Scanner scnr = Scanner(content);
     scnr.init();
 
@@ -72,13 +72,13 @@ int main(int argc, char *argv[]) {
     //     std::cout << "token " << t.getContent() << ".\n";
     // }
 
-    Parser prsr = Parser(scnr, pr);
+    Parser prsr = Parser(scnr.getTokens());
  
-    // // Do the parsing
+    // // // Do the parsing
     prsr.init();
     
-    // // Build the program
-    pr.buildProgram();
+    // // // Build the program
+    prsr.buildProgram();
 
     // Finished  
     std::cout << "\n\n";

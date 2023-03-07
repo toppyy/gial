@@ -40,7 +40,6 @@ class Scanner {
         int  cursor_max;
 
 
-        std::set<std::string> operators; 
         std::set<std::string> keywords; 
         std::string content;
         std::vector<Token> tokens;  

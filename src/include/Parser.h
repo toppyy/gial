@@ -10,8 +10,9 @@
 
 class Parser {
     public:
-        Parser(Scanner &p_scanner, Program &p_program);
+        Parser(std::vector<Token> p_tokens);
         void init();
+        void buildProgram();
         void mapStatementToFunction(std::string statement);
 
         void error(std::string error_message);
@@ -63,6 +64,7 @@ class Parser {
         void inputStatement();
         void ifStatement();
         void whileStatement();
+        
         void letStatement();
         void repeatStatement();
         
@@ -75,7 +77,7 @@ class Parser {
         int  labelCount;
         int  cursor;
         int  token_count;
-        Program &program;
+        Program program;
         std::set<std::string> keywords; 
 
 

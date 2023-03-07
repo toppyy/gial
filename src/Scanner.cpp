@@ -4,9 +4,15 @@
 #define TAB 9
 #define SPACE 32
 
+Scanner::Scanner(std::string p_content) :
+                                    content(),
+                                    cursor(0),
+                                    cursor_max(0),
+                                    look(0),
+                                    tokens(std::vector<Token> {}),
 
-
-Scanner::Scanner(std::string p_content) : content(""), cursor(0), cursor_max(0), look(0) {
+                                    keywords(std::set<std::string> {}) 
+{
     content = p_content;
     cursor = 0;
     cursor_max = p_content.length();
@@ -24,7 +30,7 @@ Scanner::Scanner(std::string p_content) : content(""), cursor(0), cursor_max(0),
 }
 
 void Scanner::init() {
-    Token token {""};
+    Token token  = Token("non empty");
     int i = 10;
     while (token.getContent() != "EOF") {
         token = scan();
@@ -64,6 +70,7 @@ Token Scanner::handleName(std::string name) {
 
 
 Token Scanner::scan() {
+
     skipWhite();
     
 
@@ -86,8 +93,6 @@ Token Scanner::scan() {
     }
     // Special cases are logical operators with multiple characters
     // So peek ahead a bit
-    // std::string peek = lookAheadName().substr(0,1);
-    // std::cout << "pkee: " << peek << "\n";
     char peek = peekCharacter();
 
     if (peek == '=' ) {
@@ -108,8 +113,6 @@ Token Scanner::scan() {
         }
 
     }
-
-    
 
     std::string rtrn = "";
     rtrn.push_back(look);
@@ -169,8 +172,8 @@ std::string Scanner::getNum() {
 void Scanner::getChar() {
     // We need to allow going over the string buffer by one byte
     // The logic looks 'ahead' one character
+    std::string err_msg = "Unexpected end!\n";
     if (cursor >= cursor_max + 1) {
-        std::string err_msg = "Unexpected end!\n";
         error(err_msg);
     }
     look = content[cursor];

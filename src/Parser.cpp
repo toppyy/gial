@@ -1,8 +1,7 @@
 #include "./include/Parser.h"
 
 
-Parser::Parser(Scanner & p_scanner, Program &p_program) : 
-                                        program(p_program),
+Parser::Parser(std::vector<Token> p_tokens) : 
                                         labelCount(0),
                                         look(Token("EOF")),
                                         lookChar(0),
@@ -10,10 +9,12 @@ Parser::Parser(Scanner & p_scanner, Program &p_program) :
                                         cursor(0),
                                         token_count(0)
                                         {
-    tokens = p_scanner.getTokens();
-    program = p_program;
+    tokens = p_tokens;
+    program = Program();
     cursor = 0;
     token_count = tokens.size();
+
+    // printf(" i have %d tokens", token_count);
 
     keywords.insert("GUNNES");
     keywords.insert("GUHA");
@@ -25,6 +26,9 @@ Parser::Parser(Scanner & p_scanner, Program &p_program) :
     keywords.insert("SAN LUGU");
 }
 
+void Parser::buildProgram() {
+    program.buildProgram();
+}
 
 void Parser::init() {
 
@@ -73,7 +77,7 @@ void Parser::mapStatementToFunction(std::string statement ) {
         return;
     }
 
-    if (statement == "OLGO") {
+    if (statement == "SANAMBATK") {
         letStatement();
         return;
     }
@@ -251,7 +255,6 @@ void Parser::whileStatement() {
 void Parser::letStatement() {
     Name varName = getName();
     emitVariable(varName.getContent(), 100);
-
 }
 
 
@@ -307,6 +310,9 @@ void Parser::emitVariable(std::string out, int bytes = 1) {
     std::string variableDeclaration = out + " resq "; // Every variable is 64 bits :)
     variableDeclaration  += std::to_string(bytes);
     
+
+    program.addVariable2(out, bytes, "str");
+
     // Terrible way to check if variable has been declared;
     // TODO: This does not protect agaings declaring the same variable with different length
     if (!program.inVariables(variableDeclaration)) {
