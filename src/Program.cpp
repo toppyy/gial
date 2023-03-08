@@ -1,10 +1,19 @@
 #include "./include/Program.h"
 
+Variable::Variable(std::string p_identifier, std::string p_type, int p_size) :
+    identifier(""),
+    type(""),
+    size() {
+    identifier = p_identifier;
+    size = p_size;
+    type = p_type;
+}
+
+
 Program::Program() :
         instructions(std::vector<std::string> {}),
-        variables(std::vector<std::string> {}),
         icount(0)
-        ,variables2(std::unordered_map<std::string, Variable > {})
+        ,variables(std::unordered_map<std::string, Variable > {})
           {
             int icount = 0;
             instructions = std::vector<std::string> {};
@@ -19,26 +28,14 @@ void Program::addInstruction(std::string instruction) {
     icount++;
 }
 
-void Program::addVariable(std::string variable) {
-    variables.push_back(variable);
-}
 
-void Program::addVariable2(std::string identifier, int size, std::string type) {
-    Variable var;
-    var.identifier = identifier;
-    var.size = size;
-    var.type = type;
-    variables2.insert({ identifier,var });
+void Program::addVariable(std::string identifier, int size, std::string type) {
+    variables.insert({ identifier, Variable(identifier, type, size) });
 
 }
 
 bool Program::inVariables(std::string variable) {
-    for (auto var: variables) {
-        if (var == variable) {
-            return true;
-        }
-    }
-    return false;
+    return variables.count(variable) > 0;
 }
 
 void Program::outputLine(std::string s) {
@@ -59,9 +56,14 @@ void Program::buildProgram() {
     outputLine("extern PrintASCII");
 
     outputLine("section .bss");
+
     // Variable declarations
-    for (auto variable: variables) {
-        std::cout << "\t" + variable + "\n";
+    for (auto& variable: variables) {
+
+        std::string variableDeclaration = variable.second.identifier + " resq "; // Reserve 'size' * 64 bits
+        variableDeclaration  += std::to_string(variable.second.size);
+
+        std::cout << "\t" + variableDeclaration + "\n";
     }
 
     outputLine("section .text");

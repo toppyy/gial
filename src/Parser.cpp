@@ -306,17 +306,9 @@ void Parser::emitInstruction(std::string out) {
 }
 
 void Parser::emitVariable(std::string out, int bytes = 1) {
-
-    std::string variableDeclaration = out + " resq "; // Every variable is 64 bits :)
-    variableDeclaration  += std::to_string(bytes);
-    
-
-    program.addVariable2(out, bytes, "str");
-
-    // Terrible way to check if variable has been declared;
-    // TODO: This does not protect agaings declaring the same variable with different length
-    if (!program.inVariables(variableDeclaration)) {
-        program.addVariable(variableDeclaration);
+    //std::cout << "emitting " + out + "\n"; // REMOVE
+    if (!program.inVariables(out)) {
+            program.addVariable(out, bytes, "str");
     }
     
 }
