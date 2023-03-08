@@ -138,12 +138,12 @@ void Parser::printStatement() {
         
         emitInstruction(loopStart + ":");
         emitInstruction("push r11");
-        emitInstruction("mov rdi, qword[" + varname + " + r11]");
+        emitInstruction("mov dil, byte[" + varname + " + r11]");
         emitInstruction("call PrintASCII");
         emitInstruction("pop r11");
         emitInstruction("inc r11");
-        emitInstruction("mov r8, qword[" + varname + " + r11]");
-        emitInstruction("cmp r8, 0");
+        emitInstruction("mov r8b, byte[" + varname + " + r11]");
+        emitInstruction("cmp r8b, 0");
         emitInstruction("jne " + loopStart);
 
         getToken();
@@ -155,11 +155,13 @@ void Parser::printStatement() {
 
 
 void Parser::printIntStatement() {
+
     
     if (look.isName) {
-        // it's a variable. Interpret content as integer
+        // it's a variable. 
         Name var = getName();
         emitInstruction("mov rdi, qword[" + var.getContent() + "]");
+
     } else {
         // it's an expression
         expression();
@@ -242,9 +244,26 @@ void Parser::whileStatement() {
 }
 
 void Parser::letStatement() {
-    Name varName = getName();
-    emitVariable(varName.getContent(), 100);
+    std::string varName = getName().getContent();
     
+    if (look.getContent() != "=") {
+        // Just a declaration without an assignment
+        return;
+    }
+    getToken(); // Eat '='
+    if (!look.isString) {
+        error("Expected a string!");
+    }
+
+    int bytesNeeded = 0;
+    for (auto c: look.getContent()) {
+        //  Brutal
+        emitInstruction("mov byte[" + varName + " + " + std::to_string(bytesNeeded) + "], " + std::to_string(int(c)));
+        bytesNeeded++;
+    }
+    emitInstruction("mov byte[" + varName + " + " + std::to_string(bytesNeeded) + "], 0" ); // NULL-termination
+    getToken();
+    emitVariable(varName, bytesNeeded + 1);
 }
 
 
@@ -296,7 +315,6 @@ void Parser::emitInstruction(std::string out) {
 }
 
 void Parser::emitVariable(std::string out, int bytes = 1) {
-    //std::cout << "emitting " + out + "\n"; // REMOVE
     if (!program.inVariables(out)) {
             program.addVariable(out, bytes, "str");
     }
@@ -461,11 +479,10 @@ void Parser::ident() {
     // a non-declared variable is used
     if (lookChar == '=') {
         // Check if this is actually a condition, not an assignment. If a condition, do nothing.
-        if ( look.getContent() == "==") {
-            return;
+        if ( look.getContent() != "==") {
+            assignment(name);
         }
-        assignment(name);
-        return;
+        
     }
     instr = "mov r8, qword[" + name.getContent() + "]";
     emitInstruction(instr);
@@ -581,7 +598,7 @@ void Parser::boolExpression() {
 void Parser::boolTerm() {   
     // std::cout << "boolterm: " + look.getContent() + ", "; // REMOVE
     // printf("look is %d, %c\n", lookChar, lookChar);    // REMOVE
-
+    emitComment("Starting bool");
     expression();
     emitInstruction("push r8");
     std::string op = mapOperatorToInstruction();

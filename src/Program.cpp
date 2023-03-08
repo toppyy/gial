@@ -42,6 +42,19 @@ void Program::outputLine(std::string s) {
     std::cout << s << "\n";
 }
 
+bool Program::isStringVariable(std::string variable) {
+    if (!inVariables(variable))  {
+        return false;
+    }
+    if (auto search = variables.find(variable); search != variables.end())
+        //std::cout << "Found " << search->first << " " << search->second.type << '\n';
+        return search->second.type == "str";
+    
+
+    return false;
+ 
+}
+
 void Program::buildProgram() {
     // Responsible for putting instructions and variable declarations in their place
     // to create a complete program

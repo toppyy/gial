@@ -22,7 +22,9 @@ class Program {
         void addVariable(std::string identifier, int size, std::string type);
         void buildProgram();
         void outputLine(std::string s);
+        
         bool inVariables(std::string variable);
+        bool isStringVariable(std::string variable);
 
 
     private:
