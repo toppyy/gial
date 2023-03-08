@@ -10,7 +10,7 @@
 
 class Parser {
     public:
-        Parser(std::vector<Token> p_tokens);
+        Parser(std::vector<Token> p_tokens, std::set<std::string> p_keywords);
         void init();
         void buildProgram();
         void mapStatementToFunction(std::string statement);

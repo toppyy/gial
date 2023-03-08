@@ -8,7 +8,7 @@
 
 class Scanner {
     public:
-        Scanner(std::string p_content);
+        Scanner(std::string p_content, std::set<std::string> p_keywords);
 
         
         void init();

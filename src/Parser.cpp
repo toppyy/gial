@@ -1,7 +1,7 @@
 #include "./include/Parser.h"
 
 
-Parser::Parser(std::vector<Token> p_tokens) : 
+Parser::Parser(std::vector<Token> p_tokens, std::set<std::string> p_keywords) : 
                                         labelCount(0),
                                         look(Token("EOF")),
                                         lookChar(0),
@@ -13,17 +13,8 @@ Parser::Parser(std::vector<Token> p_tokens) :
     program = Program();
     cursor = 0;
     token_count = tokens.size();
+    keywords = p_keywords;
 
-    // printf(" i have %d tokens", token_count);
-
-    keywords.insert("GUNNES");
-    keywords.insert("GUHA");
-    keywords.insert("OLGO");
-    keywords.insert("TOIST");
-    keywords.insert("SAN NY");
-    keywords.insert("SAN JOTTAI");
-    keywords.insert("SAN SNAA");
-    keywords.insert("SAN LUGU");
 }
 
 void Parser::buildProgram() {
