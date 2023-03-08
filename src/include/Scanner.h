@@ -21,9 +21,11 @@ class Scanner {
         bool isAlphaNumeric(char x);
         bool isAlpha(char x);
         bool isDigit(char x);
+        bool isQuote(char x);
     
         std::string getOperator();
         std::string getName();
+        std::string getString();
         std::string getNum();
         std::vector<Token> getTokens();
 

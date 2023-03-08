@@ -5,11 +5,12 @@ Token::Token() {
 }
 
 
-Token::Token(std::string p_content) {
+Token::Token(std::string p_content) : content(), isNumber(false), isKeyword(false), isName(false), isString(false) {
     content = p_content;
     isNumber = false;
     isKeyword = false;
     isName = false;
+    isString = false;
 }
 
 int Token::length() {

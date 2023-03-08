@@ -59,11 +59,24 @@ Token Scanner::handleName(std::string name) {
 }
 
 
+// Token Scanner::createStringToken(std::string p_content) {
+//     Token newToken = Token(p_content);
+//     newToken.isString = true;
+//     return newToken;
+// }
+
 
 
 Token Scanner::scan() {
 
     skipWhite();
+
+    if (isQuote(look)) {
+        Token newToken = Token(getString());
+        newToken.isString = true;
+
+        return newToken;
+    }
     
 
     if (isAlpha(look)) {
@@ -128,6 +141,18 @@ std::string Scanner::lookAheadName() {
     return token;
 }
 
+
+
+std::string Scanner::getString() {
+    std::string token = "";
+    getChar(); // Eat quote beginning
+    while (!isQuote(look)) {
+        token.push_back(look);
+        getChar();
+    }
+    getChar(); // Eat quote end
+    return token;
+}
 
 
 
@@ -197,6 +222,10 @@ bool Scanner::isDigit(char x) {
     return x >= 48 & x <= 57; // 0-9
 }
 
+bool Scanner::isQuote(char x) {
+    return x == 39; // ' is ASCII
+}
+
 
 void Scanner::error(std::string error_message) {
     throw std::runtime_error(error_message);
@@ -205,6 +234,7 @@ void Scanner::error(std::string error_message) {
 void Scanner::expected(std::string expected_thing) {
     error("Expected: " + expected_thing + "\n");
 }
+
 
 
 /*

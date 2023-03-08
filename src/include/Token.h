@@ -18,6 +18,7 @@ class Token {
         bool isNumber;
         bool isKeyword;
         bool isName;
+        bool isString;
 
 
     public:
@@ -44,3 +45,4 @@ class Keyword: public Token {
         Keyword(std::string p_content);
 
 };
+

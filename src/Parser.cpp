@@ -109,21 +109,19 @@ void Parser::block() {
 void Parser::printStatement() {
         
 
-    if (lookChar == '\'') {
-        
-        matchToken("\'");
+    if (look.isString) {
+        // Is a string constant
         std::string instr;
-        
-        std::string strToPrint = look.getContent();
-        for (auto c: strToPrint) {
+        for (auto c: look.getContent()) {
+            // 
             instr = "mov rdi, '";
             instr.push_back(c);
             instr += "'";
             emitInstruction(instr);
             emitInstruction("call PrintASCII");            
         }
+
         getToken();
-        matchToken("\'");
         return;
     }
 
@@ -246,6 +244,7 @@ void Parser::whileStatement() {
 void Parser::letStatement() {
     Name varName = getName();
     emitVariable(varName.getContent(), 100);
+    
 }
 
 
