@@ -203,10 +203,8 @@ void Parser::inputStatement() {
     emitInstruction("jmp " + labelInputLoop);       // And jump back to reading another character
 
     emitInstruction(labelLoopOut + ":");
-    emitInstruction("inc r9");
     emitInstruction("mov " + bufferRef + ", 0");     // Null-terminate the string
-
-
+    emitComment("Input done!");
 }
 
 
@@ -599,17 +597,99 @@ void Parser::boolTerm() {
     // std::cout << "boolterm: " + look.getContent() + ", "; // REMOVE
     // printf("look is %d, %c\n", lookChar, lookChar);    // REMOVE
     emitComment("Starting bool");
-    expression();
-    emitInstruction("push r8");
+
+    bool comparingStrings = false;
+    std::string A, B;
+
+    if (!look.isName) {
+        expression();
+        emitInstruction("push r8");
+    
+    } else {
+        comparingStrings = true;
+        A = look.getContent();
+        getToken();
+    }
+    
+    
     std::string op = mapOperatorToInstruction();
-    expression();
-    emitInstruction("pop r9");
-    emitInstruction("cmp r9, r8");
-    std::string labelFalse = getNewLabel();
-    emitInstruction("mov r8, 0");
-    emitInstruction(op + " " + labelFalse);
-    emitInstruction("mov r8, 1");
-    emitInstruction(labelFalse + ":");
+    
+    if (!look.isName) {
+
+        expression();
+        emitInstruction("pop r9");
+        emitInstruction("cmp r9, r8");
+        std::string labelFalse = getNewLabel();
+        emitInstruction("mov r8, 0");
+        emitInstruction(op + " " + labelFalse);
+        emitInstruction("mov r8, 1");
+        emitInstruction(labelFalse + ":");
+
+    } else {
+        B = look.getContent();
+        getToken();
+    }
+    
+    if (comparingStrings) {
+            std::string loopStart = getNewLabel();
+            std::string loopEnd = getNewLabel();
+            std::string loopEndFalse = getNewLabel();
+            std::string loopEndTrue  = getNewLabel();
+            
+            std::string onEquality = "0";
+            std::string onFalse = "1";
+
+            // if (op == "!=") {
+            //     onEquality = "0";
+            //     onFalse = "1";
+            // }
+
+            emitInstruction("mov r11, 0"); // Char index  
+            emitInstruction("mov r12, 0"); // Char index            
+            emitInstruction(loopStart + ":");
+
+
+            // Compare characters at R11
+            emitInstruction("mov r8b, byte[" + A + " + r12]");
+            emitInstruction("mov r9b, byte[" + B + " + r12]");
+            
+//            emitInstruction("push r8b");
+            emitInstruction("cmp r9b, r8b");
+
+            emitInstruction("jne " + loopEndFalse);
+
+
+            // emitLine();
+            // emitInstruction("mov dil, 81");
+            // emitInstruction("call PrintASCII");            
+            // emitLine();
+            
+            // Check if either is null -> if so, jump out to true
+            // Both are null at this point
+            emitInstruction("mov r8b, byte[" + A + " + r12]");
+            emitInstruction("cmp r8b, 0");
+            emitInstruction("je " + loopEndTrue);
+            
+            // emitLine();
+            // emitInstruction("mov dil, 82");
+            // emitInstruction("call PrintASCII");            
+            // emitLine();
+            
+            emitInstruction("inc r12");
+            // Return to the beginning of loop
+            emitInstruction("jmp " + loopStart);
+
+            emitInstruction(loopEndFalse + ":");
+            emitInstruction("mov r8, " + onFalse);
+            emitInstruction("jmp " + loopEnd);
+
+            emitInstruction(loopEndTrue + ":");
+            emitInstruction("mov r8, " + onEquality);
+            
+            emitInstruction(loopEnd + ":");
+
+    }
+    
     // R8 is now 0/1 depending on the comparison
 
 

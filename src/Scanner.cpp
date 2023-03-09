@@ -116,8 +116,14 @@ Token Scanner::scan() {
             getChar();
             return Token(">=");
         }
+        if (look == '!') {
+            getChar();
+            getChar();
+            return Token("!=");
+        }
 
     }
+
 
     std::string rtrn = "";
     rtrn.push_back(look);
