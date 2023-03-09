@@ -132,8 +132,6 @@ void Parser::printStatement() {
         std::string varname     = look.getContent();
         std::string loopStart   = getNewLabel();
 
-
-        emitComment("Printing variable;");
         emitInstruction("mov r11, 0");
         
         emitInstruction(loopStart + ":");
@@ -204,7 +202,7 @@ void Parser::inputStatement() {
 
     emitInstruction(labelLoopOut + ":");
     emitInstruction("mov " + bufferRef + ", 0");     // Null-terminate the string
-    emitComment("Input done!");
+
 }
 
 
@@ -596,7 +594,6 @@ void Parser::boolExpression() {
 void Parser::boolTerm() {   
     // std::cout << "boolterm: " + look.getContent() + ", "; // REMOVE
     // printf("look is %d, %c\n", lookChar, lookChar);    // REMOVE
-    emitComment("Starting bool");
 
     bool comparingStrings = false;
     std::string A, B;
@@ -617,12 +614,13 @@ void Parser::boolTerm() {
     if (!look.isName) {
 
         expression();
+        
+        std::string labelFalse = getNewLabel();
         emitInstruction("pop r9");
         emitInstruction("cmp r9, r8");
-        std::string labelFalse = getNewLabel();
-        emitInstruction("mov r8, 0");
-        emitInstruction(op + " " + labelFalse);
         emitInstruction("mov r8, 1");
+        emitInstruction(op + " " + labelFalse);
+        emitInstruction("mov r8, 0");
         emitInstruction(labelFalse + ":");
 
     } else {
@@ -636,51 +634,53 @@ void Parser::boolTerm() {
             std::string loopEndFalse = getNewLabel();
             std::string loopEndTrue  = getNewLabel();
             
-            std::string onEquality = "0";
-            std::string onFalse = "1";
+            std::string onEquality = "1";
+            std::string onInequality = "0";
 
-            // if (op == "!=") {
-            //     onEquality = "0";
-            //     onFalse = "1";
-            // }
+            if (op == "jne" | op == "jg") {
+                onEquality = "0";
+                onInequality = "1";
+            }
 
-            emitInstruction("mov r11, 0"); // Char index  
+
+            emitComment("op is " + op);
+
             emitInstruction("mov r12, 0"); // Char index            
             emitInstruction(loopStart + ":");
-
 
             // Compare characters at R11
             emitInstruction("mov r8b, byte[" + A + " + r12]");
             emitInstruction("mov r9b, byte[" + B + " + r12]");
             
-//            emitInstruction("push r8b");
-            emitInstruction("cmp r9b, r8b");
 
-            emitInstruction("jne " + loopEndFalse);
+            if (op == "je" | op == "jne") {
+                emitInstruction("cmp r8b, r9b");
+                emitInstruction("jne " + loopEndFalse);
+                
+                // Check if either is null -> if so, jump out to true
+                // Both are null at this point
+                emitInstruction("mov r8b, byte[" + A + " + r12]");
+                emitInstruction("cmp r8b, 0");
+                emitInstruction("je " + loopEndTrue);
 
+            } else if(op == "jl" | op =="jg") {
+                emitInstruction("cmp r8b, r9b");
+                emitInstruction("jl " + loopEndTrue);
+                                
+                // Check if either is null -> if so, jump out to false
+                // Both are null at this point
+                emitInstruction("mov r8b, byte[" + A + " + r12]");
+                emitInstruction("cmp r8b, 0");
+                emitInstruction("je " + loopEndFalse);
 
-            // emitLine();
-            // emitInstruction("mov dil, 81");
-            // emitInstruction("call PrintASCII");            
-            // emitLine();
-            
-            // Check if either is null -> if so, jump out to true
-            // Both are null at this point
-            emitInstruction("mov r8b, byte[" + A + " + r12]");
-            emitInstruction("cmp r8b, 0");
-            emitInstruction("je " + loopEndTrue);
-            
-            // emitLine();
-            // emitInstruction("mov dil, 82");
-            // emitInstruction("call PrintASCII");            
-            // emitLine();
-            
+            }                            
             emitInstruction("inc r12");
+
             // Return to the beginning of loop
             emitInstruction("jmp " + loopStart);
 
             emitInstruction(loopEndFalse + ":");
-            emitInstruction("mov r8, " + onFalse);
+            emitInstruction("mov r8, " + onInequality);
             emitInstruction("jmp " + loopEnd);
 
             emitInstruction(loopEndTrue + ":");
@@ -702,46 +702,36 @@ std::string Parser::mapOperatorToInstruction() {
     // TODO: all fails should throw with list of accepted operators
 
     std::string lookOp = look.getContent();
-    // ==
+
     if (lookOp == "==") {
         matchToken("==");
-        return "jne";
-    }
-
-    // != 
-    if (lookOp == "!=") {
-        matchToken("!=");
         return "je";
     }
 
-    // these are sort of backwards, but we use the comparison
-    // to jump in case of FALSE. So we want an operator
-    // that is a negation of the operator specified in the program.
-
-    // >= or >
-    if (lookOp == ">") {
-        matchToken(">");
-        return "jle"; 
+    if (lookOp == "!=") {
+        matchToken("!=");
+        return "jne";
     }
 
+    if (lookOp == ">") {
+        matchToken(">");
+        return "jg"; 
+    }
+    
+    if (lookOp == "<") {
+        matchToken("<");
+        return "jl"; 
+    }
 
     if (lookOp == ">=") {
         matchToken(">=");
-        return "jl";
+        return "jge";
     }
     
-    // <= or <
-    if (lookOp == "<") {
-        matchToken("<");
-        return "jge"; 
-    }
-
-
     if (lookOp == "<=") {
         matchToken("<=");
-        return "jg";
+        return "jle";
     }
-
 
     expected(" ==, !=, >=, <=, <, <, got: " + look.getContent());
     return ""; // Unreachable
