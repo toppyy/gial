@@ -185,34 +185,87 @@ void Parser::inputStatement() {
     
     std::string bufferRef = "byte[" + bufferName + " + r9]";
 
-    if (look.getContent() != "LUGU") {
+    bool integerInput = false;
+    std::string varType = "str";
+    int varSize = 100;
 
-        emitVariable(bufferName, 100, "str");                  // Reserve space for input buffer (100 bytes)
-        
-        emitInstruction("mov r9, 0");                   // Init character count -loop
-        emitInstruction(labelInputLoop + ":");          // Loop to read characters one-by-one from input
-        emitInstruction("mov rax, SYS_READ");           // Specify system call
-        emitInstruction("mov rdi, STDIN");              // Reading from standard input
-        emitInstruction("lea rsi, " + bufferRef);       // Specify address of the space reserved for input
-        emitInstruction("mov rdx, 1");                  // Read one byte (=character) at a time
-        emitInstruction("syscall"); 
-
-        emitInstruction("cmp " + bufferRef + ", LF");   // Is the input character LF?
-        emitInstruction("je " + labelLoopOut);          //  If yes, stop reading by jumping out loop
-        emitInstruction("inc r9");                      //  If no, increment character count
-        emitInstruction("jmp " + labelInputLoop);       // And jump back to reading another character
-
-        emitInstruction(labelLoopOut + ":");
-        emitInstruction("mov " + bufferRef + ", 0");     // Null-terminate the string
-        return;    
-
-    } else {
-        
-
+    if (look.getContent() == "LUGU") {
+        integerInput = true;
+        varType = "int";
+        varSize = 8;
+        getToken();
     }
 
-    error("Expected a name or a number! Got: " + look.content);
+    if (integerInput) {
+        // For converting the ASCII-representation to int
+        emitInstruction("mov r8, 0");   // Intermediate result
+        emitInstruction("push r8");
+    }
 
+    emitVariable(bufferName, varSize, varType);     // Reserve space for input buffer (100 bytes)
+    
+    emitInstruction("mov r9, 0");                   // Init character count -loop
+    emitInstruction(labelInputLoop + ":");          // Loop to read characters one-by-one from input
+    emitInstruction("mov rax, SYS_READ");           // Specify system call
+    emitInstruction("mov rdi, STDIN");              // Reading from standard input
+    emitInstruction("lea rsi, " + bufferRef);       // Specify address of the space reserved for input
+    emitInstruction("mov rdx, 1");                  // Read one byte (=character) at a time
+    emitInstruction("syscall"); 
+
+
+
+    emitInstruction("cmp " + bufferRef + ", LF");   // Is the input character LF?
+    emitInstruction("je " + labelLoopOut);          //  If yes, stop reading by jumping out loop
+
+    if (integerInput) {
+        // Convert to integer by adding to previous number and multiplying by 10
+        emitInstruction("pop r8");
+        emitInstruction("mov rax, r8");     // The other operand is now in rax
+        emitInstruction("mov r11, 10");
+        emitInstruction("mul r11");    // (signed) multiplication
+        emitInstruction("mov r8, rax");   
+
+        emitInstruction("mov r12, 0");
+        emitInstruction("mov r12b, " + bufferRef);
+        emitInstruction("sub r12b, 48");     // 48 = 0 in ASCIi
+
+        emitInstruction("add r8, r12");
+        emitInstruction("push r8");
+        
+    }
+
+    emitInstruction("inc r9");                      //  If no, increment character count
+    emitInstruction("jmp " + labelInputLoop);       // And jump back to reading another character
+
+    emitInstruction(labelLoopOut + ":");
+    emitInstruction("mov " + bufferRef + ", 0");     // Null-terminate the string
+
+    if (!integerInput) {
+        // We're done with a string
+        return;
+    }
+    emitInstruction("mov qword[" + bufferName + "], r8");
+    
+    // Convert the ASCII-representation to int
+    /*
+    emitInstruction("mov r8, 0");   // Result
+    emitInstruction("mov r9, 0");   // Counter
+
+    // Loop again
+    std::string labelIntLoopStart = getNewLabel();
+    std::string labelIntLoopEnd   = getNewLabel();
+
+    emitInstruction(labelIntLoopStart + ":");         
+
+
+    emitInstruction("cmp " + bufferRef + ", LF");       // Is the input character LF?
+    emitInstruction("cmp " + bufferRef + ", LF");       // Is the input character LF?
+    emitInstruction("je " + labelIntLoopEnd);           //  If yes, stop reading by jumping out loop
+    emitInstruction("inc r9");                          //  If no, increment character count
+    emitInstruction("jmp " + labelIntLoopStart);        // And jump back to reading another character
+
+    */
+ 
 }
 
 
@@ -499,14 +552,15 @@ void Parser::assignment(Name name) {
 
     matchToken("=");
 
+    std::string varType = "str";
+
+    if (look.isNumber) {
+        varType = "int";
+    }
 
     expression();
 
-    // std::cout << "assignemnt: " + name.getContent() + ", "; // REMOVE
-    // printf("look is %d, %c\n", lookChar, lookChar);    // REMOVE
-
-
-    emitVariable(name.getContent());
+    emitVariable(name.getContent(), 8, varType);
 
     // Instruction to assign r8 to variable
     emitInstruction( "mov qword[" + name.getContent() + "], r8" );
@@ -608,14 +662,15 @@ void Parser::boolTerm() {
     bool comparingStrings = false;
     std::string A, B;
 
-    if (!look.isName) {
-        expression();
-        emitInstruction("push r8");
     
-    } else {
+    if (look.isName & program.isStringVariable(look.getContent())) {
         comparingStrings = true;
         A = look.getContent();
         getToken();
+    } else {
+        expression();
+        emitInstruction("push r8");
+    
     }
     
     
