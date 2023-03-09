@@ -655,9 +655,9 @@ void Parser::boolTerm() {
     std::string op = mapOperatorToInstruction();
     
     if (!look.isName) {
-        emitComment("parsing value!");
+        // emitComment("parsing value!");
         expression();
-        emitComment("entering cmp value!");
+       //  emitComment("entering cmp value!");
         std::string labelFalse = getNewLabel();
         emitInstruction("pop r9");
         emitInstruction("cmp r9, r8");
