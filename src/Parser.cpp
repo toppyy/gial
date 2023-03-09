@@ -654,10 +654,15 @@ void Parser::boolTerm() {
     
     std::string op = mapOperatorToInstruction();
     
-    if (!look.isName) {
-        // emitComment("parsing value!");
+    if (look.isName & program.isStringVariable(look.getContent())) {
+        B = look.getContent();
+        getToken();
+
+
+    } else {
+        emitComment("parsing value!");
         expression();
-       //  emitComment("entering cmp value!");
+         emitComment("entering cmp value!");
         std::string labelFalse = getNewLabel();
         emitInstruction("pop r9");
         emitInstruction("cmp r9, r8");
@@ -666,9 +671,6 @@ void Parser::boolTerm() {
         emitInstruction("mov r8, 0");
         emitInstruction(labelFalse + ":");
 
-    } else {
-        B = look.getContent();
-        getToken();
     }
     
     if (comparingStrings) {

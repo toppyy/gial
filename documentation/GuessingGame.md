@@ -3,23 +3,24 @@
 
 A classic beginner programming exercise, the guessing game, implemented in giäl:
 
-        SAN NY 'What year was Rauma founded?'
+    SAN NY 'What year was Rauma founded?'
+    SAN JOTTAI
+    SAN SNÄÄ answer LUGU
+    correctAnswer = 1442
+
+    GUNNES (answer != correctAnswer)
+        GUHA (answer < correctAnswer) 
+            SAN NY 'Try a bigger number!'
+        NYLOPPUS
+        GUHA (answer > correctAnswer) 
+            SAN NY 'Try a smaller number!'
+        NYLOPPUS
         SAN JOTTAI
         SAN SNÄÄ answer LUGU
-
-        GUNNES (answer != 1442)
-            GUHA (answer < 1442) 
-                SAN NY 'Try a bigger number!'
-            NYLOPPUS
-            GUHA (answer > 1442) 
-                SAN NY 'Try a smaller number!'
-            NYLOPPUS
-            SAN JOTTAI
-            SAN SNÄÄ answer LUGU
-        NYLOPPUS
-        SAN NY 'victory!'
-        SAN JOTTAI
-        SAN JOTTAI
+    NYLOPPUS
+    SAN NY 'victory!'
+    SAN JOTTAI
+    SAN JOTTAI
 
 
 Translates to this lengthy piece of assembly:
