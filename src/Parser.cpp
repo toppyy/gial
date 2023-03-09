@@ -245,27 +245,7 @@ void Parser::inputStatement() {
         return;
     }
     emitInstruction("mov qword[" + bufferName + "], r8");
-    
-    // Convert the ASCII-representation to int
-    /*
-    emitInstruction("mov r8, 0");   // Result
-    emitInstruction("mov r9, 0");   // Counter
-
-    // Loop again
-    std::string labelIntLoopStart = getNewLabel();
-    std::string labelIntLoopEnd   = getNewLabel();
-
-    emitInstruction(labelIntLoopStart + ":");         
-
-
-    emitInstruction("cmp " + bufferRef + ", LF");       // Is the input character LF?
-    emitInstruction("cmp " + bufferRef + ", LF");       // Is the input character LF?
-    emitInstruction("je " + labelIntLoopEnd);           //  If yes, stop reading by jumping out loop
-    emitInstruction("inc r9");                          //  If no, increment character count
-    emitInstruction("jmp " + labelIntLoopStart);        // And jump back to reading another character
-
-    */
- 
+     
 }
 
 
@@ -561,7 +541,7 @@ void Parser::assignment(Name name) {
     expression();
 
     emitVariable(name.getContent(), 8, varType);
-
+    emitComment("assignig value!");
     // Instruction to assign r8 to variable
     emitInstruction( "mov qword[" + name.getContent() + "], r8" );
 }
@@ -656,9 +636,7 @@ void Parser::boolExpression() {
 }
 
 void Parser::boolTerm() {   
-    // std::cout << "boolterm: " + look.getContent() + ", "; // REMOVE
-    // printf("look is %d, %c\n", lookChar, lookChar);    // REMOVE
-
+    
     bool comparingStrings = false;
     std::string A, B;
 
@@ -677,9 +655,9 @@ void Parser::boolTerm() {
     std::string op = mapOperatorToInstruction();
     
     if (!look.isName) {
-
+        emitComment("parsing value!");
         expression();
-        
+        emitComment("entering cmp value!");
         std::string labelFalse = getNewLabel();
         emitInstruction("pop r9");
         emitInstruction("cmp r9, r8");
