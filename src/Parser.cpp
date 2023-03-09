@@ -185,23 +185,33 @@ void Parser::inputStatement() {
     
     std::string bufferRef = "byte[" + bufferName + " + r9]";
 
-    emitVariable(bufferName, 100);                  // Reserve space for input buffer (100 bytes)
-    
-    emitInstruction("mov r9, 0");                   // Init character count -loop
-    emitInstruction(labelInputLoop + ":");          // Loop to read characters one-by-one from input
-    emitInstruction("mov rax, SYS_READ");           // Specify system call
-    emitInstruction("mov rdi, STDIN");              // Reading from standard input
-    emitInstruction("lea rsi, " + bufferRef);       // Specify address of the space reserved for input
-    emitInstruction("mov rdx, 1");                  // Read one byte (=character) at a time
-    emitInstruction("syscall"); 
+    if (look.getContent() != "LUGU") {
 
-    emitInstruction("cmp " + bufferRef + ", LF");   // Is the input character LF?
-    emitInstruction("je " + labelLoopOut);          //  If yes, stop reading by jumping out loop
-    emitInstruction("inc r9");                      //  If no, increment character count
-    emitInstruction("jmp " + labelInputLoop);       // And jump back to reading another character
+        emitVariable(bufferName, 100, "str");                  // Reserve space for input buffer (100 bytes)
+        
+        emitInstruction("mov r9, 0");                   // Init character count -loop
+        emitInstruction(labelInputLoop + ":");          // Loop to read characters one-by-one from input
+        emitInstruction("mov rax, SYS_READ");           // Specify system call
+        emitInstruction("mov rdi, STDIN");              // Reading from standard input
+        emitInstruction("lea rsi, " + bufferRef);       // Specify address of the space reserved for input
+        emitInstruction("mov rdx, 1");                  // Read one byte (=character) at a time
+        emitInstruction("syscall"); 
 
-    emitInstruction(labelLoopOut + ":");
-    emitInstruction("mov " + bufferRef + ", 0");     // Null-terminate the string
+        emitInstruction("cmp " + bufferRef + ", LF");   // Is the input character LF?
+        emitInstruction("je " + labelLoopOut);          //  If yes, stop reading by jumping out loop
+        emitInstruction("inc r9");                      //  If no, increment character count
+        emitInstruction("jmp " + labelInputLoop);       // And jump back to reading another character
+
+        emitInstruction(labelLoopOut + ":");
+        emitInstruction("mov " + bufferRef + ", 0");     // Null-terminate the string
+        return;    
+
+    } else {
+        
+
+    }
+
+    error("Expected a name or a number! Got: " + look.content);
 
 }
 
@@ -259,7 +269,7 @@ void Parser::letStatement() {
     }
     emitInstruction("mov byte[" + varName + " + " + std::to_string(bytesNeeded) + "], 0" ); // NULL-termination
     getToken();
-    emitVariable(varName, bytesNeeded + 1);
+    emitVariable(varName, bytesNeeded + 1, "str");
 }
 
 
@@ -310,9 +320,9 @@ void Parser::emitInstruction(std::string out) {
     program.addInstruction(out);
 }
 
-void Parser::emitVariable(std::string out, int bytes = 1) {
+void Parser::emitVariable(std::string out, int bytes = 1, std::string varType = "str") {
     if (!program.inVariables(out)) {
-            program.addVariable(out, bytes, "str");
+            program.addVariable(out, bytes, varType);
     }
     
 }
