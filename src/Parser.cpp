@@ -102,7 +102,6 @@ void Parser::block() {
 
         expression();
     }
-    // std::cout << "exited block with " + look.getContent() + "\n"; // REMOVE
 }
 
 /* ---------- STATEMENTS ----------------------------------------------------------------------------------------------------------------  */
@@ -437,8 +436,6 @@ void Parser::expression() {
             minus();
         }
     }
-    // std::cout << "Returning expression \\w content " + look.getContent() + ", ";
-    // printf(" lookchar %d, %c\n", lookChar, lookChar); // REMOVE
 
 }   
 
@@ -457,8 +454,7 @@ void Parser::term() {
 }
 
 void Parser::factor() {
-    // printf("Factor %d, %c\n", lookChar, lookChar); // REMOVE
-    
+   
     // If an opening parenthesis is met, start an another expression recursively
     // This works because nothing is emitted before the 'inner most' parenthesis have been met
     if (lookChar == '(') {
@@ -500,9 +496,6 @@ void Parser::ident() {
 
     Name name = getName();
     std::string instr;
-
-    // std::cout << "ident: " + name.getContent() + ", "; // REMOVE
-    // printf("look is %d, %c\n", lookChar, lookChar);    // REMOVE
 
     // check if the name is a name of a function (not a variable)
     if (lookChar == '(') {
