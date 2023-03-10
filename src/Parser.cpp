@@ -338,9 +338,8 @@ void Parser::repeatStatement() {
 
 
 std::string Parser::getNewLabel() {
-    labelCount += 2;
+    labelCount += 1;
     return "LBL_" + std::to_string(labelCount);
-
 }
 
 void Parser::emitInstruction(std::string out) {
