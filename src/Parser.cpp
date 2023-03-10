@@ -726,44 +726,26 @@ void Parser::boolTerm() {
 
 }
 
-
-
-
 std::string Parser::mapOperatorToInstruction() {
-    // TODO: all fails should throw with list of accepted operators
 
     std::string lookOp = look.getContent();
 
-    if (lookOp == "==") {
-        matchToken("==");
-        return "je";
+    std::unordered_map<std::string,std::string> operatorToInstruction {
+        {"==", "je"},
+        {"!=", "jne"},
+        {">", "jg"},
+        {"<", "jl"},
+        {">=", "jge"},
+        {"<=", "jle"}
+    };
+
+
+    if (operatorToInstruction.count(lookOp) == 0) {
+            expected(" ==, !=, >=, <=, <, <, got: " + lookOp);
     }
 
-    if (lookOp == "!=") {
-        matchToken("!=");
-        return "jne";
-    }
+    matchToken(lookOp);
+    auto search = operatorToInstruction.find(lookOp);
 
-    if (lookOp == ">") {
-        matchToken(">");
-        return "jg"; 
-    }
-    
-    if (lookOp == "<") {
-        matchToken("<");
-        return "jl"; 
-    }
-
-    if (lookOp == ">=") {
-        matchToken(">=");
-        return "jge";
-    }
-    
-    if (lookOp == "<=") {
-        matchToken("<=");
-        return "jle";
-    }
-
-    expected(" ==, !=, >=, <=, <, <, got: " + look.getContent());
-    return ""; // Unreachable
+    return search->second;
 }
