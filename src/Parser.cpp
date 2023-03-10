@@ -112,14 +112,9 @@ void Parser::printStatement() {
     if (look.isString) {
         // Is a string constant
         std::string instr;
-        for (auto c: look.getContent()) {
-            // 
-            instr = "mov rdi, '";
-            instr.push_back(c);
-            instr += "'";
-            emitInstruction(instr);
-            emitInstruction("call PrintASCII");            
-        }
+        std::string label = getNewLabel();
+        emitInstruction("printBytes " + label + ", 0, " + std::to_string(look.length()));
+        emitConstant(label, look.getContent(), "str");
 
         getToken();
         return;
@@ -360,6 +355,10 @@ void Parser::emitVariable(std::string out, int bytes = 1, std::string varType = 
     
 }
 
+void Parser::emitConstant(std::string out, std::string value, std::string varType = "str") {
+    program.addConstant(out, value, varType);
+    
+}
 
 
 
@@ -541,7 +540,6 @@ void Parser::assignment(Name name) {
     expression();
 
     emitVariable(name.getContent(), 8, varType);
-    emitComment("assignig value!");
     // Instruction to assign r8 to variable
     emitInstruction( "mov qword[" + name.getContent() + "], r8" );
 }
@@ -660,9 +658,7 @@ void Parser::boolTerm() {
 
 
     } else {
-        emitComment("parsing value!");
         expression();
-         emitComment("entering cmp value!");
         std::string labelFalse = getNewLabel();
         emitInstruction("pop r9");
         emitInstruction("cmp r9, r8");
@@ -686,9 +682,6 @@ void Parser::boolTerm() {
                 onEquality = "0";
                 onInequality = "1";
             }
-
-
-            emitComment("op is " + op);
 
             emitInstruction("mov r12, 0"); // Char index            
             emitInstruction(loopStart + ":");
