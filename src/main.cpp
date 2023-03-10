@@ -3,6 +3,7 @@
 #include <fstream> 
 #include <string>
 #include "./include/Parser.h"
+#include "./include/Scanner.h"
 #include "./include/Program.h"
 
 
@@ -19,6 +20,8 @@ char handleScandics(char cur, char prev) {
 
 
 int main(int argc, char *argv[]) {
+
+
 
     // The first argument is the path to the file containing the sourcecode to compile
     char* filename;
@@ -62,15 +65,34 @@ int main(int argc, char *argv[]) {
     // Close the file
     fclose(pFile);
 
+    // TODO list keywords somewhere approriate
+    std::set<std::string> keywords;
+    keywords.insert("GUNNES");
+    keywords.insert("SANAMBATK");
+    keywords.insert("GUHA");
+    keywords.insert("OLGO");
+    keywords.insert("TOIST");
+    keywords.insert("SAN NY");
+    keywords.insert("SAN JOTTAI");
+    keywords.insert("SAN SNAA");
+    keywords.insert("SAN LUGU");
+
     // Init parser and result data structure
-    Program pr;
-    Parser prsr = Parser(content, pr);
+    Program pr = Program();
+    Scanner scnr = Scanner(content, keywords);
+    scnr.init();
+
+    // for (auto t: scnr.getTokens()) { // REMOVE
+    //     std::cout << "token " << t.getContent() << ".\n";
+    // }
+
+    Parser prsr = Parser(scnr.getTokens(), keywords);
  
-    // Do the parsing
+    // // // Do the parsing
     prsr.init();
     
-    // Build the program
-    pr.buildProgram();
+    // // // Build the program
+    prsr.buildProgram();
 
     // Finished  
     std::cout << "\n\n";

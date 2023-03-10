@@ -1,37 +1,39 @@
 #pragma once
 #include<string>
+#include <bits/stdc++.h>
 #include<vector>
 #include<iostream>
 #include<exception>
 #include "./Program.h"
+#include "./Scanner.h"
+#include "./Token.h"
 
 class Parser {
     public:
-        Parser(std::string p_content, Program &p_program);
+        Parser(std::vector<Token> p_tokens, std::set<std::string> p_keywords);
         void init();
+        void buildProgram();
+        void mapStatementToFunction(std::string statement);
+
         void error(std::string error_message);
         void expected(std::string expected_thing);
-        void getChar();
-        void match(char x);
-        void matchString(std::string str);
-        bool isAlpha(char x);
-        bool isAlphaNumeric(char x);
-        bool isDigit(char x);
-        bool isAddOp(char x);
-        bool isWhite(char x);
-        bool isEOL(char x);
-        void skipWhite();
-        void skipEOL();
-        void block();
-        void statement();
-        std::string logoperator();
+        
+
+        void matchEndStatement();
+        void matchToken(std::string expected_content);
+        void getToken();
+
         std::string getNewLabel();
-        std::string lookaheadToken();
-        bool isNextToken(std::string keyword);
-        std::string getName();
-        std::string getNum();
-        void emitVariable(std::string out, int bytes);
+
+        void emitComment(std::string comment);
+        void emitLine();
         void emitInstruction(std::string out);
+        void emitVariable(std::string out, int bytes, std::string varType);
+
+        void block();
+
+        // Parsing expressions --------
+
         void term();
         void add();
         void ident();
@@ -41,25 +43,42 @@ class Parser {
         void factor();
         void divide();
         void multiply();
-        void assignment(std::string name);
-        void ifStatement();
-        void repeatStatement();
-        void whileStatement();
-        void printStatement();
-        void inputStatement();
-        void printIntStatement();
-        void printLine();
+        void assignment(Name name);
+        bool isDigit(char x);
+        bool isAlpha(char x);
+        bool isAlphaNumeric(char x);
+        bool isAddOp(char x);
+        Name getName();
+
+        // Parsing boolean expressions ---------
+
+        std::string mapOperatorToInstruction();
         void boolExpression();
         void boolTerm();
         void relOp();
-        void asmComment(std::string comment);
+
+        // Statements ---------------------------
+
+        void printStatement();
+        void printIntStatement();
+        void inputStatement();
+        void ifStatement();
+        void whileStatement();
+        
+        void letStatement();
+        void repeatStatement();
+        
+        
 
     private:
-        std::string content;
-        char look;
+        std::vector<Token> tokens;
+        Token look;
+        char lookChar;
         int  labelCount;
         int  cursor;
-        int  cursor_max;
-        Program &program;
+        int  token_count;
+        Program program;
+        std::set<std::string> keywords; 
+
 
 };
