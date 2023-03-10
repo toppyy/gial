@@ -11,14 +11,13 @@ A classic beginner programming exercise, the guessing game, implemented in giäl
     GUNNES (answer != correctAnswer)
         GUHA (answer < correctAnswer) 
             SAN NY 'Try a bigger number!'
-        NYLOPPUS
-        GUHA (answer > correctAnswer) 
+        MUUTES
             SAN NY 'Try a smaller number!'
         NYLOPPUS
         SAN JOTTAI
         SAN SNÄÄ answer LUGU
     NYLOPPUS
-    SAN NY 'victory!'
+    SAN NY 'Victory!'
     SAN JOTTAI
     SAN JOTTAI
 
@@ -44,27 +43,27 @@ Translates to this lengthy piece of assembly:
         correctAnswer resq 8
         answer resq 8
     section .data
-        LBL_30 db "victory!"
-        LBL_24 db "Try a smaller number!"
-        LBL_18 db "Try a bigger number!"
-        LBL_2 db "What year was Rauma founded?"
+        LBL_14 db "Victory!"
+        LBL_11 db "Try a smaller number!"
+        LBL_10 db "Try a bigger number!"
+        LBL_1 db "What year was Rauma founded?"
     section .text
     global _start
     _start:
-        printBytes LBL_2, 0, 28
+        printBytes LBL_1, 0, 28
         mov dil, LF
         call PrintASCII
         mov r8, 0
         push r8
         mov r9, 0
-        LBL_4:
+        LBL_2:
         mov rax, SYS_READ
         mov rdi, STDIN
         lea rsi, byte[answer + r9]
         mov rdx, 1
         syscall
         cmp byte[answer + r9], LF
-        je LBL_6
+        je LBL_3
         pop r8
         mov rax, r8
         mov r11, 10
@@ -76,64 +75,54 @@ Translates to this lengthy piece of assembly:
         add r8, r12
         push r8
         inc r9
-        jmp LBL_4
-        LBL_6:
+        jmp LBL_2
+        LBL_3:
         mov byte[answer + r9], 0
         mov qword[answer], r8
         mov r8, 1442
         mov qword[correctAnswer], r8
         mov r8, qword[correctAnswer]
-        LBL_10:
+        LBL_5:
         mov r8, qword[answer]
         push r8
         mov r8, qword[correctAnswer]
         pop r9
         cmp r9, r8
         mov r8, 1
-        jne LBL_12
+        jne LBL_6
         mov r8, 0
-        LBL_12:
+        LBL_6:
         cmp r8, 1
-        jne LBL_8
+        jne LBL_4
         mov r8, qword[answer]
         push r8
         mov r8, qword[correctAnswer]
         pop r9
         cmp r9, r8
         mov r8, 1
-        jl LBL_16
+        jl LBL_9
         mov r8, 0
-        LBL_16:
+        LBL_9:
         cmp r8, 1
-        jne LBL_14
-        printBytes LBL_18, 0, 20
-        LBL_14:
-        mov r8, qword[answer]
-        push r8
-        mov r8, qword[correctAnswer]
-        pop r9
-        cmp r9, r8
-        mov r8, 1
-        jg LBL_22
-        mov r8, 0
-        LBL_22:
-        cmp r8, 1
-        jne LBL_20
-        printBytes LBL_24, 0, 21
-        LBL_20:
+        jne LBL_7
+        printBytes LBL_10, 0, 20
+        jmp LBL_8
+        LBL_7:
+        printBytes LBL_11, 0, 21
+        LBL_8:
         mov dil, LF
         call PrintASCII
         mov r8, 0
         push r8
         mov r9, 0
-        LBL_26:
+        LBL_12:
         mov rax, SYS_READ
         mov rdi, STDIN
         lea rsi, byte[answer + r9]
         mov rdx, 1
         syscall
         cmp byte[answer + r9], LF
-        je LBL_28
+        je LBL_13
         pop r8
         mov rax, r8
         mov r11, 10
@@ -145,13 +134,13 @@ Translates to this lengthy piece of assembly:
         add r8, r12
         push r8
         inc r9
-        jmp LBL_26
-        LBL_28:
+        jmp LBL_12
+        LBL_13:
         mov byte[answer + r9], 0
         mov qword[answer], r8
-        jmp LBL_10
-        LBL_8:
-        printBytes LBL_30, 0, 8
+        jmp LBL_5
+        LBL_4:
+        printBytes LBL_14, 0, 8
         mov dil, LF
         call PrintASCII
 
@@ -159,7 +148,5 @@ Translates to this lengthy piece of assembly:
         mov rax, 60
         xor rdi, 0
         syscall
-
-
 
 

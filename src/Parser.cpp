@@ -85,6 +85,7 @@ void Parser::block() {
     while (
         look.getContent() != "NYLOPPUS" &
         look.getContent() != "EOF" &
+        look.getContent() != "MUUTES" &
         cursor < (token_count-1)
     ) {
         nextToken = look.getContent();
@@ -245,14 +246,26 @@ void Parser::inputStatement() {
 
 void Parser::ifStatement() {
     std::string labelFalse = getNewLabel();
+    std::string labelOut   = getNewLabel();
     // Sets r8 to 0/1 depending on the evaluation
     boolExpression();
 
     // Compare it and determine whether to run 'block'
     emitInstruction("cmp r8, 1");
     emitInstruction("jne " + labelFalse); // jump to 'labelFalse' if evaluates to false
+
     block();
+    
+    emitInstruction("jmp " + labelOut);
     emitInstruction(labelFalse + ":");
+
+    if (look.getContent() == "MUUTES") {
+        getToken();
+        block();
+    }
+    
+    emitInstruction(labelOut + ":");
+    
     matchEndStatement();
 }
 
