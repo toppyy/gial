@@ -369,7 +369,7 @@ void Parser::forStatement() {
 
     Token name = getName();
     
-    assignment(name);
+    assignment(name, "qword");
     matchToken("TOHO");
     expectNumber();
 
@@ -544,6 +544,14 @@ void Parser::factor() {
     
     std::string instr;
 
+    if (look.isString & look.length() == 1) { // TODO: Should be checked in bool term
+        instr = "mov r8, '" + look + "'";
+        emitInstruction(instr);
+        getToken();
+        return;
+    }
+
+
     if (isAlpha(lookChar)) {
         ident(); // Checks if it's a function or a variable name
         return;
@@ -571,7 +579,6 @@ void Parser::factor() {
 
 
 void Parser::ident() {
-
     Token name = getName();
     std::string instr;
 
@@ -589,8 +596,28 @@ void Parser::ident() {
         matchToken("[");
         expression();
         matchToken("]");
+        
+        if (look == "=") {
+            // TODO: assigment should support this
+            emitInstruction("push r8");
+            matchToken("=");
+            std::string varType = "str";
+
+            if (look.isNumber) {
+                varType = "int";
+            }
+
+            expression();
+
+            std::string reg = "r8b";
+            emitInstruction("pop r9");
+            emitVariable(name, 8, varType);
+            emitInstruction( "mov byte[ " + name + " + r9], " + reg);
+            return;
+        }
         emitInstruction("mov r9, r8");
         emitInstruction("mov r8b, byte[" + name + " + r9]");
+        
         return;
     }
 
@@ -600,7 +627,7 @@ void Parser::ident() {
     if (lookChar == '=') {
         // Check if this is actually a condition, not an assignment. If a condition, do nothing.
         if ( look != "==") {
-            assignment(name);
+            assignment(name, "qword");
         }
         
     }
@@ -609,7 +636,7 @@ void Parser::ident() {
     return;
 }
 
-void Parser::assignment(Token name) {
+void Parser::assignment(Token name,std::string target) {
 
     matchToken("=");
 
@@ -621,9 +648,13 @@ void Parser::assignment(Token name) {
 
     expression();
 
+    std::string reg = "r8";
+    if (target == "byte") {
+        reg = "r8b";
+    }
+
     emitVariable(name, 8, varType);
-    // Instruction to assign r8 to variable
-    emitInstruction( "mov qword[" + name + "], r8" );
+    emitInstruction( "mov " + target + "[ " + name + "], " + reg);
 }
 
 bool Parser::isAddOp(char x) {
@@ -793,11 +824,14 @@ void Parser::boolTerm() {
     std::string labelFalse = getNewLabel();
     
     // If the first token in the boolean expression is a string, expect the other is also
-    if (look.isName & program.isStringVariable(look.getContent())) {
+    if (
+        look.isName &
+        program.isStringVariable(look.getContent()) &
+        peek() != "[" // If it's a index, proceed
+        ) {
         boolStringComparison();
         return;    
     }
-
     expression();
     emitInstruction("push r8");
     
