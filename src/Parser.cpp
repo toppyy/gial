@@ -638,104 +638,107 @@ void Parser::boolExpression() {
     }
 }
 
-void Parser::boolTerm() {   
-    
-    bool comparingStrings = false;
-    std::string A, B;
+void Parser::boolStringComparison() {
 
-    
-    if (look.isName & program.isStringVariable(look.getContent())) {
-        comparingStrings = true;
-        A = look.getContent();
-        getToken();
-    } else {
-        expression();
-        emitInstruction("push r8");
-    
-    }
-    
+    std::string A = look.getContent();
+    getToken();
     
     std::string op = mapOperatorToInstruction();
     
+    std::string B = look.getContent();
+
+    if (!program.isStringVariable(B)) {
+        error("Expected a string, got: " + B);
+    }
+    getToken();
+
+    std::string loopStart = getNewLabel();
+    std::string loopEnd = getNewLabel();
+    std::string loopEndFalse = getNewLabel();
+    std::string loopEndTrue  = getNewLabel();
+
+    std::string onEquality = "1";
+    std::string onInequality = "0";
+
+    if (op == "jne" | op == "jg") {
+        onEquality = "0";
+        onInequality = "1";
+    }
+
+    emitInstruction("mov r12, 0"); // Char index            
+    emitInstruction(loopStart + ":");
+
+    // Compare characters at R11
+    emitInstruction("mov r8b, byte[" + A + " + r12]");
+    emitInstruction("mov r9b, byte[" + B + " + r12]");
+
+
+    if (op == "je" | op == "jne") {
+        emitInstruction("cmp r8b, r9b");
+        emitInstruction("jne " + loopEndFalse);
+        
+        // Check if either is null -> if so, jump out to true
+        // Both are null at this point
+        emitInstruction("mov r8b, byte[" + A + " + r12]");
+        emitInstruction("cmp r8b, 0");
+        emitInstruction("je " + loopEndTrue);
+
+    } else if(op == "jl" | op =="jg") {
+        emitInstruction("cmp r8b, r9b");
+        emitInstruction("jl " + loopEndTrue);
+                        
+        // Check if either is null -> if so, jump out to false
+        // Both are null at this point
+        emitInstruction("mov r8b, byte[" + A + " + r12]");
+        emitInstruction("cmp r8b, 0");
+        emitInstruction("je " + loopEndFalse);
+
+    }                            
+    emitInstruction("inc r12");
+
+    // Return to the beginning of loop
+    emitInstruction("jmp " + loopStart);
+
+    emitInstruction(loopEndFalse + ":");
+    emitInstruction("mov r8, " + onInequality);
+    emitInstruction("jmp " + loopEnd);
+
+    emitInstruction(loopEndTrue + ":");
+    emitInstruction("mov r8, " + onEquality);
+
+    emitInstruction(loopEnd + ":");
+    
+
+}   
+
+void Parser::boolTerm() {   
+    // When return R8 must be 0/1 depending on the comparison
+    std::string labelFalse = getNewLabel();
+    
+    // If the first token in the boolean expression is a string, expect the other is also
     if (look.isName & program.isStringVariable(look.getContent())) {
-        B = look.getContent();
-        getToken();
+        boolStringComparison();
+        return;    
+    }
 
-
-    } else {
-        expression();
-        std::string labelFalse = getNewLabel();
-        emitInstruction("pop r9");
-        emitInstruction("cmp r9, r8");
-        emitInstruction("mov r8, 1");
-        emitInstruction(op + " " + labelFalse);
-        emitInstruction("mov r8, 0");
-        emitInstruction(labelFalse + ":");
-
+    expression();
+    emitInstruction("push r8");
+    
+    std::string op = mapOperatorToInstruction();
+    
+    if (program.isStringVariable(look.getContent())) {
+        error("Mismatch: can't compare to type string with content: " + look.getContent() );
     }
     
-    if (comparingStrings) {
-            std::string loopStart = getNewLabel();
-            std::string loopEnd = getNewLabel();
-            std::string loopEndFalse = getNewLabel();
-            std::string loopEndTrue  = getNewLabel();
-            
-            std::string onEquality = "1";
-            std::string onInequality = "0";
-
-            if (op == "jne" | op == "jg") {
-                onEquality = "0";
-                onInequality = "1";
-            }
-
-            emitInstruction("mov r12, 0"); // Char index            
-            emitInstruction(loopStart + ":");
-
-            // Compare characters at R11
-            emitInstruction("mov r8b, byte[" + A + " + r12]");
-            emitInstruction("mov r9b, byte[" + B + " + r12]");
-            
-
-            if (op == "je" | op == "jne") {
-                emitInstruction("cmp r8b, r9b");
-                emitInstruction("jne " + loopEndFalse);
-                
-                // Check if either is null -> if so, jump out to true
-                // Both are null at this point
-                emitInstruction("mov r8b, byte[" + A + " + r12]");
-                emitInstruction("cmp r8b, 0");
-                emitInstruction("je " + loopEndTrue);
-
-            } else if(op == "jl" | op =="jg") {
-                emitInstruction("cmp r8b, r9b");
-                emitInstruction("jl " + loopEndTrue);
-                                
-                // Check if either is null -> if so, jump out to false
-                // Both are null at this point
-                emitInstruction("mov r8b, byte[" + A + " + r12]");
-                emitInstruction("cmp r8b, 0");
-                emitInstruction("je " + loopEndFalse);
-
-            }                            
-            emitInstruction("inc r12");
-
-            // Return to the beginning of loop
-            emitInstruction("jmp " + loopStart);
-
-            emitInstruction(loopEndFalse + ":");
-            emitInstruction("mov r8, " + onInequality);
-            emitInstruction("jmp " + loopEnd);
-
-            emitInstruction(loopEndTrue + ":");
-            emitInstruction("mov r8, " + onEquality);
-            
-            emitInstruction(loopEnd + ":");
-
-    }
+    expression();
     
-    // R8 is now 0/1 depending on the comparison
-
-
+    emitInstruction("pop r9");
+    emitInstruction("cmp r9, r8");
+    emitInstruction("mov r8, 1");
+    emitInstruction(op + " " + labelFalse);
+    emitInstruction("mov r8, 0");
+    emitInstruction(labelFalse + ":");
+    
 }
 
 std::string Parser::mapOperatorToInstruction() {

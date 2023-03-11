@@ -56,6 +56,7 @@ class Parser {
         std::string mapOperatorToInstruction();
         void boolExpression();
         void boolTerm();
+        void boolStringComparison();
         void relOp();
 
         // Statements ---------------------------
