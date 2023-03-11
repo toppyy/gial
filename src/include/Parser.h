@@ -22,6 +22,7 @@ class Parser {
         void matchEndStatement();
         void matchToken(std::string expected_content);
         void getToken();
+        Token getName();
 
         std::string getNewLabel();
 
@@ -44,12 +45,12 @@ class Parser {
         void factor();
         void divide();
         void multiply();
-        void assignment(Name name);
+        void assignment(Token name);
         bool isDigit(char x);
         bool isAlpha(char x);
         bool isAlphaNumeric(char x);
         bool isAddOp(char x);
-        Name getName();
+        
 
         // Parsing boolean expressions ---------
 

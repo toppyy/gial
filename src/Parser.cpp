@@ -152,7 +152,7 @@ void Parser::printIntStatement() {
     
     if (look.isName) {
         // it's a variable. 
-        Name var = getName();
+        Token var = getName();
         emitInstruction("mov rdi, qword[" + var.getContent() + "]");
 
     } else {
@@ -173,7 +173,7 @@ void Parser::emitLine() {
 
 void Parser::inputStatement() {
     
-    Name varName = getName();
+    Token varName = getName();
     std::string bufferName = varName.getContent();
     std::string labelInputLoop = getNewLabel();
     std::string labelLoopOut = getNewLabel();
@@ -397,16 +397,16 @@ void Parser::getToken() {
     cursor++;
 }
 
-Name Parser::getName() {
+Token Parser::getName() {
     if (look.isName) {
-        Name rtrn = Name(look.getContent()); // Stupid conversion
+        Token rtrn = look;
         getToken();
         return rtrn;
         
     }
     std::string err_msg = "Expected to find a 'Name'!\n";
     error(err_msg);
-    return Name("");
+    return Token("");
 }
 
 
@@ -506,7 +506,7 @@ void Parser::factor() {
 
 void Parser::ident() {
 
-    Name name = getName();
+    Token name = getName();
     std::string instr;
 
     // check if the name is a name of a function (not a variable)
@@ -532,7 +532,7 @@ void Parser::ident() {
     return;
 }
 
-void Parser::assignment(Name name) {
+void Parser::assignment(Token name) {
 
     matchToken("=");
 
