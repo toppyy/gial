@@ -40,6 +40,16 @@ Alternatively one can use a construct for repeating a block of code *N*-times:
     NYLOPPUS
 
 
+## Features
+
+Giäl can do:
+
+- Integer arithmetic with operators +, -, * and /
+- Complex expressions, eg. ((1*3) + 2)/5
+- Boolean expressions with operators ==, !=, <, >, <= and >=, eg. ( ((1==1) AND 1 > 5) OR 8 < 9)
+- Control structures like IF, IF ELSE, WHILE
+- I/O, atm. only through stdio and stdout
+
 ## Syntax
 
 In giäl, keywords are written in CAPS. The following table lists keywords of giäl and the corresponding term in "conventional programming wisdom" (whatever that means). If there's no corresponding term, an english translation is provided.
