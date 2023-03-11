@@ -19,7 +19,7 @@ class Token {
         bool isKeyword;
         bool isName;
         bool isString;
-
+        bool operator == (const std::string &str);
 
     public:
         std::string content;

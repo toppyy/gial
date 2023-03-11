@@ -13,6 +13,10 @@ Token::Token(std::string p_content) : content(), isNumber(false), isKeyword(fals
     isString = false;
 }
 
+bool Token::operator == (const std::string &str) {
+    return content == str;
+}
+
 int Token::length() {
     return content.length();
 }
