@@ -24,8 +24,10 @@ class Parser {
         void matchToken(std::string expected_content);
         void getToken();
         Token getName();
+        Token getNumber();
         void expectNumber();
         void expectName();
+        Token peek();
 
         std::string getNewLabel();
 

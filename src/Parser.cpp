@@ -130,30 +130,32 @@ void Parser::printStatement() {
         return;
     }
 
-    if (look.isName) {
-        // it's a variable. Interpret content as ASCII-string
+    if (look.isName & peek() != "[") {
+        // it's a (not indexed) variable . Interpret content as ASCII-string
         // iterate until NULL
-        
-        std::string varname     = look.getContent();
+
+        Token variable = look;
+        getToken();
         std::string loopStart   = getNewLabel();
 
         emitInstruction("mov r11, 0");
         
         emitInstruction(loopStart + ":");
         emitInstruction("push r11");
-        emitInstruction("mov dil, byte[" + varname + " + r11]");
+        emitInstruction("mov dil, byte[" + variable + " + r11]");
         emitInstruction("call PrintASCII");
         emitInstruction("pop r11");
         emitInstruction("inc r11");
-        emitInstruction("mov r8b, byte[" + varname + " + r11]");
+        emitInstruction("mov r8b, byte[" + variable + " + r11]");
         emitInstruction("cmp r8b, 0");
         emitInstruction("jne " + loopStart);
-
-        getToken();
         return;
     }
     
-    error("SANS NY expected a variable, character literal (or nothing). Got: " + look);
+    expression();
+    emitInstruction("mov dil, r8b");
+    emitInstruction("call PrintASCII");
+    return;
 }
 
 
@@ -278,7 +280,6 @@ void Parser::ifStatement() {
     
     matchEndStatement();
 }
-
 
 
 void Parser::whileStatement() {
@@ -449,6 +450,9 @@ void Parser::expected(std::string expected_thing) {
     return;
 }
 
+Token Parser::peek() {
+    return tokens[cursor];
+}
 
 void Parser::getToken() {
     if (cursor >= token_count) {
@@ -459,6 +463,17 @@ void Parser::getToken() {
     lookChar = look.getCharFromContent(0);
     cursor++;
 }
+
+Token Parser::getNumber() {
+    if (look.isNumber) {
+        Token rtrn = look;
+        getToken();
+        return rtrn;
+    }
+    error("Expected a number, got: " + look);
+    return Token("");
+}
+
 
 Token Parser::getName() {
     if (look.isName) {
@@ -576,6 +591,17 @@ void Parser::ident() {
         emitInstruction(instr);
         return;
     }
+
+
+    if (lookChar == '[') {
+        matchToken("[");
+        expression();
+        matchToken("]");
+        emitInstruction("mov r9, r8");
+        emitInstruction("mov r8b, byte[" + name + " + r9]");
+        return;
+    }
+
 
     // ATM variables are introduced by assignment only, but no error is thrown here if 
     // a non-declared variable is used
