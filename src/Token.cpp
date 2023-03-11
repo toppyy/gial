@@ -29,16 +29,3 @@ std::string Token::getContent() {
 }
 
 
-
-Number::Number(std::string p_content) : Token(p_content) {
-    isNumber = true;
-}
-
-
-Keyword::Keyword(std::string p_content) : Token(p_content) {
-    isKeyword = true;
-}
-
-Name::Name(std::string p_content) : Token(p_content) {
-    isName = true;
-}

@@ -26,23 +26,3 @@ class Token {
 
 };
 
-class Number: public Token {
-    public:
-        Number(std::string p_content);
-
-};
-
-class Name: public Token {
-    public:
-        Name(std::string p_content);
-
-};
-
-
-
-class Keyword: public Token {
-    public:
-        Keyword(std::string p_content);
-
-};
-

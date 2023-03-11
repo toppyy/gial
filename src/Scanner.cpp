@@ -48,22 +48,17 @@ Token Scanner::handleName(std::string name) {
     if (keywords.count(wNextToken) > 0) {
         skipWhite();
         getName();
-        return Keyword(wNextToken);
+        return createKeywordToken(wNextToken);
     }
 
     if (keywords.count(name) > 0) {
-        return Keyword(name);
+        return createKeywordToken(name);
     }
 
-    return Name(name);
+    return createNameToken(name);
 }
 
 
-// Token Scanner::createStringToken(std::string p_content) {
-//     Token newToken = Token(p_content);
-//     newToken.isString = true;
-//     return newToken;
-// }
 
 
 
@@ -72,10 +67,7 @@ Token Scanner::scan() {
     skipWhite();
 
     if (isQuote(look)) {
-        Token newToken = Token(getString());
-        newToken.isString = true;
-
-        return newToken;
+        return createStringToken(getString());
     }
     
 
@@ -85,7 +77,7 @@ Token Scanner::scan() {
     }
     
     if (isDigit(look)) {
-        return Number(getNum());
+        return createNumberToken(getNum());
     }
     
     if (look < -1) { // Just skip all non-ASCII characters
@@ -243,21 +235,26 @@ void Scanner::expected(std::string expected_thing) {
 
 
 
-/*
-
-void Parser::printLookInfo(char info) {
-
-    char contentAtm =  content[cursor];
-    if (contentAtm ==10 | contentAtm == 13 ) {
-        contentAtm = '?'; // Don't want to put out newline
-    }
-    char lookAtm = look;
-    if (lookAtm ==10 | lookAtm == 13 | lookAtm == 32) {
-        lookAtm= '?'; // Don't want to put out newline
-    }
-    printf("; %d -> look is %c (%d). Content is %c (%d), cursor is %d. Content length: %d.\n", info, lookAtm, look, contentAtm, content[cursor] ,cursor, cursor_max);
+Token Scanner::createStringToken(std::string p_content) {
+    Token newToken = Token(p_content);
+    newToken.isString = true;
+    return newToken;
 }
 
+Token Scanner::createKeywordToken(std::string p_content) {
+    Token newToken = Token(p_content);
+    newToken.isKeyword = true;
+    return newToken;
+}
 
+Token Scanner::createNumberToken(std::string p_content) {
+    Token newToken = Token(p_content);
+    newToken.isNumber = true;
+    return newToken;
+}
 
-*/
+Token Scanner::createNameToken(std::string p_content) {
+    Token newToken = Token(p_content);
+    newToken.isName = true;
+    return newToken;
+}

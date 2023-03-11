@@ -34,6 +34,10 @@ class Scanner {
 
         Token scan();
         Token handleName(std::string name);
+        Token createNumberToken(std::string p_content);
+        Token createStringToken(std::string p_content);
+        Token createNameToken(std::string p_content);
+        Token createKeywordToken(std::string p_content);
         
     private:
         char look;
