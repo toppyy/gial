@@ -20,6 +20,9 @@ class Token {
         bool isName;
         bool isString;
         bool operator == (const std::string &str);
+        bool operator != (const std::string &str);
+        std::string operator + (const std::string &str);
+        friend std::string operator + (const std::string &str, const Token &tkn);
 
     public:
         std::string content;

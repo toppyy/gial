@@ -83,9 +83,9 @@ void Parser::block() {
 
 
     while (
-        look.getContent() != "NYLOPPUS" &
-        look.getContent() != "EOF" &
-        look.getContent() != "MUUTES" &
+        look != "NYLOPPUS" &
+        look != "EOF" &
+        look != "MUUTES" &
         cursor < (token_count-1)
     ) {
         nextToken = look.getContent();
@@ -143,7 +143,7 @@ void Parser::printStatement() {
         return;
     }
     
-    error("SANS NY expected a variable, character literal (or nothing). Got: " + look.getContent());
+    error("SANS NY expected a variable, character literal (or nothing). Got: " + look);
 }
 
 
@@ -153,7 +153,7 @@ void Parser::printIntStatement() {
     if (look.isName) {
         // it's a variable. 
         Token var = getName();
-        emitInstruction("mov rdi, qword[" + var.getContent() + "]");
+        emitInstruction("mov rdi, qword[" + var + "]");
 
     } else {
         // it's an expression
@@ -184,7 +184,7 @@ void Parser::inputStatement() {
     std::string varType = "str";
     int varSize = 100;
 
-    if (look.getContent() == "LUGU") {
+    if (look == "LUGU") {
         integerInput = true;
         varType = "int";
         varSize = 8;
@@ -259,7 +259,7 @@ void Parser::ifStatement() {
     emitInstruction("jmp " + labelOut);
     emitInstruction(labelFalse + ":");
 
-    if (look.getContent() == "MUUTES") {
+    if (look == "MUUTES") {
         getToken();
         block();
     }
@@ -290,9 +290,9 @@ void Parser::whileStatement() {
 }
 
 void Parser::letStatement() {
-    std::string varName = getName().getContent();
+    Token varName = getName();
     
-    if (look.getContent() != "=") {
+    if (look != "=") {
         // Just a declaration without an assignment
         return;
     }
@@ -313,6 +313,7 @@ void Parser::letStatement() {
 }
 
 
+
 void Parser::repeatStatement() {
     // implements
     //  REPEAT n
@@ -325,9 +326,9 @@ void Parser::repeatStatement() {
     if (look.isNumber) {
        n = look.getContent();
     }  else if (look.isName) {
-       n =  "qword[" + look.getContent() + "]";
+       n =  "qword[" + look + "]";
     } else {
-        error("Expected a number or a variable name after TOIST. Got: " + look.getContent());
+        error("Expected a number or a variable name after TOIST. Got: " + look);
     }
 
     std::string labelRepetition  = getNewLabel();
@@ -359,9 +360,10 @@ void Parser::emitInstruction(std::string out) {
     program.addInstruction(out);
 }
 
-void Parser::emitVariable(std::string out, int bytes = 1, std::string varType = "str") {
-    if (!program.inVariables(out)) {
-            program.addVariable(out, bytes, varType);
+void Parser::emitVariable(Token out, int bytes = 1, std::string varType = "str") {
+    std::string content = out.getContent();
+    if (!program.inVariables(content)) {
+            program.addVariable(content, bytes, varType);
     }
     
 }
@@ -412,13 +414,13 @@ Token Parser::getName() {
 
 void Parser::matchToken(std::string expected_content) {
 
-    if (expected_content == look.getContent()) {        
+    if (look == expected_content) {        
         getToken();
         return;
     }
     std::string msg = "character ";
     msg += expected_content;
-    msg += ", got : " + look.getContent();
+    msg += ", got : " + look;
     expected(msg);
 }
 
@@ -486,7 +488,7 @@ void Parser::factor() {
     
     Token nextToken = look;
     if (isDigit(lookChar)) {
-        instr = "mov r8, " + nextToken.getContent();
+        instr = "mov r8, " + nextToken;
         emitInstruction(instr);
         getToken();
         return;
@@ -497,7 +499,7 @@ void Parser::factor() {
     }
 
 
-    error("Should have not reached token \\w content " + nextToken.getContent());
+    error("Should have not reached token \\w content " + nextToken);
     return;
 }   
 
@@ -513,7 +515,7 @@ void Parser::ident() {
     if (lookChar == '(') {
         matchToken("(");
         matchToken(")"); // Currently can match only empty argument lists
-        instr = "call " + name.getContent();
+        instr = "call " + name;
         emitInstruction(instr);
         return;
     }
@@ -522,12 +524,12 @@ void Parser::ident() {
     // a non-declared variable is used
     if (lookChar == '=') {
         // Check if this is actually a condition, not an assignment. If a condition, do nothing.
-        if ( look.getContent() != "==") {
+        if ( look != "==") {
             assignment(name);
         }
         
     }
-    instr = "mov r8, qword[" + name.getContent() + "]";
+    instr = "mov r8, qword[" + name + "]";
     emitInstruction(instr);
     return;
 }
@@ -544,9 +546,9 @@ void Parser::assignment(Token name) {
 
     expression();
 
-    emitVariable(name.getContent(), 8, varType);
+    emitVariable(name, 8, varType);
     // Instruction to assign r8 to variable
-    emitInstruction( "mov qword[" + name.getContent() + "], r8" );
+    emitInstruction( "mov qword[" + name + "], r8" );
 }
 
 bool Parser::isAddOp(char x) {
@@ -727,7 +729,7 @@ void Parser::boolTerm() {
     std::string op = mapOperatorToInstruction();
     
     if (program.isStringVariable(look.getContent())) {
-        error("Mismatch: can't compare to type string with content: " + look.getContent() );
+        error("Mismatch: can't compare to type string with content: " + look);
     }
     
     expression();

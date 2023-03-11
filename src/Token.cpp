@@ -16,6 +16,19 @@ Token::Token(std::string p_content) : content(), isNumber(false), isKeyword(fals
 bool Token::operator == (const std::string &str) {
     return content == str;
 }
+bool Token::operator != (const std::string &str) {
+    return content != str;
+}
+
+std::string Token::operator + (const std::string &str) {
+    return str + content;
+}
+
+std::string operator+(const std::string &str, const Token &tkn ) {
+    return str + tkn.content;
+}
+
+
 
 int Token::length() {
     return content.length();

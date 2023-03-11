@@ -29,7 +29,7 @@ class Parser {
         void emitComment(std::string comment);
         void emitLine();
         void emitInstruction(std::string out);
-        void emitVariable(std::string out, int bytes, std::string varType);
+        void emitVariable(Token out, int bytes, std::string varType);
         void emitConstant(std::string out, std::string value, std::string varType);
 
         void block();
