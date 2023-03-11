@@ -150,8 +150,7 @@ void Parser::printStatement() {
         emitInstruction("cmp r8b, 0");
         emitInstruction("jne " + loopStart);
         return;
-    }
-    
+    }    
     expression();
     emitInstruction("mov dil, r8b");
     emitInstruction("call PrintASCII");
@@ -282,7 +281,7 @@ void Parser::ifStatement() {
 }
 
 
-void Parser::whileStatement() {
+void Parser::whileStatement(std::string afterNestedBlock) {
     std::string labelFalse = getNewLabel();
     std::string labelTrue  = getNewLabel();
     
@@ -295,6 +294,7 @@ void Parser::whileStatement() {
     // jump to 'labelFalse' if evaluates to false
     emitInstruction("jne " + labelFalse); 
     block();
+    emitInstruction(afterNestedBlock);
     emitInstruction("jmp " + labelTrue);
     emitInstruction(labelFalse + ":");
     matchEndStatement();
@@ -366,17 +366,15 @@ void Parser::forStatement() {
     // For-loops are BASIC-like:
     // FOR x = 0 TO 10 STEP 1
     // (STEP is optional, defaults to 1)
-    // In giäl: BUALEST x = 0 KOHDE 10 ASGEL 1
 
-    expectName();
     Token name = getName();
+    
     assignment(name);
     matchToken("TOHO");
     expectNumber();
 
-    Token to = look;
-    getToken();
-
+    Token to = getNumber();
+    
     std::string step = "1";
     if (look == "HYBYIL") {
         getToken();
@@ -385,28 +383,22 @@ void Parser::forStatement() {
         getToken();
     }
 
-    std::vector<Token> commands = {
-        Token("("),
-        name,
-        Token("<"),
-        to,
-        Token(")"),
-        name,
-        Token("="),
-        name,
-        Token("+"),
-        Token(step)
+    std::string loopStart  = getNewLabel();
+    std::string variableRef = "qword[" + name + "]";
 
-    };
-    for (int i = (commands.size()-1); i >= 0 ; i--) {
-        insertToken(commands[i]);
-    }
-    cursor--;
-    look = tokens[cursor];
-    lookChar = look.getCharFromContent(0);
-    cursor++;
+    emitInstruction("mov r8, " + variableRef);   // Init counter
+    emitInstruction(loopStart + ":");
+    emitInstruction("push r8");     // Push counter onto stack
+    
+    block();
 
-    whileStatement();
+    emitInstruction("pop r8");                  // Pop counter from stack
+    emitInstruction("add r8, " + step);         // Increment counter from stack
+    emitInstruction("mov " + variableRef + ", r8"); // Update loop variable
+    emitInstruction("cmp r8, " + to);           // Compare counter to n
+    emitInstruction("jl " + loopStart);         // If it's less than n, jmp to labelTrue
+    matchEndStatement();    
+
 }
 
 
