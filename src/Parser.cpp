@@ -27,6 +27,12 @@ void Parser::init() {
     block();
 }
 
+void Parser::insertToken(Token tkn) {
+    tokens.insert(tokens.begin() + cursor - 1, tkn);
+    token_count++;
+}
+
+
 void Parser::mapStatementToFunction(std::string statement ) {
     if (statement == "SAN NY")  {
         printStatement();
@@ -73,6 +79,10 @@ void Parser::mapStatementToFunction(std::string statement ) {
         return;
     }
 
+    if (statement == "TOST") {
+        forStatement();
+        return;
+    }
 
 }
 
@@ -348,6 +358,57 @@ void Parser::repeatStatement() {
 
 
 
+
+
+void Parser::forStatement() {
+    // For statement is internally represented as while-loop
+    // For-loops are BASIC-like:
+    // FOR x = 0 TO 10 STEP 1
+    // (STEP is optional, defaults to 1)
+    // In giäl: BUALEST x = 0 KOHDE 10 ASGEL 1
+
+    expectName();
+    Token name = getName();
+    assignment(name);
+    matchToken("TOHO");
+    expectNumber();
+
+    Token to = look;
+    getToken();
+
+    std::string step = "1";
+    if (look == "HYBYIL") {
+        getToken();
+        expectNumber();
+        step = look.getContent();
+        getToken();
+    }
+
+    std::vector<Token> commands = {
+        Token("("),
+        name,
+        Token("<"),
+        to,
+        Token(")"),
+        name,
+        Token("="),
+        name,
+        Token("+"),
+        Token(step)
+
+    };
+    for (int i = (commands.size()-1); i >= 0 ; i--) {
+        insertToken(commands[i]);
+    }
+    cursor--;
+    look = tokens[cursor];
+    lookChar = look.getCharFromContent(0);
+    cursor++;
+
+    whileStatement();
+}
+
+
 /* ------- END STATEMENTS ----------------------------------------------------------------------------------------------------------------  */
 
 
@@ -406,8 +467,7 @@ Token Parser::getName() {
         return rtrn;
         
     }
-    std::string err_msg = "Expected to find a 'Name'!\n";
-    error(err_msg);
+    error("Expected a name, got: " + look);
     return Token("");
 }
 
@@ -418,10 +478,7 @@ void Parser::matchToken(std::string expected_content) {
         getToken();
         return;
     }
-    std::string msg = "character ";
-    msg += expected_content;
-    msg += ", got : " + look;
-    expected(msg);
+    expected("character " + expected_content + ", got: " + look);
 }
 
 void Parser::matchEndStatement() {
@@ -765,4 +822,16 @@ std::string Parser::mapOperatorToInstruction() {
     auto search = operatorToInstruction.find(lookOp);
 
     return search->second;
+}
+
+
+void Parser::expectName() {
+    if (!look.isName) {
+        error("Expected a name, got " + look);
+    }
+}
+void Parser::expectNumber() {
+    if (!look.isNumber) {
+        error("Expected a number, got " + look);
+    }
 }

@@ -13,6 +13,7 @@ class Parser {
         Parser(std::vector<Token> p_tokens, std::set<std::string> p_keywords);
         void init();
         void buildProgram();
+        void insertToken(Token tkn);
         void mapStatementToFunction(std::string statement);
 
         void error(std::string error_message);
@@ -23,6 +24,8 @@ class Parser {
         void matchToken(std::string expected_content);
         void getToken();
         Token getName();
+        void expectNumber();
+        void expectName();
 
         std::string getNewLabel();
 
@@ -67,7 +70,7 @@ class Parser {
         void inputStatement();
         void ifStatement();
         void whileStatement();
-        
+        void forStatement();
         void letStatement();
         void repeatStatement();
         

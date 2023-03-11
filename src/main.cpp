@@ -76,6 +76,7 @@ int main(int argc, char *argv[]) {
     keywords.insert("SAN JOTTAI");
     keywords.insert("SAN SNAA");
     keywords.insert("SAN LUGU");
+    keywords.insert("TOST");
 
     // Init parser and result data structure
     Program pr = Program();
