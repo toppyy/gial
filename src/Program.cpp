@@ -63,7 +63,7 @@ Variable Program::getVariable(std::string identifier) {
     } else {
         throw std::runtime_error("Variable " + identifier + " has not been declared");
     }
-    return Variable {};
+    return Variable("","","",0); // Unreachable
 }
 
 bool Program::isStringVariable(std::string variable) {

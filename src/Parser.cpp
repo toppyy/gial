@@ -371,8 +371,10 @@ void Parser::forStatement() {
     // (STEP is optional, defaults to 1)
 
     Token name = getName();
+
+    emitIntVariable(name);
     
-    assignment(name, "qword");
+    assignment(name);
     matchToken("TOHO");
     expectNumber();
 
@@ -650,24 +652,15 @@ void Parser::assignment(Token name) {
 
     matchToken("=");
 
-    std::string varType = "str";
-    std::string varSize = "byte";
-
-
-    if (look.isNumber) {
-        varType = "int";
-        varSize = "qword";
-    }
-
+    Variable var = program.getVariable(name.getContent());
     expression();
 
     std::string reg = "r8";
-    if (target == "byte") {
+    if (var.size == "byte") {
         reg = "r8b";
     }
 
-    emitVariable(name, varType, varSize, 100);
-    emitInstruction( "mov " + target + "[ " + name + "], " + reg);
+    emitInstruction( "mov " + var.size + "[ " + name + "], " + reg);
 }
 
 bool Parser::isAddOp(char x) {
