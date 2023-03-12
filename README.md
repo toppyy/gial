@@ -26,7 +26,7 @@ The output being (of course) the string 'Terveissi!' printed out five times.
 In *giäl* the same can be achieved with:
 
     i = 0
-    GUNNES (i < 5)
+    GUHA (i < 5)
         SAN NY 'Terveissi!'
         SAN NY
         i = i + 1    
