@@ -638,7 +638,7 @@ void Parser::ident() {
 
     // Check if this is actually a condition, not an assignment. If a condition, do nothing.
     if ( look == "=") {
-        assignment(name, "qword");
+        assignment(name);
     }
         
     instr = "mov r8, qword[" + name + "]";
@@ -646,7 +646,7 @@ void Parser::ident() {
     return;
 }
 
-void Parser::assignment(Token name,std::string target) {
+void Parser::assignment(Token name) {
 
     matchToken("=");
 

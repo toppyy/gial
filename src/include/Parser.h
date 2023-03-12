@@ -52,7 +52,7 @@ class Parser {
         void factor();
         void divide();
         void multiply();
-        void assignment(Token name, std::string target);
+        void assignment(Token name);
         bool isDigit(char x);
         bool isAlpha(char x);
         bool isAlphaNumeric(char x);

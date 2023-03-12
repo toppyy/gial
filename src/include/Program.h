@@ -30,6 +30,7 @@ class Program {
         void addInstruction(std::string instruction);
         void addVariable(std::string identifier, std::string type, std::string size, int length);
         void addConstant(std::string identifier, std::string value, std::string type);
+        void getVariable(std::string identifier);
         void buildProgram();
         void outputLine(std::string s);
         

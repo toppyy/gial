@@ -57,6 +57,15 @@ void Program::outputLine(std::string s) {
     std::cout << s << "\n";
 }
 
+Variable Program::getVariable(std::string identifier) {
+    if (auto search = variables.find(identifier); search != variables.end()) {
+        return search->second;
+    } else {
+        throw std::runtime_error("Variable " + identifier + " has not been declared");
+    }
+    return Variable {};
+}
+
 bool Program::isStringVariable(std::string variable) {
     if (!inVariables(variable))  {
         return false;
