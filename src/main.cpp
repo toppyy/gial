@@ -69,6 +69,7 @@ int main(int argc, char *argv[]) {
     std::set<std::string> keywords;
     keywords.insert("GUNNES");
     keywords.insert("SANAMBATK");
+    keywords.insert("LUGU"); 
     keywords.insert("GUHA");
     keywords.insert("OLGO");
     keywords.insert("TOIST");

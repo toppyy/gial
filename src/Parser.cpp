@@ -75,7 +75,12 @@ void Parser::mapStatementToFunction(std::string statement ) {
     }
 
     if (statement == "SANAMBATK") {
-        letStatement();
+        letStringStatement();
+        return;
+    }
+
+    if (statement == "LUGU") {
+        letIntStatement();
         return;
     }
 
@@ -303,14 +308,36 @@ void Parser::whileStatement(std::string afterNestedBlock) {
     matchEndStatement();
 }
 
-void Parser::letStatement() {
+void Parser::letIntStatement() {
+    Token varName = getName();
+    emitIntVariable(varName);
+      
+    if (look != "=") {
+        // No associated assignment        
+        return;
+    }
+
+    // Assign an int
+    if (!peek().isNumber) {
+        expected("integer when assigning to numeric type");
+    }
+    assignment(varName);
+    return;
+}
+
+
+void Parser::letStringStatement() {
     Token varName = getName();
     
     if (look != "=") {
-        // Just a declaration without an assignment
+        // No associated assignment
+        emitStringVariable(varName, 100);        
         return;
     }
+
     getToken(); // Eat '='
+
+    // Assign a string: assignent can't handle assigning a string atm, so special case here
     if (!look.isString) {
         error("Expected a string!");
     }

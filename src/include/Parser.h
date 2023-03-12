@@ -76,7 +76,8 @@ class Parser {
         void ifStatement();
         void whileStatement(std::string afterNestedBlock = "");
         void forStatement();
-        void letStatement();
+        void letStringStatement();
+        void letIntStatement();
         void repeatStatement();
         
         
