@@ -7,10 +7,11 @@
 
 class Variable {
     public:
-        Variable(std::string identifier, std::string type, int size);
+        Variable(std::string identifier, std::string type, std::string size, int length);
         std::string identifier;
         std::string type;       // Should be enum. Atm string: 'int' or 'str'
-        int size;               // In bytes
+        std::string size;       // byte, word, dword, qword
+        int length;             // For strings
 };
 
 class Constant {
@@ -27,7 +28,7 @@ class Program {
         Program();
         std::vector<std::string> getInstructions();
         void addInstruction(std::string instruction);
-        void addVariable(std::string identifier, int size, std::string type);
+        void addVariable(std::string identifier, std::string type, std::string size, int length);
         void addConstant(std::string identifier, std::string value, std::string type);
         void buildProgram();
         void outputLine(std::string s);

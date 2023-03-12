@@ -34,7 +34,9 @@ class Parser {
         void emitComment(std::string comment);
         void emitLine();
         void emitInstruction(std::string out);
-        void emitVariable(Token out, int bytes, std::string varType);
+        void emitVariable(Token out, std::string varType, std::string size, int length);
+        void emitStringVariable(Token var, int length);
+        void emitIntVariable(Token var);
         void emitConstant(std::string out, std::string value, std::string varType);
 
         void block();

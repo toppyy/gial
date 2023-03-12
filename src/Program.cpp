@@ -1,12 +1,14 @@
 #include "./include/Program.h"
 
-Variable::Variable(std::string p_identifier, std::string p_type, int p_size) :
+Variable::Variable(std::string p_identifier, std::string p_type, std::string p_size, int p_length) :
     identifier(""),
     type(""),
+    length(),
     size() {
     identifier = p_identifier;
     size = p_size;
     type = p_type;
+    length = p_length;
 }
 
 Constant::Constant(std::string p_identifier, std::string p_value, std::string p_type) : 
@@ -43,8 +45,8 @@ void Program::addConstant(std::string identifier, std::string value,std::string 
 }
 
 
-void Program::addVariable(std::string identifier, int size, std::string type) {
-    variables.insert({ identifier, Variable(identifier, type, size) });
+void Program::addVariable(std::string identifier, std::string type, std::string size, int length) {
+    variables.insert({ identifier, Variable(identifier, type, size, length) });
 }
 
 bool Program::inVariables(std::string variable) {
@@ -95,8 +97,13 @@ void Program::buildProgram() {
     // Variable declarations
     for (auto& variable: variables) {
 
-        std::string variableDeclaration = variable.second.identifier + " resq "; // Reserve 'size' * 64 bits
-        variableDeclaration  += std::to_string(variable.second.size);
+        std::string sizeReserveUnit = "resq";
+        if (variable.second.size == "byte") {
+            sizeReserveUnit = "resb";
+        }
+
+        std::string variableDeclaration = variable.second.identifier + " " + sizeReserveUnit + " ";
+        variableDeclaration  += std::to_string(variable.second.length);
 
         std::cout << "\t" + variableDeclaration + "\n";
     }

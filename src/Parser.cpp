@@ -193,12 +193,15 @@ void Parser::inputStatement() {
 
     bool integerInput = false;
     std::string varType = "str";
-    int varSize = 100;
+    std::string varSize = "byte";
+    int varLength = 100;
+
 
     if (look == "LUGU") {
         integerInput = true;
         varType = "int";
-        varSize = 8;
+        varSize = "qword";
+        varLength = 0;
         getToken();
     }
 
@@ -208,7 +211,7 @@ void Parser::inputStatement() {
         emitInstruction("push r8");
     }
 
-    emitVariable(bufferName, varSize, varType);     // Reserve space for input buffer (100 bytes)
+    emitVariable(varName, varType, varSize, varLength);     // Reserve space for input buffer (100 bytes)
     
     emitInstruction("mov r9, 0");                   // Init character count -loop
     emitInstruction(labelInputLoop + ":");          // Loop to read characters one-by-one from input
@@ -320,7 +323,7 @@ void Parser::letStatement() {
     }
     emitInstruction("mov byte[" + varName + " + " + std::to_string(bytesNeeded) + "], 0" ); // NULL-termination
     getToken();
-    emitVariable(varName, bytesNeeded + 1, "str");
+    emitVariable(varName, "str", "byte", bytesNeeded + 1);
 }
 
 
@@ -414,10 +417,19 @@ void Parser::emitInstruction(std::string out) {
     program.addInstruction(out);
 }
 
-void Parser::emitVariable(Token out, int bytes = 1, std::string varType = "str") {
+void Parser::emitStringVariable(Token var, int length) {
+    emitVariable(var, "str", "byte", length);
+}
+
+void Parser::emitIntVariable(Token var) {
+    emitVariable(var, "int", "qword", 1);
+}
+
+
+void Parser::emitVariable(Token out, std::string varType, std::string size, int length) {
     std::string content = out.getContent();
     if (!program.inVariables(content)) {
-            program.addVariable(content, bytes, varType);
+            program.addVariable(content, varType, size, length);
     }
     
 }
@@ -601,17 +613,19 @@ void Parser::ident() {
             // TODO: assigment should support this
             emitInstruction("push r8");
             matchToken("=");
-            std::string varType = "str";
 
             if (look.isNumber) {
-                varType = "int";
+                emitIntVariable(name);                
+            } else if (look.isName) {
+                emitStringVariable(name, 100);
+            } else {
+                expected("String or integer variable ref.");
             }
 
             expression();
 
             std::string reg = "r8b";
             emitInstruction("pop r9");
-            emitVariable(name, 8, varType);
             emitInstruction( "mov byte[ " + name + " + r9], " + reg);
             return;
         }
@@ -622,15 +636,11 @@ void Parser::ident() {
     }
 
 
-    // ATM variables are introduced by assignment only, but no error is thrown here if 
-    // a non-declared variable is used
-    if (lookChar == '=') {
-        // Check if this is actually a condition, not an assignment. If a condition, do nothing.
-        if ( look != "==") {
-            assignment(name, "qword");
-        }
-        
+    // Check if this is actually a condition, not an assignment. If a condition, do nothing.
+    if ( look == "=") {
+        assignment(name, "qword");
     }
+        
     instr = "mov r8, qword[" + name + "]";
     emitInstruction(instr);
     return;
@@ -641,9 +651,12 @@ void Parser::assignment(Token name,std::string target) {
     matchToken("=");
 
     std::string varType = "str";
+    std::string varSize = "byte";
+
 
     if (look.isNumber) {
         varType = "int";
+        varSize = "qword";
     }
 
     expression();
@@ -653,7 +666,7 @@ void Parser::assignment(Token name,std::string target) {
         reg = "r8b";
     }
 
-    emitVariable(name, 8, varType);
+    emitVariable(name, varType, varSize, 100);
     emitInstruction( "mov " + target + "[ " + name + "], " + reg);
 }
 
