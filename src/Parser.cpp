@@ -328,18 +328,18 @@ void Parser::letIntStatement() {
 
 void Parser::letStringStatement() {
     Token varName = getName();
-    
+
     if (look != "=") {
-        // No associated assignment
-        emitStringVariable(varName, 100);        
+        // No associated assignment    
+        emitStringVariable(varName, 100);
         return;
     }
 
     getToken(); // Eat '='
 
-    // Assign a string: assignent can't handle assigning a string atm, so special case here
+    // 'assignment' can't do strings atm, so do it here
     if (!look.isString) {
-        error("Expected a string!");
+        expected("a string when assigning to a string type");
     }
 
     int bytesNeeded = 0;
@@ -388,11 +388,7 @@ void Parser::repeatStatement() {
 }
 
 
-
-
-
 void Parser::forStatement() {
-    // For statement is internally represented as while-loop
     // For-loops are BASIC-like:
     // FOR x = 0 TO 10 STEP 1
     // (STEP is optional, defaults to 1)
