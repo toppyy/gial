@@ -74,12 +74,14 @@ class Parser {
         void printIntStatement();
         void inputStatement();
         void ifStatement();
-        void whileStatement(std::string afterNestedBlock = "");
+        void whileStatement();
         void forStatement();
         void letStringStatement();
         void letIntStatement();
         void repeatStatement();
         
+        // Helpers
+        void letIntArray(Token var);
         
 
     private:

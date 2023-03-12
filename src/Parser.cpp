@@ -289,7 +289,7 @@ void Parser::ifStatement() {
 }
 
 
-void Parser::whileStatement(std::string afterNestedBlock) {
+void Parser::whileStatement() {
     std::string labelFalse = getNewLabel();
     std::string labelTrue  = getNewLabel();
     
@@ -302,7 +302,6 @@ void Parser::whileStatement(std::string afterNestedBlock) {
     // jump to 'labelFalse' if evaluates to false
     emitInstruction("jne " + labelFalse); 
     block();
-    emitInstruction(afterNestedBlock);
     emitInstruction("jmp " + labelTrue);
     emitInstruction(labelFalse + ":");
     matchEndStatement();
@@ -311,6 +310,12 @@ void Parser::whileStatement(std::string afterNestedBlock) {
 void Parser::letIntStatement() {
     Token varName = getName();
     emitIntVariable(varName);
+
+    if (look == "[") {
+        // It's an array
+        letIntArray(varName);
+        return;
+    }
 
     if (look != "=") {
         // No associated assignment        
@@ -323,6 +328,37 @@ void Parser::letIntStatement() {
     }
     assignment(varName);
     return;
+}
+
+void Parser::letIntArray(Token varName) {
+    matchToken("[");
+    Token arraySize = getNumber();
+    matchToken("]");
+
+    if (look != "=") {
+        // No associated assignment        
+        return;
+    }
+
+    matchToken("=");
+    matchToken("[");
+
+    Variable var = program.getVariable(varName.getContent());
+
+    std::vector<Token> numbers;
+    int i = 0;
+    emitInstruction("mov r9, 0");
+    while (look != "]") {
+        if (look.isNumber) {
+            emitInstruction("mov " + var.size + "[ " + varName + " + " + std::to_string(i) + "], " + look);
+            i++;
+        }
+        getToken();
+    }
+    matchToken("]");
+
+
+
 }
 
 
