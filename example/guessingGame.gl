@@ -3,11 +3,11 @@ SAN JOTTAI
 SANAMBÄTK correctAnswer = '1442'
 SAN SNÄÄ answer
 
-GUNNES (answer != correctAnswer)
-    GUHA (answer < correctAnswer) 
+GUHA (answer != correctAnswer)
+    JOS (answer < correctAnswer) 
         SAN NY 'Try a bigger number!'
     NYLOPPUS
-    GUHA (answer > correctAnswer) 
+    JOS (answer > correctAnswer) 
         SAN NY 'Try a smaller number!'
     NYLOPPUS
     SAN JOTTAI

@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
 
     // TODO list keywords somewhere approriate
     std::set<std::string> keywords;
-    keywords.insert("GUNNES");
+    keywords.insert("JOS");
     keywords.insert("SANAMBATK");
     keywords.insert("LUGU"); 
     keywords.insert("GUHA");

@@ -60,12 +60,12 @@ void Parser::mapStatementToFunction(std::string statement ) {
     }
 
     if (statement == "GUHA")  {
-        ifStatement();
+        whileStatement();
         return;
     }
 
-    if (statement == "GUNNES")  {        
-        whileStatement();
+    if (statement == "JOS")  {        
+        ifStatement();
         return;
     }
         
@@ -311,7 +311,7 @@ void Parser::whileStatement(std::string afterNestedBlock) {
 void Parser::letIntStatement() {
     Token varName = getName();
     emitIntVariable(varName);
-      
+
     if (look != "=") {
         // No associated assignment        
         return;
