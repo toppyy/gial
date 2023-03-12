@@ -1,0 +1,50 @@
+SAN JOTTAI
+SAN SNÄÄ sana
+SAN JOTTAI
+
+LUGU x = 0
+
+GUHA (sana[x] != 0)
+
+    JOS (sana[x] == 'p')
+        sana[x] = 98
+    NYLOPPUS
+
+    JOS (sana[x] == 'k')
+        sana[x] = 103
+    NYLOPPUS
+
+    JOS (sana[x] == 'i' AND sana[x-1] == 's')
+        sana[x] = 32
+    NYLOPPUS
+
+    JOS (sana[x] == 'e' AND sana[x+1] == 32)
+        sana[x] = 32
+    NYLOPPUS
+
+    JOS (sana[x] == 't' AND sana[x+1] == 32)
+        sana[x] = 32
+    NYLOPPUS
+
+    JOS (sana[x] == 'n' AND sana[x+1] == 32)
+        sana[x] = 32
+    NYLOPPUS
+
+    JOS (sana[x] == 'a' AND sana[x+1] == 32)
+        sana[x] = 32
+    NYLOPPUS
+
+    JOS (x > 3)
+        JOS (sana[x] == 'n' AND sana[x-1] == 'i' AND sana[x-2] == 'u' AND sana[x-3] == 'g')
+            sana[x]   = 32
+            sana[x-1] = 32
+        NYLOPPUS
+    NYLOPPUS
+
+    x = x + 1
+
+NYLOPPUS
+
+SAN NY sana
+SAN JOTTAI
+SAN JOTTAI
