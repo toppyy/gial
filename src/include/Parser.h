@@ -53,6 +53,7 @@ class Parser {
         void divide();
         void multiply();
         void assignment(Token name);
+        void indexedAssignment(Token name);
         bool isDigit(char x);
         bool isAlpha(char x);
         bool isAlphaNumeric(char x);

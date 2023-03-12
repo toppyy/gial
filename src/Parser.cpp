@@ -612,24 +612,7 @@ void Parser::ident() {
         matchToken("]");
         
         if (look == "=") {
-            // TODO: assigment should support this
-            emitInstruction("push r8");
-            matchToken("=");
-
-            if (look.isNumber) {
-                emitIntVariable(name);                
-            } else if (look.isName) {
-                emitStringVariable(name, 100);
-            } else {
-                expected("String or integer variable ref.");
-            }
-
-            expression();
-
-            std::string reg = "r8b";
-            emitInstruction("pop r9");
-            emitInstruction( "mov byte[ " + name + " + r9], " + reg);
-            return;
+            indexedAssignment(name);
         }
         emitInstruction("mov r9, r8");
         emitInstruction("mov r8b, byte[" + name + " + r9]");
@@ -645,6 +628,30 @@ void Parser::ident() {
         
     instr = "mov r8, qword[" + name + "]";
     emitInstruction(instr);
+    return;
+}
+
+void Parser::indexedAssignment(Token name) {
+
+    // R8 has the result of the of expression in brackets
+    // We need it later, so push it on the stack
+    emitInstruction("push r8"); 
+
+    matchToken("=");
+
+    // Side-effect of this is that we check the variable has been declared
+    Variable var = program.getVariable(name.getContent());
+
+    // What is assigned?
+    expression();
+
+    std::string reg = "r8";
+    if (var.size == "byte") {
+        reg = "r8b";
+    }
+
+    emitInstruction("pop r9");
+    emitInstruction( "mov " + var.size + "[ " + name + " + r9], " + reg);
     return;
 }
 
