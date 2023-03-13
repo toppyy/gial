@@ -169,7 +169,17 @@ void Parser::printIntStatement() {
     if (look.isName) {
         // it's a variable. 
         Token var = getName();
-        emitInstruction("mov rdi, qword[" + var + "]");
+        if (look == "[") {
+            matchToken("[");
+            emitComment("Parsing index expr");
+            expression();
+
+            emitInstruction("mov rdi, qword[" + var + " + (r8 * 8) ]");
+            matchToken("]");
+        } else {
+            emitInstruction("mov rdi, qword[" + var + "]");
+        }
+        
 
     } else {
         // it's an expression
@@ -234,14 +244,14 @@ void Parser::inputStatement() {
     if (integerInput) {
         // Convert to integer by adding to previous number and multiplying by 10
         emitInstruction("pop r8");
-        emitInstruction("mov rax, r8");     // The other operand is now in rax
+        emitInstruction("mov rax, r8");             // The other operand is now in rax
         emitInstruction("mov r11, 10");
-        emitInstruction("mul r11");    // (signed) multiplication
+        emitInstruction("mul r11");                 // (signed) multiplication
         emitInstruction("mov r8, rax");   
 
         emitInstruction("mov r12, 0");
         emitInstruction("mov r12b, " + bufferRef);
-        emitInstruction("sub r12b, 48");     // 48 = 0 in ASCIi
+        emitInstruction("sub r12b, 48");            // 48 = 0 in ASCIi
 
         emitInstruction("add r8, r12");
         emitInstruction("push r8");
@@ -309,13 +319,13 @@ void Parser::whileStatement() {
 
 void Parser::letIntStatement() {
     Token varName = getName();
-    emitIntVariable(varName);
-
+    
     if (look == "[") {
         // It's an array
         letIntArray(varName);
         return;
     }
+    emitIntVariable(varName);
 
     if (look != "=") {
         // No associated assignment        
@@ -335,6 +345,9 @@ void Parser::letIntArray(Token varName) {
     Token arraySize = getNumber();
     matchToken("]");
 
+    emitVariable(varName, "int", "qword", stoi(arraySize.getContent()));
+
+
     if (look != "=") {
         // No associated assignment        
         return;
@@ -351,7 +364,7 @@ void Parser::letIntArray(Token varName) {
     while (look != "]") {
         if (look.isNumber) {
             emitInstruction("mov " + var.size + "[ " + varName + " + " + std::to_string(i) + "], " + look);
-            i++;
+            i += 8;
         }
         getToken();
     }
@@ -673,8 +686,19 @@ void Parser::ident() {
         if (look == "=") {
             indexedAssignment(name);
         }
+
         emitInstruction("mov r9, r8");
-        emitInstruction("mov r8b, byte[" + name + " + r9]");
+        // We need to pull the variable to how whether to read a byte or ..?
+        Variable var = program.getVariable(name.getContent());
+
+        if (var.size == "byte") {
+            emitInstruction("mov r8b, byte[" + name + " + r9]");
+        }
+        
+        else if (var.size == "qword") {
+            emitInstruction("mov r8, qword[" + name + " + (r9 * 8)]");
+        }
+            
         
         return;
     }
