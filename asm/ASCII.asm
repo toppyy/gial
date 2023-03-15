@@ -20,18 +20,20 @@
 %endmacro
 
 %macro divideInt 2
-    mov eax, %1                 ; %1 = dividend
+    mov rax, %1                 ; %1 = dividend
     cdq                         ; convert dword in eax to qword in edx:eax
     idiv %2                     ; %2 = divisor
-    mov dword[remainder], edx;  ; store remainder
-    mov dword[quotient],  eax;  ; store quotient
+    mov qword[remainder], rdx;  ; store remainder
+    mov qword[quotient],  rax;  ; store quotient
+
+
 %endmacro
 
 section     .data
     ASCIIcode: db "?"   ; Store ASCII-code to print
-    remainder dd 0      ; Used to store the remainder of divisions 
-    quotient dd 0       ; Used to store the quotient of divisions
-    ten: dd 10          ; Constant for value 10
+    remainder dq 0      ; Used to store the remainder of divisions 
+    quotient dq 0       ; Used to store the quotient of divisions
+    ten: dq 10          ; Constant for value 10
     negative: db 0      ; Flag used when printing negative integers
     
 section     .bss
@@ -46,9 +48,10 @@ global PrintInteger
 PrintInteger:
     mov r9, 9                           ; to track where to store the current ASCII-code
     mov byte[negative], 1               ; a flag for negative values (so when can correctly calculate ASCII-code)
-    divideInt edi, dword[ten]           ; divide by 10
+    mov r10, 10
+    divideInt rdi, r10           ; divide by 10
 
-    cmp edi, 0
+    cmp rdi, 0
     jg  CollectRemainders               ; if non-negative skip flagging step
     mov dil, 45                         ; pass ASCII-code for minus sign
     call PrintASCII                     ; print minus sign before the number
@@ -57,9 +60,9 @@ PrintInteger:
 CollectRemainders:
     ; Check if the remainder or quotient is not zero. If not proceed to PrintRemainder-routine.
     ; If so, print the codes in the numberCodes-array
-    cmp dword[remainder], 0     ; Is the remainder non-zero?
+    cmp qword[remainder], 0     ; Is the remainder non-zero?
     jne StoreRemainder
-    cmp dword[quotient], 0      ; Is the quotient non-zero?
+    cmp qword[quotient], 0      ; Is the quotient non-zero?
     jne StoreRemainder
     jmp printASCIIcodes         ; Move on to printing the collected remainders
 
@@ -77,7 +80,8 @@ StoreRemainder:
     dec r9                              ; Update counter for ASCII-codes in array
 
     ; Next iteration of algorithm: divide by ten
-    divideInt dword[quotient], dword[ten]       ;  Divide by ten
+    mov r10, 10
+    divideInt qword[quotient], r10              ;  Divide by ten
     jmp CollectRemainders                       ;  Return to collecting remainders
 
 printASCIIcodes:
