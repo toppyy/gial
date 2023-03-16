@@ -823,8 +823,8 @@ void Parser::boolExpression() {
     }
     std::string nextTokenContent = look.getContent();
     while (
-        nextTokenContent == "AND" |
-        nextTokenContent == "OR"
+        nextTokenContent == "JA" |
+        nextTokenContent == "TAI"
     ) {
         
         matchToken(nextTokenContent); // eat the token
@@ -832,10 +832,10 @@ void Parser::boolExpression() {
         boolExpression();
         emitInstruction("pop r9");
         
-        if (nextTokenContent == "AND") {
+        if (nextTokenContent == "JA") {
             emitInstruction("and r8, r9");
         }
-        if (nextTokenContent == "OR") {
+        if (nextTokenContent == "TAI") {
             emitInstruction("or r8, r9");
         }
         nextTokenContent = look.getContent();

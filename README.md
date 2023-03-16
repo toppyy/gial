@@ -1,6 +1,6 @@
 # giäl
 
-**giäl** is programming language imitating the [Rauma dialect](https://en.wikipedia.org/wiki/Rauma_dialect). In rauma the term for 'language' is 'giäl' - hence the name of language. Apologies in advance to native speakers of Rauma.
+**giäl** is a BASIC-inspired programming language imitating the [Rauma dialect](https://en.wikipedia.org/wiki/Rauma_dialect). In rauma the term for 'language' is 'giäl' - hence the name of language. Apologies in advance to native speakers of Rauma.
 
 The compiler translates giäl to assembly for x86. The assembler targeted is [NASM](https://www.nasm.us). It is written in C++.
 
@@ -54,17 +54,20 @@ Giäl can do:
 
 In giäl, keywords are written in CAPS. The following table lists keywords of giäl and the corresponding term in "conventional programming wisdom" (whatever that means). If there's no corresponding term, an english translation is provided.
 
-| conventional term | giäl |
+| conventional term/expression | giäl |
 | ----- |----------------- |
 | PRINT \n | SAN JOTTAI    |
 | PRINT | SAN NY           |
 | INPUT | SAN SNÄÄ         |
+| AND   | JA               |
+| OR    | TAI              |
 | IF    | JOS              |
 | END   | NYLOPPUS         |  
 | WHILE | GUHA             |
 | STRING | SANAMBÄTK       |
-| INTEGER | LUGU       |
+| INTEGER | LUGU           |
 | REPEAT | TOIST           |
+| FOR x = 0 TO 10 STEP 1 | TOST x = 0 TOHO 10 HYBYL 1 |
 
 (If you have trouble with the encoding you can replace 'Ä' with 'A' in the keywords. This is what the compiler does anyways. So SAN SNÄÄ is equal to SAN SNAA.)
 
