@@ -25,10 +25,10 @@ The output being (of course) the string 'Terveissi!' printed out five times.
 
 In *giäl* the same can be achieved with:
 
-    i = 0
+    LUGU i = 0
     GUHA (i < 5)
         SAN NY 'Terveissi!'
-        SAN NY
+        SAN JOTTAI
         i = i + 1    
     NYLOPPUS
 
@@ -36,7 +36,7 @@ Alternatively one can use a construct for repeating a block of code *N*-times:
 
     TOIST 5 
         SAN NY 'Terveissi!'
-        SAN NY
+        SAN JOTTAI
     NYLOPPUS
 
 
@@ -56,15 +56,14 @@ In giäl, keywords are written in CAPS. The following table lists keywords of gi
 
 | conventional term | giäl |
 | ----- |----------------- |
-| TRUE  | GYL              |       
-| FALSE | FALSKI           |
-| BREAK | PORI             |
+| PRINT \n | SAN JOTTAI    |
 | PRINT | SAN NY           |
 | INPUT | SAN SNÄÄ         |
-| IF    | GUHA             |
+| IF    | JOS              |
 | END   | NYLOPPUS         |  
-| WHILE | GUNNES           |
+| WHILE | GUHA             |
 | STRING | SANAMBÄTK       |
+| INTEGER | LUGU       |
 | REPEAT | TOIST           |
 
 (If you have trouble with the encoding you can replace 'Ä' with 'A' in the keywords. This is what the compiler does anyways. So SAN SNÄÄ is equal to SAN SNAA.)
@@ -74,11 +73,10 @@ In giäl, keywords are written in CAPS. The following table lists keywords of gi
 
 Assuming you have g++ and nasm at your disposal, follow these steps.
 
-First, build the compiler under build/
+First, create a folder 'build' and run make:
 
-    mkdir -p build
-    g++ src/main.cpp src/Parser.cpp src/Program.cpp -o ./build/gl
-    
+    mkdir -p build && make
+
 Compile the program written in *giäl* and pipe the result into an .asm file. Compiling the example from above:
 
     ./build/gl example/terveissi.gl > ./build/terveissi.asm
@@ -87,7 +85,7 @@ Assemble and link with ASCII:
 
     nasm -f elf64 asm/ASCII.asm -o build/ASCII.o
     nasm -f elf64 build/terveissi.asm -o build/terveissi.o
-    ld -o ./build/terveissi.out ./build/terveissi.o ./asm/ASCII.o
+    ld -o ./build/terveissi.out ./build/terveissi.o ./build/ASCII.o
 
 Run the program:
 

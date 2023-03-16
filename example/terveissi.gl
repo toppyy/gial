@@ -1,8 +1,8 @@
 
-i = 0
-GUNNES (i < 5)
-    SAN SNÄÄ 'Terveissi!'
-    SAN SNÄÄ
+LUGU i = 0
+GUHA (i < 5)
+    SAN NY 'Terveissi!'
+    SAN JOTTAI
     i = i + 1    
 NYLOPPUS
 
