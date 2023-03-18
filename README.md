@@ -96,6 +96,6 @@ Run the program:
 
 ## Testing
 
-Testing is implemented with BATS. To run a test:
+Testing is implemented with [BATS](https://github.com/bats-core/bats-core). To run all tests:
 
-    ./test/bats/bin/bats test/test_guessing_game.bats 
+    ./test/bats/bin/bats ./test
