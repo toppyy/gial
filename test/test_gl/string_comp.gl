@@ -1,0 +1,38 @@
+
+SANAMBÄTK a = 'abcd'
+SANAMBÄTK acopy = 'abcd'
+
+SANAMBÄTK z = 'zasds'
+
+JOS (a == acopy) 
+        SAN NY 'ok'
+        SAN JOTTAI
+MUUTES 
+        SAN NY 'fail'
+        SAN JOTTAI
+NYLOPPUS
+
+JOS (a != acopy) 
+        SAN NY 'fail'
+        SAN JOTTAI
+MUUTES 
+        SAN NY 'ok'
+        SAN JOTTAI
+NYLOPPUS
+
+
+JOS (a < z) 
+        SAN NY 'ok'
+        SAN JOTTAI
+MUUTES 
+        SAN NY 'fail'
+        SAN JOTTAI
+NYLOPPUS
+
+JOS (a > z)
+        SAN NY 'fail'
+        SAN JOTTAI
+MUUTES
+        SAN NY 'ok'
+        SAN JOTTAI
+NYLOPPUS

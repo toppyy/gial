@@ -94,3 +94,8 @@ Run the program:
 
     ./build/terveissi.out
 
+## Testing
+
+Testing is implemented with BATS. To run a test:
+
+    ./test/bats/bin/bats test/test_guessing_game.bats 
