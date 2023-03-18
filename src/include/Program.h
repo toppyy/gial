@@ -25,7 +25,7 @@ class Constant {
 
 class Program {
     public:
-        Program();
+        Program(std::ostream &p_output_stream);
         std::vector<std::string> getInstructions();
         void addInstruction(std::string instruction);
         void addVariable(std::string identifier, std::string type, std::string size, int length);
@@ -41,6 +41,7 @@ class Program {
     private:
         std::vector<std::string> instructions;
         int icount;
+        std::ostream &output_stream;
         std::unordered_map<std::string, Variable> variables;
         std::unordered_map<std::string, Constant> constants;
 };

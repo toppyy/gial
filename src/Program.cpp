@@ -22,14 +22,16 @@ Constant::Constant(std::string p_identifier, std::string p_value, std::string p_
 }
 
 
-Program::Program() :
+Program::Program(std::ostream& p_output_stream) :
         instructions(std::vector<std::string> {}),
-        icount(0)
-        ,variables(std::unordered_map<std::string, Variable > {})
-          {
-            int icount = 0;
-            instructions = std::vector<std::string> {};
-          }
+        icount(0),
+        variables(std::unordered_map<std::string, Variable > {}),
+        output_stream(p_output_stream)
+        {
+        
+        int icount = 0;
+        instructions = std::vector<std::string> {};
+}
 
 std::vector<std::string> Program::getInstructions() {
     return instructions;
@@ -54,7 +56,7 @@ bool Program::inVariables(std::string variable) {
 }
 
 void Program::outputLine(std::string s) {
-    std::cout << s << "\n";
+    output_stream << s << "\n";
 }
 
 Variable Program::getVariable(std::string identifier) {
@@ -114,7 +116,7 @@ void Program::buildProgram() {
         std::string variableDeclaration = variable.second.identifier + " " + sizeReserveUnit + " ";
         variableDeclaration  += std::to_string(variable.second.length);
 
-        std::cout << "\t" + variableDeclaration + "\n";
+        output_stream << "\t" + variableDeclaration + "\n";
     }
 
     outputLine("section .data");
@@ -134,7 +136,7 @@ void Program::buildProgram() {
 
     // Print instructions
     for (auto instruction: instructions) {
-        std::cout << "\t" + instruction + "\n";
+        output_stream << "\t" + instruction + "\n";
     }
     outputLine("\n");
     outputLine("\tmov rax, 60");

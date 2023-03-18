@@ -1,16 +1,20 @@
 #include "./include/Parser.h"
 
 
-Parser::Parser(std::vector<Token> p_tokens, std::set<std::string> p_keywords) : 
+Parser::Parser(
+        std::vector<Token> p_tokens,
+        std::set<std::string> p_keywords,
+        Program p_program
+        ) : 
                                         labelCount(0),
                                         look(Token("EOF")),
                                         lookChar(0),
                                         tokens(std::vector<Token> {}),
                                         cursor(0),
-                                        token_count(0)
+                                        token_count(0),
+                                        program(p_program)
                                         {
     tokens = p_tokens;
-    program = Program();
     cursor = 0;
     token_count = tokens.size();
     keywords = p_keywords;

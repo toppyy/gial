@@ -10,7 +10,7 @@
 
 class Parser {
     public:
-        Parser(std::vector<Token> p_tokens, std::set<std::string> p_keywords);
+        Parser(std::vector<Token> p_tokens, std::set<std::string> p_keywords, Program p_program);
         void init();
         void buildProgram();
         void insertToken(Token tkn);

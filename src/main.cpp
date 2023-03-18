@@ -81,16 +81,12 @@ int main(int argc, char *argv[]) {
     keywords.insert("SAN LUGU");
     keywords.insert("TOST");
 
-    // Init parser and result data structure
-    Program pr = Program();
+    // Init scanner & parser and result data structure
     Scanner scnr = Scanner(content, keywords);
     scnr.init();
 
-    // for (auto t: scnr.getTokens()) { // REMOVE
-    //     std::cout << "token " << t.getContent() << ".\n";
-    // }
 
-    Parser prsr = Parser(scnr.getTokens(), keywords);
+    Parser prsr = Parser(scnr.getTokens(), keywords, Program(std::cout));
  
     // // // Do the parsing
     prsr.init();
