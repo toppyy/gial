@@ -220,7 +220,7 @@ void Parser::inputStatement() {
         integerInput = true;
         varType = "int";
         varSize = "qword";
-        varLength = 0;
+        varLength = 1;
         getToken();
     }
 
