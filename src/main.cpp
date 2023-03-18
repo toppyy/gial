@@ -5,7 +5,7 @@
 #include "./include/Parser.h"
 #include "./include/Scanner.h"
 #include "./include/Program.h"
-
+#include "./include/keywords.h"
 
 char handleScandics(char cur, char prev) {
     if (cur == -124 & prev == -61) { // Letter 'Ä'
@@ -65,22 +65,8 @@ int main(int argc, char *argv[]) {
     // Close the file
     fclose(pFile);
 
-    // TODO list keywords somewhere approriate
-    std::set<std::string> keywords;
-    keywords.insert("JOS");
-    keywords.insert("JA");
-    keywords.insert("TAI");
-    keywords.insert("SANAMBATK");
-    keywords.insert("LUGU"); 
-    keywords.insert("GUHA");
-    keywords.insert("OLGO");
-    keywords.insert("TOIST");
-    keywords.insert("SAN NY");
-    keywords.insert("SAN JOTTAI");
-    keywords.insert("SAN SNAA");
-    keywords.insert("SAN LUGU");
-    keywords.insert("TOST");
-
+    std::set<std::string> keywords = getKeywords();
+    
     // Init scanner & parser and result data structure
     Scanner scnr = Scanner(content, keywords);
     scnr.init();
