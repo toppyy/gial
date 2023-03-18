@@ -865,13 +865,6 @@ void Parser::boolStringComparison() {
     std::string loopEndFalse = getNewLabel();
     std::string loopEndTrue  = getNewLabel();
 
-    std::string onEquality = "1";
-    std::string onInequality = "0";
-
-    if (op == "jne" | op == "jg") {
-        onEquality = "0";
-        onInequality = "1";
-    }
 
     emitInstruction("mov r12, 0"); // Char index            
     emitInstruction(loopStart + ":");
@@ -881,25 +874,39 @@ void Parser::boolStringComparison() {
     emitInstruction("mov r9b, byte[" + B + " + r12]");
 
 
-    if (op == "je" | op == "jne") {
-        emitInstruction("cmp r8b, r9b");
+    if (op == "je") {
+        emitInstruction("cmp r8b, r9b");        
         emitInstruction("jne " + loopEndFalse);
         
-        // Check if either is null -> if so, jump out to true
-        // Both are null at this point
         emitInstruction("mov r8b, byte[" + A + " + r12]");
         emitInstruction("cmp r8b, 0");
         emitInstruction("je " + loopEndTrue);
 
-    } else if(op == "jl" | op =="jg") {
-        emitInstruction("cmp r8b, r9b");
-        emitInstruction("jl " + loopEndTrue);
-                        
-        // Check if either is null -> if so, jump out to false
-        // Both are null at this point
+    } else if (op == "jne") {
+        emitInstruction("cmp r8b, r9b");        
+        emitInstruction("jne " + loopEndTrue);
+        
         emitInstruction("mov r8b, byte[" + A + " + r12]");
         emitInstruction("cmp r8b, 0");
         emitInstruction("je " + loopEndFalse);
+
+    } else if(op == "jl") {
+
+        emitInstruction("cmp r8b, r9b");
+        emitInstruction("jl " + loopEndTrue);
+                        
+        emitInstruction("mov r8b, byte[" + A + " + r12]");
+        emitInstruction("cmp r8b, 0");
+        emitInstruction("je " + loopEndFalse);
+
+    } else if(op == "jg") {
+
+        emitInstruction("cmp r8b, r9b");
+        emitInstruction("jl " + loopEndFalse);
+                        
+        emitInstruction("mov r8b, byte[" + A + " + r12]");
+        emitInstruction("cmp r8b, 0");
+        emitInstruction("je " + loopEndTrue);
 
     }                            
     emitInstruction("inc r12");
@@ -908,15 +915,14 @@ void Parser::boolStringComparison() {
     emitInstruction("jmp " + loopStart);
 
     emitInstruction(loopEndFalse + ":");
-    emitInstruction("mov r8, " + onInequality);
+    emitInstruction("mov r8, 0");
     emitInstruction("jmp " + loopEnd);
 
     emitInstruction(loopEndTrue + ":");
-    emitInstruction("mov r8, " + onEquality);
+    emitInstruction("mov r8, 1");
 
     emitInstruction(loopEnd + ":");
     
-
 }   
 
 void Parser::boolTerm() {   
