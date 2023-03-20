@@ -664,7 +664,7 @@ void Parser::factor() {
 
 
 
-void Parser::ident() {
+void Parser::ident() { 
     Token name = getName();
     std::string instr;
 
@@ -685,6 +685,7 @@ void Parser::ident() {
         
         if (look == "=") {
             indexedAssignment(name);
+            return;
         }
 
         emitInstruction("mov r9, r8");
@@ -729,12 +730,15 @@ void Parser::indexedAssignment(Token name) {
     expression();
 
     std::string reg = "r8";
+    std::string bytes = "8"; // Integers are 8 bytes
+
     if (var.size == "byte") {
         reg = "r8b";
+        bytes = "1";
     }
 
     emitInstruction("pop r9");
-    emitInstruction( "mov " + var.size + "[ " + name + " + r9], " + reg);
+    emitInstruction( "mov " + var.size + "[ " + name + " + (r9 * " + bytes +  ")], " + reg);
     return;
 }
 

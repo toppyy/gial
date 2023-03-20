@@ -1,0 +1,15 @@
+LUGU numbers[3]
+
+numbers[0]  = 1000
+numbers[1]  = 400
+numbers[2]  = 42
+
+LUGU sum = 0
+
+TOST x = 0 TOHO 3
+    sum = sum + numbers[x]
+NYLOPPUS
+
+SAN LUGU sum
+SIKSES
+SIKSES

@@ -48,6 +48,8 @@ Giäl can do:
 - Complex expressions, eg. ((1*3) + 2)/5
 - Boolean expressions with operators ==, !=, <, >, <= and >=, eg. ( ((1==1) AND 1 > 5) OR 8 < 9)
 - Control structures like IF, IF ELSE, WHILE
+- String indexing (see examples, `RaumTranslator.gl`)
+- Arrays (see examples `arrays.gl`)
 - I/O, atm. only through stdio and stdout
 
 ## Syntax
