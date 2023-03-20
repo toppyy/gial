@@ -2,7 +2,7 @@
 
 **giäl** is a BASIC-inspired programming language imitating the [Rauma dialect](https://en.wikipedia.org/wiki/Rauma_dialect). In rauma the term for 'language' is 'giäl' - hence the name of language. Apologies in advance to native speakers of Rauma.
 
-The compiler translates giäl to assembly for x86. The assembler targeted is [NASM](https://www.nasm.us). It is written in C++.
+The project is actually a translator: it translates giäl to assembly for x86. The assembler targeted is [NASM](https://www.nasm.us). It is written in C++.
 
 The project follows Jack Crenshaws's [Let's Build a Compiler](https://compilers.iecc.com/crenshaw/) article series. Jack writes in Turbo Pascal and targets 68000, so code's been re-written, but I've stolen the ideas.
 
@@ -80,7 +80,7 @@ First, create a folder 'build' and run make:
 
     mkdir -p build && make
 
-Compile the program written in *giäl* and pipe the result into an .asm file. Compiling the example from above:
+To translate the program written in *giäl* and pipe the result into an .asm file. To translate the example from above, run:
 
     ./build/gl example/terveissi.gl > ./build/terveissi.asm
 
