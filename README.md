@@ -28,7 +28,7 @@ In *giäl* the same can be achieved with:
     LUGU i = 0
     GUHA (i < 5)
         SAN NY 'Terveissi!'
-        SAN JOTTAI
+        SIKSES
         i = i + 1    
     NYLOPPUS
 
@@ -36,7 +36,7 @@ Alternatively one can use a construct for repeating a block of code *N*-times:
 
     TOIST 5 
         SAN NY 'Terveissi!'
-        SAN JOTTAI
+        SIKSES
     NYLOPPUS
 
 
@@ -56,7 +56,7 @@ In giäl, keywords are written in CAPS. The following table lists keywords of gi
 
 | conventional term/expression | giäl |
 | ----- |----------------- |
-| PRINT \n | SAN JOTTAI    |
+| PRINT \n | SIKSES        |
 | PRINT | SAN NY           |
 | INPUT | SAN SNÄÄ         |
 | AND   | JA               |

@@ -1,5 +1,5 @@
 SAN NY 'What year was Rauma founded?'
-SAN JOTTAI
+SIKSES
 LUGU correctAnswer = 1442
 SAN SNÄÄ answer LUGU
 
@@ -10,11 +10,11 @@ GUHA (answer != correctAnswer)
     JOS (answer > correctAnswer) 
         SAN NY 'Try a smaller number!'
     NYLOPPUS
-    SAN JOTTAI
+    SIKSES
     SAN SNÄÄ answer LUGU
 NYLOPPUS
 SAN NY 'victory!'
-SAN JOTTAI
+SIKSES
 
-SAN JOTTAI
+SIKSES
 

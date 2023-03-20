@@ -5,7 +5,7 @@
 #include "./include/Parser.h"
 #include "./include/Scanner.h"
 #include "./include/Program.h"
-#include "./include/keywords.h"
+#include "./keywords.cpp"
 
 char handleScandics(char cur, char prev) {
     if (cur == -124 & prev == -61) { // Letter 'Ä'

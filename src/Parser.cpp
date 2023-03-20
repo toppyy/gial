@@ -38,17 +38,13 @@ void Parser::insertToken(Token tkn) {
 
 
 void Parser::mapStatementToFunction(std::string statement ) {
-    if (statement == "SAN NY")  {
-        printStatement();
-        return;
-    }
 
     if (statement == "SAN NY")  {
         printStatement();            
         return;
     }
 
-    if (statement == "SAN JOTTAI") {
+    if (statement == "SIKSES") {
         emitLine();
         return;
     }

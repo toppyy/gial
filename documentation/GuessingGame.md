@@ -4,7 +4,7 @@
 A classic beginner programming exercise, the guessing game, implemented in giäl:
 
     SAN NY 'What year was Rauma founded?'
-    SAN JOTTAI
+    SIKSES
     LUGU correctAnswer = 1442
     SAN SNÄÄ answer LUGU
 
@@ -15,11 +15,11 @@ A classic beginner programming exercise, the guessing game, implemented in giäl
         JOS (answer > correctAnswer) 
             SAN NY 'Try a smaller number!'
         NYLOPPUS
-        SAN JOTTAI
+        SIKSES
         SAN SNÄÄ answer LUGU
     NYLOPPUS
     SAN NY 'victory!'
-    SAN JOTTAI
+    SIKSES
 
 
 

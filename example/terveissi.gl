@@ -2,7 +2,7 @@
 LUGU i = 0
 GUHA (i < 5)
     SAN NY 'Terveissi!'
-    SAN JOTTAI
+    SIKSES
     i = i + 1    
 NYLOPPUS
 
