@@ -12,6 +12,8 @@ setup_file() {
 @test "string_comp is correct" {
     run ./test/build/string_comp.out
 
+    echo ${lines[2]}    
+
     [[ $"${lines[0]}" == "ok" ]]
     [[ $"${lines[1]}" == "ok" ]]
     [[ $"${lines[2]}" == "ok" ]]
@@ -19,6 +21,6 @@ setup_file() {
 }
 
 
-#teardown_file() {
-#    rm ./test/build/string_comp.*
-#}
+teardown_file() {
+    rm ./test/build/string_comp.*
+}

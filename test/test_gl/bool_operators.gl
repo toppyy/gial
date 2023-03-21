@@ -1,0 +1,69 @@
+LUGU a      = 123
+LUGU acopy  = 123
+LUGU b      = 555
+
+
+JOS (a == acopy) 
+        SAN NY 'ok'
+        SIKSES
+MUUTES 
+        SAN NY 'fail'
+        SIKSES
+NYLOPPUS
+
+JOS (a == b) 
+        SAN NY 'fail'
+        SIKSES
+MUUTES 
+        SAN NY 'ok'
+        SIKSES
+NYLOPPUS
+
+JOS (a >= acopy) 
+        SAN NY 'ok'
+        SIKSES
+MUUTES 
+        SAN NY 'fail'
+        SIKSES
+NYLOPPUS
+
+
+JOS (a <= acopy) 
+        SAN NY 'ok'
+        SIKSES
+MUUTES 
+        SAN NY 'fail'
+        SIKSES
+NYLOPPUS
+
+JOS (a <= b) 
+        SAN NY 'ok'
+        SIKSES
+MUUTES 
+        SAN NY 'fail'
+        SIKSES
+NYLOPPUS
+
+JOS (a >= b) 
+        SAN NY 'fail'
+        SIKSES
+MUUTES 
+        SAN NY 'ok'
+        SIKSES
+NYLOPPUS
+
+JOS (a > b) 
+        SAN NY 'fail'
+        SIKSES
+MUUTES 
+        SAN NY 'ok'
+        SIKSES
+NYLOPPUS
+
+JOS (a < b) 
+        SAN NY 'ok'
+        SIKSES
+MUUTES 
+        SAN NY 'fail'
+        SIKSES
+NYLOPPUS

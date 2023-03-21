@@ -20,6 +20,13 @@ MUUTES
         SIKSES
 NYLOPPUS
 
+JOS (a > z)
+        SAN NY 'fail'
+        SIKSES
+MUUTES
+        SAN NY 'ok'
+        SIKSES
+NYLOPPUS
 
 JOS (a < z) 
         SAN NY 'ok'
@@ -29,10 +36,3 @@ MUUTES
         SIKSES
 NYLOPPUS
 
-JOS (a > z)
-        SAN NY 'fail'
-        SIKSES
-MUUTES
-        SAN NY 'ok'
-        SIKSES
-NYLOPPUS

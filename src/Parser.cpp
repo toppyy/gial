@@ -894,19 +894,26 @@ void Parser::boolStringComparison() {
 
         emitInstruction("cmp r8b, r9b");
         emitInstruction("jl " + loopEndTrue);
-                        
+
+        emitInstruction("cmp r8b, r9b");
+        emitInstruction("jg " + loopEndFalse);
+                    
         emitInstruction("mov r8b, byte[" + A + " + r12]");
         emitInstruction("cmp r8b, 0");
         emitInstruction("je " + loopEndFalse);
 
+
     } else if(op == "jg") {
 
         emitInstruction("cmp r8b, r9b");
+        emitInstruction("jg " + loopEndTrue);
+
+        emitInstruction("cmp r8b, r9b");
         emitInstruction("jl " + loopEndFalse);
-                        
+
         emitInstruction("mov r8b, byte[" + A + " + r12]");
         emitInstruction("cmp r8b, 0");
-        emitInstruction("je " + loopEndTrue);
+        emitInstruction("je " + loopEndFalse);
 
     }                            
     emitInstruction("inc r12");
