@@ -19,6 +19,8 @@ class Variable {
 
         std::string makeReferenceTo();
         std::string makeReferenceTo(std::string offsetRegister);
+
+        std::string getRegister8Size();
 };
 
 class Constant {

@@ -27,6 +27,17 @@ std::string Variable::strSizeInBytes() {
     return std::to_string(sizeInBytes());
 }
 
+std::string Variable::getRegister8Size() {
+    if (size == "qword") {
+        return "r8";
+    }
+    if (size == "byte") {
+        return "r8b";
+    }
+    throw std::runtime_error("Don't know the R8-size for type: " + size);
+    return "";
+}
+
 
 std::string Variable::makeReferenceTo() {
     // Returns example: qword[varName]

@@ -707,12 +707,7 @@ void Parser::ident() {
         offset = "r9";
     }
 
-    std::string targetRegister = "r8";
-    if (var.size == "byte") {
-        targetRegister = "r8b";
-    }
-
-    emitInstruction("mov " + targetRegister + ", " + var.makeReferenceTo(offset));
+    emitInstruction("mov " + var.getRegister8Size() + ", " + var.makeReferenceTo(offset));
 }
 
 void Parser::indexedAssignment(Token name) {
@@ -729,16 +724,10 @@ void Parser::indexedAssignment(Token name) {
     // What is assigned?
     expression();
 
-    std::string reg = "r8";
-    std::string bytes = "8"; // Integers are 8 bytes
-
-    if (var.size == "byte") {
-        reg = "r8b";
-        bytes = "1";
-    }
-
+    // Do the assignment
     emitInstruction("pop r9");
-    emitInstruction( "mov " + var.size + "[ " + name + " + (r9 * " + bytes +  ")], " + reg);
+    emitInstruction("mov " + var.makeReferenceTo("r9") + ", " + var.getRegister8Size());
+
     return;
 }
 
