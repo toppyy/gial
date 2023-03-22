@@ -28,6 +28,7 @@ class Parser {
         void expectNumber();
         void expectName();
         Token peek();
+        Variable getVariable(std::string varname);
 
         std::string getNewLabel();
 

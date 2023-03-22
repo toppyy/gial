@@ -168,19 +168,17 @@ void Parser::printIntStatement() {
     
     if (look.isName) {
         // it's a variable. 
-        Token var = getName();
+        Token varName = getName();
+        Variable var = getVariable(varName.content);
+        std::string offset = "";
         if (look == "[") {
             matchToken("[");
-            emitComment("Parsing index expr");
             expression();
-
-            emitInstruction("mov rdi, qword[" + var + " + (r8 * 8) ]");
             matchToken("]");
-        } else {
-            emitInstruction("mov rdi, qword[" + var + "]");
+            offset = "r8";
+            
         }
-        
-
+        emitInstruction("mov rdi, " + var.makeReferenceTo(offset));
     } else {
         // it's an expression
         expression();
@@ -563,6 +561,11 @@ Token Parser::getName() {
     error("Expected a name, got: " + look);
     return Token("");
 }
+
+Variable Parser::getVariable(std::string varname) {
+    return program.getVariable(varname);
+}
+
 
 
 void Parser::matchToken(std::string expected_content) {
