@@ -733,17 +733,12 @@ void Parser::indexedAssignment(Token name) {
 
 void Parser::assignment(Token name) {
 
-    matchToken("=");
-
-    Variable var = program.getVariable(name.getContent());
+    matchToken("=");   
     expression();
 
-    std::string reg = "r8";
-    if (var.size == "byte") {
-        reg = "r8b";
-    }
+    Variable var = program.getVariable(name.getContent());
 
-    emitInstruction( "mov " + var.size + "[ " + name + "], " + reg);
+    emitInstruction("mov " + var.makeReferenceTo() + ", " + var.getRegister8Size());
 }
 
 bool Parser::isAddOp(char x) {
