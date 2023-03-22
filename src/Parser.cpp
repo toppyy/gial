@@ -677,42 +677,42 @@ void Parser::ident() {
         return;
     }
 
-
+    // Check if it's an indexed reference
+    bool indexedRefence = false;
     if (lookChar == '[') {
+        indexedRefence = true;
         matchToken("[");
         expression();
         matchToken("]");
-        
-        if (look == "=") {
+        // Move whatever was between brackets into r9
+        emitInstruction("mov r9, r8");
+    }        
+    
+    // Check if it's an assignment to a variable
+    if (look == "=") {
+        if (indexedRefence) {
             indexedAssignment(name);
             return;
         }
-
-        emitInstruction("mov r9, r8");
-        // We need to pull the variable to how whether to read a byte or ..?
-        Variable var = program.getVariable(name.getContent());
-
-        if (var.size == "byte") {
-            emitInstruction("mov r8b, byte[" + name + " + r9]");
-        }
-        
-        else if (var.size == "qword") {
-            emitInstruction("mov r8, qword[" + name + " + (r9 * 8)]");
-        }
-            
-        
+        assignment(name);
         return;
     }
 
+    // If not, store the value into r8
+    // We need to pull the variable to know whether to read a byte or ..?
+    Variable var = program.getVariable(name.getContent());
 
-    // Check if this is actually a condition, not an assignment. If a condition, do nothing.
-    if ( look == "=") {
-        assignment(name);
+    std::string offset = "";
+    if (indexedRefence) {
+        offset = "r9";
     }
-        
-    instr = "mov r8, qword[" + name + "]";
-    emitInstruction(instr);
-    return;
+
+    std::string targetRegister = "r8";
+    if (var.size == "byte") {
+        targetRegister = "r8b";
+    }
+
+    emitInstruction("mov " + targetRegister + ", " + var.makeReferenceTo(offset));
 }
 
 void Parser::indexedAssignment(Token name) {

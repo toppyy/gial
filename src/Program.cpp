@@ -11,6 +11,38 @@ Variable::Variable(std::string p_identifier, std::string p_type, std::string p_s
     length = p_length;
 }
 
+
+int Variable::sizeInBytes() {
+    if (size == "qword") {
+        return 8;
+    }
+    if (size == "byte") {
+        return 1;
+    }
+    throw std::runtime_error("Don't know the size of type: " + size);
+    return -1;
+}
+
+std::string Variable::strSizeInBytes() {
+    return std::to_string(sizeInBytes());
+}
+
+
+std::string Variable::makeReferenceTo() {
+    // Returns example: qword[varName]
+    return size + "[" + identifier + "]";
+}
+
+std::string Variable::makeReferenceTo(std::string offsetRegister) {
+    if (offsetRegister=="") {
+        return makeReferenceTo();
+    }
+
+    // Returns example: qword[varName + (r9 * 8)]
+    return size + "[" + identifier + " + (" + offsetRegister + " * " + strSizeInBytes() + ")]";
+}
+
+
 Constant::Constant(std::string p_identifier, std::string p_value, std::string p_type) : 
     identifier(""),
     type(""),

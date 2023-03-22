@@ -12,6 +12,13 @@ class Variable {
         std::string type;       // Should be enum. Atm string: 'int' or 'str'
         std::string size;       // byte, word, dword, qword
         int length;             // For strings
+        
+        int sizeInBytes();
+        std::string strSizeInBytes();
+
+
+        std::string makeReferenceTo();
+        std::string makeReferenceTo(std::string offsetRegister);
 };
 
 class Constant {

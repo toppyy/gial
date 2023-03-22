@@ -3,7 +3,7 @@
 setup_file() {
 
     mkdir -p ./test/build
-    ./build/gl example/RaumTranslator.gl > ./test/build/RaumTranslator.asm
+    ./build/gl test/test_gl/RaumTranslator.gl > ./test/build/RaumTranslator.asm
     nasm -f elf64 test/build/RaumTranslator.asm -o test/build/RaumTranslator.o
     ld -o ./test/build/RaumTranslator.out ./test/build/RaumTranslator.o ./build/ASCII.o
     

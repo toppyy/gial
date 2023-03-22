@@ -1,0 +1,50 @@
+SIKSES
+SAN SNÄÄ sana
+SIKSES
+
+LUGU x = 0
+
+GUHA (sana[x] != 0)
+
+    JOS (sana[x] == 'p')
+        sana[x] = 98
+    NYLOPPUS
+
+    JOS (sana[x] == 'k')
+        sana[x] = 103
+    NYLOPPUS
+
+    JOS (sana[x] == 'i' JA sana[x-1] == 's')
+        sana[x] = 32
+    NYLOPPUS
+
+    JOS (sana[x] == 'e' JA sana[x+1] == 32)
+        sana[x] = 32
+    NYLOPPUS
+
+    JOS (sana[x] == 't' JA sana[x+1] == 32)
+        sana[x] = 32
+    NYLOPPUS
+
+    JOS (sana[x] == 'n' JA sana[x+1] == 32)
+        sana[x] = 32
+    NYLOPPUS
+
+    JOS ((sana[x] == 'a' JA sana[x+1] == 32) TAI (sana[x] == 'a' JA sana[x+1] == 0))
+        sana[x] = 32
+    NYLOPPUS
+
+    JOS (x > 3)
+        JOS (sana[x] == 'n' JA sana[x-1] == 'i' JA sana[x-2] == 'u' JA sana[x-3] == 'g')
+            sana[x]   = 32
+            sana[x-1] = 32
+        NYLOPPUS
+    NYLOPPUS
+
+    x = x + 1
+
+NYLOPPUS
+
+SAN NY sana
+SIKSES
+SIKSES

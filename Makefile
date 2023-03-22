@@ -27,3 +27,6 @@ $(ODIR)/%.o: $(SRC)%.cpp
 
 clean:
 	rm -f $(ODIR)/*.o
+
+tests:
+	./test/bats/bin/bats ./test

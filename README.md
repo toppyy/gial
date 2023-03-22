@@ -100,4 +100,4 @@ Run the program:
 
 Testing is implemented with [BATS](https://github.com/bats-core/bats-core). To run all tests:
 
-    ./test/bats/bin/bats ./test
+    make tests
