@@ -6,10 +6,15 @@ numbers[2]  = 42
 
 LUGU sum = 0
 
+SAN NY '0'
+
 TOST x = 0 TOHO 3
     sum = sum + numbers[x]
+    SAN NY ' + '
+    SAN LUGU numbers[x]
 NYLOPPUS
 
+SAN NY ' = '
 SAN LUGU sum
 SIKSES
 SIKSES
