@@ -98,6 +98,6 @@ Run the program:
 
 ## Testing
 
-Testing is implemented with [BATS](https://github.com/bats-core/bats-core). To run all tests:
+Testing is implemented with [BATS](https://github.com/bats-core/bats-core) (included as a submodule). To run all tests:
 
     make tests
