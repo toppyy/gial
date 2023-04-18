@@ -3,6 +3,9 @@
 #include <fstream> 
 #include <string>
 #include "./include/Parser.h"
+#include "./include/GAST.h"
+#include "./include/TreeParser.h"
+
 #include "./include/Scanner.h"
 #include "./include/Program.h"
 #include "./keywords.cpp"
@@ -73,6 +76,13 @@ int main(int argc, char *argv[]) {
 
 
     Parser prsr = Parser(scnr.getTokens(), keywords, Program(std::cout));
+
+    TreeParser treeprsr = TreeParser(scnr.getTokens(), keywords, Program(std::cout));
+
+    // 
+    GAST tree = GAST();
+    treeprsr.build(tree);
+
  
     // // // Do the parsing
     prsr.init();
