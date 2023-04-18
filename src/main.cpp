@@ -75,20 +75,27 @@ int main(int argc, char *argv[]) {
     scnr.init();
 
 
-    Parser prsr = Parser(scnr.getTokens(), keywords, Program(std::cout));
+    // Parser prsr = Parser(scnr.getTokens(), keywords, Program(std::cout));
 
-    TreeParser treeprsr = TreeParser(scnr.getTokens(), keywords, Program(std::cout));
+    // TreeParser treeprsr = TreeParser(scnr.getTokens(), keywords, Program(std::cout));
 
     // 
     GAST tree = GAST();
-    treeprsr.build(tree);
+    tree.current->print();
+    GNODE anode = GNODE();
+    anode.setType("child 1");
+    tree.addChildToCurrent(anode);
+    tree.toChild();
+    tree.current->print();
+//    tree.addChildToCurrent();
+    //treeprsr.build(tree);
 
  
     // // // Do the parsing
-    prsr.init();
+    // prsr.init();
     
     // // // Build the program
-    prsr.buildProgram();
+    //prsr.buildProgram();
 
     // Finished  
     std::cout << "\n\n";

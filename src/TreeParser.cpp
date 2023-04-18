@@ -13,6 +13,7 @@ TreeParser::TreeParser(
                                         cursor(0),
                                         token_count(0),
                                         program(p_program)
+                                        
                                         {
     tokens = p_tokens;
     cursor = 0;
@@ -23,7 +24,7 @@ TreeParser::TreeParser(
 
 void TreeParser::build(GAST& p_tree) {
 
-    tree = p_tree;
+    // tree = p_tree;
 
 }
 

@@ -94,7 +94,7 @@ class TreeParser {
         int  labelCount;
         int  cursor;
         int  token_count;
-        GAST tree;
+        //GAST tree;
         Program program;
         std::set<std::string> keywords; 
 

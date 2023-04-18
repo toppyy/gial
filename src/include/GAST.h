@@ -1,5 +1,8 @@
 #pragma once
 #include <iostream>
+#include <vector>
+
+using std::vector, std::string;
 
 /* 
     GAST - Gial Abstract Syntax Tree
@@ -10,9 +13,23 @@
 */
 class GNODE {
 
+    public:
+        GNODE();
+        void setChild(GNODE* p_child);
+        GNODE* getChild();
+        GNODE* getParent();
+        void setParent(GNODE* p_parent);
+        void setType(string p_type);
+        string getType();
+        void print();
+        bool isRoot;
+
     private:
+        
         GNODE* next;
-        GNODE* childred;
+        GNODE* child;
+        GNODE* parent;
+        string type;
 
 };
 
@@ -21,9 +38,17 @@ class GAST {
     public:
         GAST();
         GNODE root;
-        void setRoot(GNODE rootNode);
-    
+        
+        vector<GNODE> gnodes;
 
+        void toChild();
+        void toParent();
+        void addChildToCurrent(GNODE node);
+        void moveToNode(GNODE node);
+        void branchFromroot(GNODE node);
+        void returnToRoot();
+
+        GNODE* current;
 };
 
 
