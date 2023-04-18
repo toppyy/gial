@@ -1,0 +1,13 @@
+LUGU ladd  = 23 + 9000
+LUGU lsub  = 9000 - 23
+LUGU lmul  = 23 * 9000
+LUGU ldiv  = 9000 / 23
+
+SAN LUGU ladd
+SIKSES
+SAN LUGU lsub
+SIKSES
+SAN LUGU lmul
+SIKSES
+SAN LUGU ldiv
+SIKSES

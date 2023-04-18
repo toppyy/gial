@@ -24,6 +24,6 @@ setup_file() {
 }
 
 
-#teardown_file() {
-#    rm ./test/build/bool_operators.*
-#}
+teardown_file() {
+    rm ./test/build/bool_operators.*
+}
