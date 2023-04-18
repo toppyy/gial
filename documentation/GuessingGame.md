@@ -29,13 +29,13 @@ Translates to this lengthy piece of assembly:
     STDOUT      equ 1
     SYS_READ    equ 0
     LF equ 10
-    %macro printBytes 3               ; %1 = address of string to output, %2 = byte offset, %3 = number of bytes
-        mov       rax, 1                  ; system call for write
-        mov       rdi, 1                  ; file handle 1 is stdout
-        mov       rsi, %1                 ; address of string to output
-        add       rsi, %2                 ; byte offset
-        mov       rdx, %3                 ; number of bytes
-        syscall                           ; invoke operating system to do the write
+    %macro printBytes 3
+        mov       rax, 1
+        mov       rdi, 1
+        mov       rsi, %1
+        add       rsi, %2
+        mov       rdx, %3
+        syscall
     %endmacro
     extern PrintInteger
     extern PrintASCII
@@ -54,7 +54,7 @@ Translates to this lengthy piece of assembly:
         mov dil, LF
         call PrintASCII
         mov r8, 1442
-        mov qword[ correctAnswer], r8
+        mov qword[correctAnswer], r8
         mov r8, 0
         push r8
         mov r9, 0
@@ -161,5 +161,4 @@ Translates to this lengthy piece of assembly:
         mov rax, 60
         xor rdi, 0
         syscall
-
 

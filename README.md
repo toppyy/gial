@@ -82,7 +82,7 @@ First, create a folder 'build' and run make:
 
     mkdir -p build && make
 
-To translate the program written in *giäl* and pipe the result into an .asm file. To translate the example from above, run:
+Next, translate the example program written in *giäl* and pipe the result into an .asm file:
 
     ./build/gl example/terveissi.gl > ./build/terveissi.asm
 
@@ -92,7 +92,7 @@ Assemble and link with ASCII:
     nasm -f elf64 build/terveissi.asm -o build/terveissi.o
     ld -o ./build/terveissi.out ./build/terveissi.o ./build/ASCII.o
 
-Run the program:
+And you're done. Run the program:
 
     ./build/terveissi.out
 
