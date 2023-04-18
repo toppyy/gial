@@ -133,13 +133,14 @@ void Program::buildProgram() {
     outputLine("SYS_READ    equ 0");
     outputLine("LF equ 10");
 
-    outputLine("%macro printBytes 3               ; %1 = address of string to output, %2 = byte offset, %3 = number of bytes");
-    outputLine("\tmov       rax, 1                  ; system call for write");
-    outputLine("\tmov       rdi, 1                  ; file handle 1 is stdout");
-    outputLine("\tmov       rsi, %1                 ; address of string to output");
-    outputLine("\tadd       rsi, %2                 ; byte offset");
-    outputLine("\tmov       rdx, %3                 ; number of bytes");
-    outputLine("\tsyscall                           ; invoke operating system to do the write");
+    // Standard macro to print n bytes to stdout
+    outputLine("%macro printBytes 3");
+    outputLine("\tmov       rax, 1");
+    outputLine("\tmov       rdi, 1");
+    outputLine("\tmov       rsi, %1");
+    outputLine("\tadd       rsi, %2");
+    outputLine("\tmov       rdx, %3");
+    outputLine("\tsyscall");
     outputLine("%endmacro");
 
 
