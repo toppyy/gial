@@ -4,7 +4,8 @@
 TreeParser::TreeParser(
         std::vector<Token> p_tokens,
         std::set<std::string> p_keywords,
-        Program p_program
+        Program p_program,
+        std::shared_ptr<GAST> p_tree
         ) : 
                                         labelCount(0),
                                         look(Token("EOF")),
@@ -12,19 +13,20 @@ TreeParser::TreeParser(
                                         tokens(std::vector<Token> {}),
                                         cursor(0),
                                         token_count(0),
-                                        program(p_program)
+                                        program(p_program),
+                                        tree(p_tree)
                                         
                                         {
     tokens = p_tokens;
     cursor = 0;
     token_count = tokens.size();
     keywords = p_keywords;
+    tree = p_tree;
 
 }
 
-void TreeParser::build(GAST& p_tree) {
+void TreeParser::build() {
 
-    // tree = p_tree;
 
 }
 
@@ -141,6 +143,10 @@ void TreeParser::printStatement() {
         emitInstruction("printBytes " + label + ", 0, " + std::to_string(look.length()));
         emitConstant(label, look.getContent(), "str");
 
+
+
+        tree->addToCurrent (PRINTSTRCONST( look.getContent() ));
+
         getToken();
         return;
     }
@@ -200,6 +206,7 @@ void TreeParser::printIntStatement() {
 }
 
 void TreeParser::emitLine() {
+    tree->addToCurrent ( PRINTSTRCONST("")  );
     emitInstruction("mov dil, LF");
     emitInstruction("call PrintASCII");
     return;
@@ -313,8 +320,14 @@ void TreeParser::whileStatement() {
     
     emitInstruction(labelTrue + ":");
     // Sets r8 to 0/1 depending on the evaluation
+    tree->addToCurrent(BLOCK());
+    tree->openBranch();    
+    tree->addToCurrent(WHILE());
+
+    tree->openBranch();
     boolExpression();
-    
+    tree->closeBranch();
+
     // Compare it and determine whether to run 'block'
     emitInstruction("cmp r8, 1");
     // jump to 'labelFalse' if evaluates to false
@@ -323,6 +336,10 @@ void TreeParser::whileStatement() {
     emitInstruction("jmp " + labelTrue);
     emitInstruction(labelFalse + ":");
     matchEndStatement();
+
+    tree->closeBranch();
+
+
 }
 
 void TreeParser::letIntStatement() {
@@ -334,6 +351,10 @@ void TreeParser::letIntStatement() {
         return;
     }
     emitIntVariable(varName);
+
+    tree->addToCurrent(DECLARE(varName.getContent(),"int"));
+    
+
 
     if (look != "=") {
         // No associated assignment        
@@ -596,12 +617,16 @@ void TreeParser::matchEndStatement() {
 
 void TreeParser::expression() {
     // Trick: Add a zero to start calculations with
-    // This way -3 + 3 becomes 0 - 3 + 3    
+    // This way -3 + 3 becomes 0 - 3 + 3
+
+    tree->addToCurrent(EXPRESSION());
     
     if ( isAddOp(lookChar)) {
         emitInstruction("mov r8, 0");
     } else {
+        tree->openBranch();
         term();
+        tree->closeBranch();
     }
 
     
@@ -659,6 +684,9 @@ void TreeParser::factor() {
     
     Token nextToken = look;
     if (isDigit(lookChar)) {
+
+        tree->addToCurrent(CONSTANT(nextToken.content, "int"));
+
         instr = "mov r8, " + nextToken;
         emitInstruction(instr);
         getToken();
@@ -714,6 +742,8 @@ void TreeParser::ident() {
     // If not, store the value into r8
     // We need to pull the variable to know whether to read a byte or ..?
     Variable var = program.getVariable(name.getContent());
+
+    tree->addToCurrent(VARIABLE(name.getContent()));
 
     std::string offset = "";
     if (indexedRefence) {
@@ -942,10 +972,20 @@ void TreeParser::boolTerm() {
         boolStringComparison();
         return;    
     }
-    expression();
-    emitInstruction("push r8");
     
+    BOOLTERM term = BOOLTERM();
+    shared_ptr<BOOLTERM> p_term = make_shared<BOOLTERM>(term);
+    tree->addToCurrent(term);
+    tree->openBranch();
+    expression();
+    tree->closeBranch();
+    
+
+    p_term->setOperator(look.getContent());
+    
+    emitInstruction("push r8");
     std::string op = mapOperatorToInstruction();
+    
     
     if (program.isStringVariable(look.getContent())) {
         error("Mismatch: can't compare to type string with content: " + look);
@@ -953,6 +993,9 @@ void TreeParser::boolTerm() {
     
     expression();
     
+    tree->toParent();
+    
+
     emitInstruction("pop r9");
     emitInstruction("cmp r9, r8");
     emitInstruction("mov r8, 1");

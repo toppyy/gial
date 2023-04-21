@@ -21,6 +21,24 @@ char handleScandics(char cur, char prev) {
     return cur;
 }
 
+void traverseTree(std::shared_ptr<GNODE> node) {
+
+    node->print();
+
+    std::shared_ptr<GNODE> left = node->getLeft();
+    std::shared_ptr<GNODE> right  = node->getRight();
+
+    if (left != nullptr) {
+        traverseTree(left);
+    }
+
+    if (right != nullptr) {
+        traverseTree(right);
+    }
+
+    return;
+}
+
 
 int main(int argc, char *argv[]) {
 
@@ -76,17 +94,33 @@ int main(int argc, char *argv[]) {
 
 
     // Parser prsr = Parser(scnr.getTokens(), keywords, Program(std::cout));
+    GAST tree = GAST();
+    std::shared_ptr<GAST> p_tree = std::make_shared<GAST>(tree);
 
-    // TreeParser treeprsr = TreeParser(scnr.getTokens(), keywords, Program(std::cout));
+    TreeParser treeprsr = TreeParser(scnr.getTokens(), keywords, Program(std::cout), p_tree);
+
+    treeprsr.init();
+
+    std::cout << "nodes " << tree.gnodes.size() << "\n";
+    std::cout << "nodes " << p_tree->gnodes.size() << "\n";
+
+
+    p_tree->returnToRoot();
+    traverseTree(p_tree->current );
+
 
     // 
-    GAST tree = GAST();
-    tree.current->print();
-    GNODE anode = GNODE();
-    anode.setType("child 1");
-    tree.addChildToCurrent(anode);
-    tree.toChild();
-    tree.current->print();
+    // GAST tree = GAST();
+    // tree.current->print();
+    // // GNODE anode = GNODE();
+    // // anode.setType("child 1");
+    // // tree.addChildToCurrent(anode);
+    // bool res = tree.toChild();
+    // //std::cout << "jmp to child " << res << "\n";
+    // if (res) {
+    //     tree.current->print();
+    // }
+    //
 //    tree.addChildToCurrent();
     //treeprsr.build(tree);
 

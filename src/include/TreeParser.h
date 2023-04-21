@@ -4,6 +4,7 @@
 #include<vector>
 #include<iostream>
 #include<exception>
+#include<memory>
 #include "./Program.h"
 #include "./Scanner.h"
 #include "./Token.h"
@@ -11,9 +12,9 @@
 
 class TreeParser {
     public:
-        TreeParser(std::vector<Token> p_tokens, std::set<std::string> p_keywords, Program p_program);
+        TreeParser(std::vector<Token> p_tokens, std::set<std::string> p_keywords, Program p_program, std::shared_ptr<GAST> p_tree);
         void init();
-        void build(GAST &tree);
+        void build();
         void buildProgram();
         void insertToken(Token tkn);
         void mapStatementToFunction(std::string statement);
@@ -94,7 +95,7 @@ class TreeParser {
         int  labelCount;
         int  cursor;
         int  token_count;
-        //GAST tree;
+        std::shared_ptr<GAST> tree;
         Program program;
         std::set<std::string> keywords; 
 
