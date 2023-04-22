@@ -5,7 +5,7 @@
 #include "./include/Parser.h"
 #include "./include/GAST.h"
 #include "./include/TreeParser.h"
-
+#include "./include/Assembler.h"
 #include "./include/Scanner.h"
 #include "./include/Program.h"
 #include "./keywords.cpp"
@@ -21,19 +21,26 @@ char handleScandics(char cur, char prev) {
     return cur;
 }
 
-void traverseTree(std::shared_ptr<GNODE> node) {
+void traverseTree(std::shared_ptr<GNODE> node, int depth) {
 
+
+    int tabs = depth;
+    string tab = "";
+    while (tabs > 0) {
+        std::cout << "\t";
+        tabs--;
+    }
     node->print();
 
     std::shared_ptr<GNODE> left = node->getLeft();
     std::shared_ptr<GNODE> right  = node->getRight();
 
     if (left != nullptr) {
-        traverseTree(left);
+        traverseTree(left, depth + 1);
     }
 
     if (right != nullptr) {
-        traverseTree(right);
+        traverseTree(right, depth + 1);
     }
 
     return;
@@ -101,28 +108,13 @@ int main(int argc, char *argv[]) {
 
     treeprsr.init();
 
-    std::cout << "nodes " << tree.gnodes.size() << "\n";
-    std::cout << "nodes " << p_tree->gnodes.size() << "\n";
-
-
     p_tree->returnToRoot();
-    traverseTree(p_tree->current );
+    // traverseTree(p_tree->current, 0);
 
+    auto asmblr = Assembler(Program(std::cout));
 
-    // 
-    // GAST tree = GAST();
-    // tree.current->print();
-    // // GNODE anode = GNODE();
-    // // anode.setType("child 1");
-    // // tree.addChildToCurrent(anode);
-    // bool res = tree.toChild();
-    // //std::cout << "jmp to child " << res << "\n";
-    // if (res) {
-    //     tree.current->print();
-    // }
-    //
-//    tree.addChildToCurrent();
-    //treeprsr.build(tree);
+    asmblr.Assemble(p_tree);
+
 
  
     // // // Do the parsing

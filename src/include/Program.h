@@ -4,53 +4,56 @@
 #include<vector>
 #include<iostream>
 #include<exception>
+using std::string;
 
 class Variable {
     public:
-        Variable(std::string identifier, std::string type, std::string size, int length);
-        std::string identifier;
-        std::string type;       // Should be enum. Atm string: 'int' or 'str'
-        std::string size;       // byte, word, dword, qword
+        Variable(string identifier, string type, string size, int length);
+        string identifier;
+        string type;       // Should be enum. Atm string: 'int' or 'str'
+        string size;       // byte, word, dword, qword
         int length;             // For strings
         
         int sizeInBytes();
-        std::string strSizeInBytes();
+        string strSizeInBytes();
 
 
-        std::string makeReferenceTo();
-        std::string makeReferenceTo(std::string offsetRegister);
+        string makeReferenceTo();
+        string makeReferenceTo(string offsetRegister);
 
-        std::string getRegister8Size();
+        string getRegister8Size();
 };
 
 class Constant {
     public:
-        Constant(std::string identifier, std::string value, std::string type);
-        std::string identifier;
-        std::string value;
-        std::string type;       // Should be enum. Atm string: 'int' or 'str'
+        Constant(string identifier, string value, string type);
+        string identifier;
+        string value;
+        string type;       // Should be enum. Atm string: 'int' or 'str'
 };
 
 
 class Program {
     public:
         Program(std::ostream &p_output_stream);
-        std::vector<std::string> getInstructions();
-        void addInstruction(std::string instruction);
-        void addVariable(std::string identifier, std::string type, std::string size, int length);
-        void addConstant(std::string identifier, std::string value, std::string type);
-        Variable getVariable(std::string identifier);
+        std::vector<string> getInstructions();
+        void addInstruction(string instruction);
+        void addVariable(string identifier, string type, string size, int length);
+        void addConstant(string identifier, string value, string type);
+        Variable getVariable(string identifier);
         void buildProgram();
-        void outputLine(std::string s);
+        void outputLine(string s);
         
-        bool inVariables(std::string variable);
-        bool isStringVariable(std::string variable);
+        bool inVariables(string variable);
+        bool isStringVariable(string variable);
+        string getNewLabel();
 
 
     private:
-        std::vector<std::string> instructions;
+        std::vector<string> instructions;
         int icount;
+        int labelCount;
         std::ostream &output_stream;
-        std::unordered_map<std::string, Variable> variables;
-        std::unordered_map<std::string, Constant> constants;
+        std::unordered_map<string, Variable> variables;
+        std::unordered_map<string, Constant> constants;
 };

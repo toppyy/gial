@@ -112,8 +112,7 @@ void TreeParser::block() {
     while (
         look != "NYLOPPUS" &
         look != "EOF" &
-        look != "MUUTES" &
-        cursor < (token_count-1)
+        look != "MUUTES" 
     ) {
         nextToken = look.getContent();
         
@@ -142,8 +141,6 @@ void TreeParser::printStatement() {
         std::string label = getNewLabel();
         emitInstruction("printBytes " + label + ", 0, " + std::to_string(look.length()));
         emitConstant(label, look.getContent(), "str");
-
-
 
         tree->addToCurrent (PRINTSTRCONST( look.getContent() ));
 
@@ -206,7 +203,8 @@ void TreeParser::printIntStatement() {
 }
 
 void TreeParser::emitLine() {
-    tree->addToCurrent ( PRINTSTRCONST("")  );
+
+    tree->addToCurrent ( PRINTASCII("LF")  );
     emitInstruction("mov dil, LF");
     emitInstruction("call PrintASCII");
     return;
@@ -352,11 +350,14 @@ void TreeParser::letIntStatement() {
     }
     emitIntVariable(varName);
 
+
+
     tree->addToCurrent(DECLARE(varName.getContent(),"int"));
-    
+    tree->openBranch();    
 
 
     if (look != "=") {
+        tree->closeBranch();
         // No associated assignment        
         return;
     }
@@ -366,6 +367,7 @@ void TreeParser::letIntStatement() {
         expected("integer when assigning to numeric type");
     }
     assignment(varName);
+    tree->closeBranch();
     return;
 }
 
@@ -738,11 +740,11 @@ void TreeParser::ident() {
         assignment(name);
         return;
     }
+    //std::cout << " handling " << name.getContent() << ", look is " << look.getContent() << "\n";
 
     // If not, store the value into r8
     // We need to pull the variable to know whether to read a byte or ..?
     Variable var = program.getVariable(name.getContent());
-
     tree->addToCurrent(VARIABLE(name.getContent()));
 
     std::string offset = "";
@@ -776,8 +778,12 @@ void TreeParser::indexedAssignment(Token name) {
 
 void TreeParser::assignment(Token name) {
 
-    matchToken("=");   
+    matchToken("=");
+
+    tree->addToCurrent(ASSIGN(name.getContent()));
+    tree->openBranch();
     expression();
+    tree->closeBranch();
 
     Variable var = program.getVariable(name.getContent());
 
@@ -981,7 +987,10 @@ void TreeParser::boolTerm() {
     tree->closeBranch();
     
 
-    p_term->setOperator(look.getContent());
+
+    //std::cout << " current is " << tree->current->getType() << "\n";
+
+    tree->current->setOperator(look.getContent());
     
     emitInstruction("push r8");
     std::string op = mapOperatorToInstruction();

@@ -30,17 +30,30 @@ class GNODE {
 
         void    setType(string p_type);
         string  getType();
+
+        void setOperator(string p_op);
       
         virtual void print();
         bool isRoot;
-
-    private:
         
+
+
+
+        // BOOLTERM
+        string op;
+
+        // CONSTANT
+        string value;
+
+        // Shared btwn operators
+        string datatype;
+        string name;
+
+    private:        
         shared_ptr<GNODE> right;
         shared_ptr<GNODE> left;
         shared_ptr<GNODE> parent;
         string type;
-
 };
 
 
@@ -92,6 +105,8 @@ class REPEAT: public GNODE {
 };
 
 class ASSIGN: public GNODE {
+    public:
+        ASSIGN(string p_name);
     
 };
 
@@ -104,7 +119,6 @@ class BLOCK: public GNODE {
 class VARIABLE: public GNODE {
     public:
         VARIABLE(string p_name);
-        string name;
 };
 
 class EXPRESSION: public GNODE {
@@ -115,29 +129,24 @@ class EXPRESSION: public GNODE {
 class BOOLTERM: public GNODE {
     public:
         BOOLTERM();
-        string op;
-        void setOperator(string p_op);
 };
 
 class PRINTSTRCONST: public GNODE {
     public:
-        PRINTSTRCONST(string p_whatToPrint);
-        string whatToPrint;
+        PRINTSTRCONST(string p_value);
+};
+
+class PRINTASCII: public GNODE {
+    public:
+        PRINTASCII(string p_value);
 };
 
 class DECLARE: public GNODE {
     public:
         DECLARE(string p_name, string p_vartype);
-
-        string name;
-        string vartype;
 };
 
 class CONSTANT: public GNODE {
     public:
         CONSTANT(string p_value, string p_datatype);
-
-        string value;
-        string datatype;
-
 };

@@ -80,7 +80,17 @@ shared_ptr<GNODE> GAST::getRoot() {
 }
 
 
-GNODE::GNODE() : isRoot(false), right(nullptr), left(nullptr), parent(nullptr), type("unknown") {
+GNODE::GNODE() : 
+    isRoot(false),
+    right(nullptr),
+    left(nullptr),
+    parent(nullptr),
+    type("unknown"),
+    op(""),
+    value(""),
+    datatype(""),
+    name("")
+    {
 
 }
 
@@ -109,8 +119,23 @@ string getNodeType(shared_ptr<GNODE> node) {
 }
 
 void GNODE::print() {
-    std::cout << " i am node of type " << this->getType()<< "\t\tparent is " << getNodeType(parent) << "\t\tright type is " << getNodeType(right) << "\t\tleft type is " << getNodeType(left);
+    int tabs = 1;
+    if (type.length() <= 7) {
+        tabs++;
+    }
+    string tab = "";
+    while (tabs > 0) {
+        tab += "\t";
+        tabs--;
+    }
+    //std::cout << getType() ; //<< tab << "(" << getNodeType(parent) << ")";
+    std::cout << this->getType()<< tab <<"parent: " << getNodeType(parent) <<  tab << "right: " << getNodeType(right) << tab << "left: " << getNodeType(left);
+    
+    if (this->getType() == "BOOLTERM") {
+        std::cout << " and my op is " << this->op << "\n";
+    }
     std::cout << "\n";
+    
 }
 
 shared_ptr<GNODE> GNODE::getLeft() {
@@ -128,19 +153,26 @@ string GNODE::getType() {
     return type;
 }
 
+void GNODE::setOperator(string p_op) {
+    op = p_op;
+}
 
 
 
-PRINTSTRCONST::PRINTSTRCONST(string p_whatToPrint) : whatToPrint("") {
-    whatToPrint = p_whatToPrint;
+PRINTSTRCONST::PRINTSTRCONST(string p_value) {
+    value = p_value;
     this->setType("PRINTSTRCONST");
+};
+PRINTASCII::PRINTASCII(string p_value) {
+    value = p_value;
+    this->setType("PRINTASCII");
 };
 
 
 
-DECLARE::DECLARE(string p_name, string p_vartype) : name(""), vartype("") {
+DECLARE::DECLARE(string p_name, string p_datatype) {
     name = p_name;
-    vartype = p_vartype;
+    datatype = p_datatype;
     this->setType("DECLARE");
 };
 
@@ -148,16 +180,18 @@ WHILE::WHILE() {
     this->setType("WHILE");
 }
 
-BOOLTERM::BOOLTERM() : op("") {
+BOOLTERM::BOOLTERM() {
     setType("BOOLTERM");
 }
 
-void BOOLTERM::setOperator(string p_op) {
-    op = p_op;
-}
 
 EXPRESSION::EXPRESSION() {
     setType("EXPRESSION");
+}
+
+ASSIGN::ASSIGN(string p_name) {
+    name = p_name;
+    setType("ASSIGN");
 }
 
 BLOCK::BLOCK() {
@@ -165,14 +199,14 @@ BLOCK::BLOCK() {
 }
 
 
-CONSTANT::CONSTANT(string p_value, string p_datatype) : value(""), datatype("") {
+CONSTANT::CONSTANT(string p_value, string p_datatype)  {
     setType("CONSTANT");
     value = p_value;
     datatype = p_datatype;
 }
 
 
-VARIABLE::VARIABLE(string p_name) : name("") {
+VARIABLE::VARIABLE(string p_name) {
     name = p_name;
     setType("VARIABLE");
 }
