@@ -94,6 +94,9 @@ GNODE::GNODE() :
 
 }
 
+void GNODE::makeRightNull() {
+    right = nullptr;
+}
 
 void GNODE::setLeft(shared_ptr<GNODE> p_left) {
     left = p_left;
@@ -131,11 +134,19 @@ void GNODE::print() {
     //std::cout << getType() ; //<< tab << "(" << getNodeType(parent) << ")";
     std::cout << this->getType()<< tab <<"parent: " << getNodeType(parent) <<  tab << "right: " << getNodeType(right) << tab << "left: " << getNodeType(left);
     
-    if (this->getType() == "BOOLTERM") {
+    //if (this->getType() == "EXPRESSION") {
         std::cout << " and my op is " << this->op << "\n";
-    }
+    // }
     std::cout << "\n";
     
+}
+
+bool GNODE::hasMathOperator() {
+    
+    if (op == "+" | op == "-" | op == "*" | op == "/") {
+        return true;
+    }
+    return false;
 }
 
 shared_ptr<GNODE> GNODE::getLeft() {
@@ -197,6 +208,16 @@ ASSIGN::ASSIGN(string p_name) {
 BLOCK::BLOCK() {
     setType("BLOCK");
 }
+
+PRINTINT::PRINTINT() {
+    setType("PRINTINT");
+}
+
+ADDOP::ADDOP(string p_op) {
+    op = p_op;
+    setType("ADDOP");
+}
+
 
 
 CONSTANT::CONSTANT(string p_value, string p_datatype)  {

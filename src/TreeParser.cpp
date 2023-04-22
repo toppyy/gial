@@ -178,11 +178,16 @@ void TreeParser::printStatement() {
 
 void TreeParser::printIntStatement() {
 
-    
+    tree->addToCurrent(PRINTINT());
+
     if (look.isName) {
         // it's a variable. 
         Token varName = getName();
         Variable var = getVariable(varName.content);
+
+
+        tree->current->name = varName.getContent();
+
         std::string offset = "";
         if (look == "[") {
             matchToken("[");
@@ -194,7 +199,9 @@ void TreeParser::printIntStatement() {
         emitInstruction("mov rdi, " + var.makeReferenceTo(offset));
     } else {
         // it's an expression
+        tree->openBranch();
         expression();
+        tree->closeBranch();
         emitInstruction("mov rdi, r8");
     }
     emitInstruction("call PrintInteger ");
@@ -622,17 +629,17 @@ void TreeParser::expression() {
     // This way -3 + 3 becomes 0 - 3 + 3
 
     tree->addToCurrent(EXPRESSION());
-    
+    tree->openBranch();
+        
     if ( isAddOp(lookChar)) {
         emitInstruction("mov r8, 0");
     } else {
-        tree->openBranch();
         term();
-        tree->closeBranch();
     }
 
-    
     while (isAddOp(lookChar)) {
+        // tree->addToCurrent(ADDOP(look.getContent()));
+        tree->current->setOperator(look.getContent());
         emitInstruction("push r8");
         if (lookChar == '+') {
             add();
@@ -640,6 +647,7 @@ void TreeParser::expression() {
             minus();
         }
     }
+    tree->closeBranch();
 
 }   
 
@@ -703,9 +711,6 @@ void TreeParser::factor() {
     error("Should have not reached token \\w content " + nextToken);
     return;
 }   
-
-
-
 
 void TreeParser::ident() { 
     Token name = getName();

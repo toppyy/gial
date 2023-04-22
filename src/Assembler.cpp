@@ -28,7 +28,7 @@ void Assembler::traverse(shared_ptr<GNODE> node, bool traverseRight) {
         traverse(right);
     }
 
-    /* Note: left-branches are always traversed inside the node-handlers.  */
+    /* Note: left-branches are always traversed inside the node-handlers if need be.  */
 }
 
 void Assembler::handleNode(shared_ptr<GNODE> node) {
@@ -88,6 +88,17 @@ void Assembler::handleNode(shared_ptr<GNODE> node) {
         return;
     }
 
+    if (type == "PRINTINT") {
+        handlePrintInt(node);
+        return;
+    }
+
+
+    if (type == "ASSIGN") {
+        handleAssign(node);
+        return;
+    }
+
     std::cout << "dont know how to handle type " << type << "\n";
 
 }
@@ -100,8 +111,6 @@ void Assembler::handleBlock(shared_ptr<GNODE> node) {
     }
     emitComment("done with block left");
 }
-
-
 
 void Assembler::handlePrintStrConst(shared_ptr<GNODE> node) {
 
@@ -153,6 +162,7 @@ void Assembler::handleWhile(shared_ptr<GNODE> node) {
     emitComment("done with while");
   
 }
+
 void Assembler::handleExpression(shared_ptr<GNODE> node) {
     traverse(node->getLeft());
 }
@@ -163,6 +173,12 @@ void Assembler::handleVariable(shared_ptr<GNODE> node) {
     Variable var = program.getVariable(node->name);
 
     emitInstruction("mov " + var.getRegister8Size() + ", " + var.makeReferenceTo());
+
+    if (node->hasMathOperator()) {
+        // Need to do math with child
+        handleAddOperation(node->getRight(), node->op);
+        node->makeRightNull(); // We've now consumed right
+    }
 
 }
 
@@ -180,20 +196,17 @@ void Assembler::handleBoolTerm(shared_ptr<GNODE> node) {
 
     emitInstruction("pop r9");
     emitInstruction("cmp r9, r8");
-    emitInstruction("mov r8, 0");
-    emitInstruction(opInstruction + " " + labelFalse);
     emitInstruction("mov r8, 1");
+    emitInstruction(opInstruction + " " + labelFalse);
+    emitInstruction("mov r8, 0");
     emitInstruction(labelFalse + ":");
     emitComment("done with bool-term");
     // R8 = 1 if the expression is true, 0 if not
 }
 
-
-
 void Assembler::handleConstant(shared_ptr<GNODE> node) {
     emitInstruction("mov r8, " + node->value);
 }
-
 
 void Assembler::handleAssign(shared_ptr<GNODE> node) {
     emitComment("assign");
@@ -210,6 +223,35 @@ void Assembler::handleAssign(shared_ptr<GNODE> node) {
     emitInstruction("mov " + var.makeReferenceTo() + ", " + var.getRegister8Size());
 }
 
+void Assembler::handleAddOperation(shared_ptr<GNODE> node, string op) {
+    emitInstruction("push r8"); // Store result of previous node
+    handleNode(node);
+    emitInstruction("mov r9, r8");
+    emitInstruction("pop r8");
+    if (op == "+") {
+        emitInstruction("add r8, r9");
+    }
+    if (op == "-") {
+        emitInstruction("sub r8, r9");
+        
+    }
+}
+
+void Assembler::handlePrintInt(shared_ptr<GNODE> node) {
+    // If 'name' is present, print a variable ref
+    // if not, evaluate node on left
+    if (node->name != "") {
+        Variable var = program.getVariable(node->name);
+        emitInstruction("mov rdi, " + var.makeReferenceTo());
+    } else {
+        shared_ptr<GNODE> left = node->getLeft();
+        if (!node) {
+            error("Expected PrintInt to have a left node!\n");
+        }
+        handleNode(left);
+    }
+    emitInstruction("call PrintInteger");
+}
 
 void Assembler::emitInstruction(string inst) {
     program.addInstruction(inst);
@@ -224,7 +266,6 @@ void Assembler::emitComment(std::string comment) {
     emitInstruction("; " + comment);
 }
 
-
 void Assembler::emitVariable(string name, string varType, string size, int length) {
     if (!program.inVariables(name)) {
             program.addVariable(name, varType, size, length);
@@ -236,7 +277,6 @@ void Assembler::emitVariable(string name, string varType, string size, int lengt
 void Assembler::error(string error_message) {
     throw std::runtime_error(error_message);
 }
-
 
 string Assembler::mapOperatorToInstruction(string op) {
 

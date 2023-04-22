@@ -36,7 +36,8 @@ class GNODE {
         virtual void print();
         bool isRoot;
         
-
+        bool hasMathOperator();
+        void makeRightNull();
 
 
         // BOOLTERM
@@ -141,9 +142,21 @@ class PRINTASCII: public GNODE {
         PRINTASCII(string p_value);
 };
 
+class PRINTINT: public GNODE {
+    public:
+        PRINTINT();
+};
+
+
+
 class DECLARE: public GNODE {
     public:
         DECLARE(string p_name, string p_vartype);
+};
+
+class ADDOP: public GNODE {
+    public:
+        ADDOP(string p_op);
 };
 
 class CONSTANT: public GNODE {

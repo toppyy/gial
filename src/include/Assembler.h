@@ -28,6 +28,7 @@ class Assembler {
         void handleConstant(shared_ptr<GNODE> node);
         void handleDeclare(shared_ptr<GNODE> node);
         void handlePrintStrConst(shared_ptr<GNODE> node);
+        void handlePrintInt(shared_ptr<GNODE> node);
         void handlePrintASCII(shared_ptr<GNODE> node);
         void handleWhile(shared_ptr<GNODE> node);
         void handleBoolTerm(shared_ptr<GNODE> node);
@@ -35,6 +36,7 @@ class Assembler {
         void handleExpression(shared_ptr<GNODE> node);
         void handleVariable(shared_ptr<GNODE> node);
         void handleAssign(shared_ptr<GNODE> node);
+        void handleAddOperation(shared_ptr<GNODE> node, string op);
 
 
     private:
