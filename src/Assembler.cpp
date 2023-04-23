@@ -1,12 +1,9 @@
 #include "./include/Assembler.h"
 
-
 Assembler::Assembler(Program p_program) :
     tree(nullptr),
     program(p_program) {
 }
-
-
 
 void Assembler::Assemble(shared_ptr<GAST> p_tree) {
     tree = p_tree;
@@ -17,19 +14,18 @@ void Assembler::Assemble(shared_ptr<GAST> p_tree) {
     program.buildProgram();
 }
 
-
-void Assembler::traverse(shared_ptr<GNODE> node, bool traverseRight) {
+void Assembler::traverse(shared_ptr<GNODE> node) {
 
     handleNode(node);
 
-    shared_ptr<GNODE> right  = node->getRight();
+    shared_ptr<GNODE> next  = node->getNext();
 
-    if (right != nullptr && traverseRight) {
-        traverse(right);
+    if (next != nullptr) {
+        traverse(next);
     }
 
-    /* Note: left-branches are always traversed inside the node-handlers if need be.  */
-}
+    /* Note: left- and rightbranches are always traversed inside the node-handlers if need be.  */
+} 
 
 void Assembler::handleNode(shared_ptr<GNODE> node) {
 
@@ -104,12 +100,10 @@ void Assembler::handleNode(shared_ptr<GNODE> node) {
 }
 
 void Assembler::handleBlock(shared_ptr<GNODE> node) {
-    shared_ptr<GNODE> left  = node->getLeft();
-
-    if (left) {
-        traverse(left, false); // Right is not automatically traversed
+    if (node->getNext()) {
+        traverse(node->getNext());
     }
-    emitComment("done with block left");
+    
 }
 
 void Assembler::handlePrintStrConst(shared_ptr<GNODE> node) {
@@ -141,6 +135,7 @@ void Assembler::handleDeclare(shared_ptr<GNODE> node) {
         if (left->getType() != "ASSIGN") {
             error("Declare expected assignment, got " + left->getType());
         }
+        checkNullPtr(node->getLeft(), node);
         handleAssign(node->getLeft());
     }
 
@@ -148,12 +143,15 @@ void Assembler::handleDeclare(shared_ptr<GNODE> node) {
 
 void Assembler::handleWhile(shared_ptr<GNODE> node) {
 
+    checkNullPtr(node->getLeft(), node);
+    checkNullPtr(node->getRight(), node);
+
     // Left-child has the condition
     // Right-child has a linked list to the operations within the block
     string labelIn  = program.getNewLabel();
     string labelOut = program.getNewLabel();
     emitInstruction(labelIn + ":");
-    traverse(node->getLeft(), false);
+    traverse(node->getLeft());
     emitInstruction("cmp r8, 1");
     emitInstruction("jne " + labelOut);
     traverse(node->getRight());
@@ -164,6 +162,7 @@ void Assembler::handleWhile(shared_ptr<GNODE> node) {
 }
 
 void Assembler::handleExpression(shared_ptr<GNODE> node) {
+    checkNullPtr(node->getLeft(), node);
     traverse(node->getLeft());
 }
 
@@ -174,12 +173,7 @@ void Assembler::handleVariable(shared_ptr<GNODE> node) {
 
     emitInstruction("mov " + var.getRegister8Size() + ", " + var.makeReferenceTo());
 
-    if (node->hasMathOperator()) {
-        // Need to do math with child
-        handleAddOperation(node->getRight(), node->op);
-        node->makeRightNull(); // We've now consumed right
-    }
-
+    checkForMathOps(node);
 }
 
 void Assembler::handleBoolTerm(shared_ptr<GNODE> node) {
@@ -206,6 +200,7 @@ void Assembler::handleBoolTerm(shared_ptr<GNODE> node) {
 
 void Assembler::handleConstant(shared_ptr<GNODE> node) {
     emitInstruction("mov r8, " + node->value);
+    checkForMathOps(node);
 }
 
 void Assembler::handleAssign(shared_ptr<GNODE> node) {
@@ -216,6 +211,7 @@ void Assembler::handleAssign(shared_ptr<GNODE> node) {
         error("Assignment to an undeclared variable (" + name + ")");
     }
     // Evaluate the expression that is beign assigned, the result will be in r8
+    checkNullPtr(node->getLeft(), node);
     traverse(node->getLeft());
 
     Variable var = program.getVariable(name);
@@ -273,9 +269,24 @@ void Assembler::emitVariable(string name, string varType, string size, int lengt
     
 }
 
-
 void Assembler::error(string error_message) {
     throw std::runtime_error(error_message);
+}
+
+void Assembler::checkForMathOps(shared_ptr<GNODE> node) {
+    if (node->hasMathOperator()) {
+        checkNullPtr(node->getLeft(), node);
+        // Need to do math with child
+        handleAddOperation(node->getLeft(), node->op);
+        node->makeRightNull(); // We've now consumed right
+    }
+}
+
+
+void Assembler::checkNullPtr(shared_ptr<GNODE> node, shared_ptr<GNODE> from) {
+    if (!node) {
+        error("nullptr! Origin: " + from->getType());
+    }
 }
 
 string Assembler::mapOperatorToInstruction(string op) {

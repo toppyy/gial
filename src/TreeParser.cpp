@@ -325,24 +325,23 @@ void TreeParser::whileStatement() {
     
     emitInstruction(labelTrue + ":");
     // Sets r8 to 0/1 depending on the evaluation
-    tree->addToCurrent(BLOCK());
-    tree->openBranch();    
     tree->addToCurrent(WHILE());
-
-    tree->openBranch();
+    tree->branchLeft();
     boolExpression();
     tree->closeBranch();
 
     // Compare it and determine whether to run 'block'
     emitInstruction("cmp r8, 1");
     // jump to 'labelFalse' if evaluates to false
-    emitInstruction("jne " + labelFalse); 
+    emitInstruction("jne " + labelFalse);
+    tree->branchRight();
     block();
+    tree->closeBranch();
     emitInstruction("jmp " + labelTrue);
     emitInstruction(labelFalse + ":");
     matchEndStatement();
 
-    tree->closeBranch();
+  
 
 
 }
@@ -360,7 +359,7 @@ void TreeParser::letIntStatement() {
 
 
     tree->addToCurrent(DECLARE(varName.getContent(),"int"));
-    tree->openBranch();    
+    tree->branchLeft();    
 
 
     if (look != "=") {
@@ -629,7 +628,8 @@ void TreeParser::expression() {
     // This way -3 + 3 becomes 0 - 3 + 3
 
     tree->addToCurrent(EXPRESSION());
-    tree->openBranch();
+    //tree->branchLeft();
+    tree->setLeftAsDefault();
         
     if ( isAddOp(lookChar)) {
         emitInstruction("mov r8, 0");
@@ -647,7 +647,7 @@ void TreeParser::expression() {
             minus();
         }
     }
-    tree->closeBranch();
+    tree->unsetLeftAsDefault();
 
 }   
 
@@ -786,7 +786,7 @@ void TreeParser::assignment(Token name) {
     matchToken("=");
 
     tree->addToCurrent(ASSIGN(name.getContent()));
-    tree->openBranch();
+    tree->branchLeft();
     expression();
     tree->closeBranch();
 
@@ -987,7 +987,7 @@ void TreeParser::boolTerm() {
     BOOLTERM term = BOOLTERM();
     shared_ptr<BOOLTERM> p_term = make_shared<BOOLTERM>(term);
     tree->addToCurrent(term);
-    tree->openBranch();
+    tree->branchLeft();
     expression();
     tree->closeBranch();
     
@@ -1004,10 +1004,11 @@ void TreeParser::boolTerm() {
     if (program.isStringVariable(look.getContent())) {
         error("Mismatch: can't compare to type string with content: " + look);
     }
-    
+    tree->branchRight();
     expression();
+    tree->closeBranch();    
     
-    tree->toParent();
+
     
 
     emitInstruction("pop r9");

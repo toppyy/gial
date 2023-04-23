@@ -12,17 +12,18 @@ class Assembler {
 
 
         void Assemble(shared_ptr<GAST> p_tree);
-        void traverse(shared_ptr<GNODE> node, bool traverseRight = true);
+        void traverse(shared_ptr<GNODE> node);
         void handleNode(shared_ptr<GNODE> node);
         void error(string error_message);
         string mapOperatorToInstruction(string op);
-        
-        
+        void checkForMathOps(shared_ptr<GNODE> node);
+        void checkNullPtr(shared_ptr<GNODE> node, shared_ptr<GNODE> from);
+
         void emitInstruction(string inst);
         void emitConstant(string out, string value, string varType);
         void emitVariable(string out, string varType, string size, int length);
         void emitComment(std::string comment);
-
+        
 
         // Operator handlers
         void handleConstant(shared_ptr<GNODE> node);

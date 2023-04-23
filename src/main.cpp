@@ -34,6 +34,7 @@ void traverseTree(std::shared_ptr<GNODE> node, int depth) {
 
     std::shared_ptr<GNODE> left = node->getLeft();
     std::shared_ptr<GNODE> right  = node->getRight();
+    std::shared_ptr<GNODE> next  = node->getNext();
 
     if (left != nullptr) {
         traverseTree(left, depth + 1);
@@ -41,6 +42,10 @@ void traverseTree(std::shared_ptr<GNODE> node, int depth) {
 
     if (right != nullptr) {
         traverseTree(right, depth + 1);
+    }
+
+    if (next != nullptr) {
+        traverseTree(next, depth);
     }
 
     return;

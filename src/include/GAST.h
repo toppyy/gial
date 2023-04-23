@@ -19,13 +19,16 @@ class GNODE {
     public:
         GNODE();
         
-        void    setLeft(shared_ptr<GNODE>p_left);
+        void    setLeft(shared_ptr<GNODE> p_left);
         shared_ptr<GNODE>  getLeft();
 
-        void    setRight(shared_ptr<GNODE>p_right);
+        void    setNext(shared_ptr<GNODE> p_node);
+        shared_ptr<GNODE>  getNext();
+
+        void    setRight(shared_ptr<GNODE> p_right);
         shared_ptr<GNODE>  getRight();
         
-        void    setParent(shared_ptr<GNODE>p_parent);
+        void    setParent(shared_ptr<GNODE> p_parent);
         shared_ptr<GNODE>  getParent();
 
         void    setType(string p_type);
@@ -53,6 +56,7 @@ class GNODE {
     private:        
         shared_ptr<GNODE> right;
         shared_ptr<GNODE> left;
+        shared_ptr<GNODE> next;
         shared_ptr<GNODE> parent;
         string type;
 };
@@ -65,7 +69,6 @@ class GAST {
         
         vector<shared_ptr<GNODE>> gnodes;
 
-        bool toLeft();
         bool toParent();
         void addAsLeftToCurrent(GNODE node);
         void addAsRightToCurrent(GNODE node);
@@ -75,6 +78,10 @@ class GAST {
         void moveToNode(GNODE node);
         void branchFromroot(GNODE node);
         void returnToRoot();
+        void branchLeft();
+        void branchRight();
+        void setLeftAsDefault();
+        void unsetLeftAsDefault();
 
         shared_ptr<GNODE> getRoot();
 
@@ -82,6 +89,8 @@ class GAST {
         
         stack<shared_ptr<GNODE>> branchStack;
         bool nextToLeft;
+        bool nextToRight;
+        bool toLeft;
 };
 
 
