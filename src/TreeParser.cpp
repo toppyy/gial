@@ -183,30 +183,20 @@ void TreeParser::printIntStatement() {
     if (look.isName) {
         // it's a variable. 
         Token varName = getName();
-        Variable var = getVariable(varName.content);
-
-
+        
         tree->current->name = varName.getContent();
 
-        std::string offset = "";
         if (look == "[") {
             matchToken("[");
             expression();
-            matchToken("]");
-            offset = "r8";
-            
+            matchToken("]");    
         }
-        emitInstruction("mov rdi, " + var.makeReferenceTo(offset));
     } else {
         // it's an expression
         tree->openBranch();
         expression();
         tree->closeBranch();
-        emitInstruction("mov rdi, r8");
     }
-    emitInstruction("call PrintInteger ");
-    return;
-
 }
 
 void TreeParser::emitLine() {
@@ -220,80 +210,32 @@ void TreeParser::emitLine() {
 void TreeParser::inputStatement() {
     
     Token varName = getName();
-    std::string bufferName = varName.getContent();
-    std::string labelInputLoop = getNewLabel();
-    std::string labelLoopOut = getNewLabel();
     
-    std::string bufferRef = "byte[" + bufferName + " + r9]";
-
-    bool integerInput = false;
-    std::string varType = "str";
-    std::string varSize = "byte";
-    int varLength = 100;
-
+    string datatype = "str";
 
     if (look == "LUGU") {
-        integerInput = true;
-        varType = "int";
-        varSize = "qword";
-        varLength = 1;
-        getToken();
+        datatype = "int";
+        getToken(); // Eat LUGU
     }
-
-    if (integerInput) {
-        // For converting the ASCII-representation to int
-        emitInstruction("mov r8, 0");   // Intermediate result
-        emitInstruction("push r8");
-    }
-
-    emitVariable(varName, varType, varSize, varLength);     // Reserve space for input buffer (100 bytes)
-    
-    emitInstruction("mov r9, 0");                   // Init character count -loop
-    emitInstruction(labelInputLoop + ":");          // Loop to read characters one-by-one from input
-    emitInstruction("mov rax, SYS_READ");           // Specify system call
-    emitInstruction("mov rdi, STDIN");              // Reading from standard input
-    emitInstruction("lea rsi, " + bufferRef);       // Specify address of the space reserved for input
-    emitInstruction("mov rdx, 1");                  // Read one byte (=character) at a time
-    emitInstruction("syscall"); 
+    tree->addToCurrent( DECLARE(varName.getContent(), datatype));
+    tree->addToCurrent( INPUT(  varName.getContent(), datatype));
 
 
-
-    emitInstruction("cmp " + bufferRef + ", LF");   // Is the input character LF?
-    emitInstruction("je " + labelLoopOut);          //  If yes, stop reading by jumping out loop
-
-    if (integerInput) {
-        // Convert to integer by adding to previous number and multiplying by 10
-        emitInstruction("pop r8");
-        emitInstruction("mov rax, r8");             // The other operand is now in rax
-        emitInstruction("mov r11, 10");
-        emitInstruction("mul r11");                 // (signed) multiplication
-        emitInstruction("mov r8, rax");   
-
-        emitInstruction("mov r12, 0");
-        emitInstruction("mov r12b, " + bufferRef);
-        emitInstruction("sub r12b, 48");            // 48 = 0 in ASCIi
-
-        emitInstruction("add r8, r12");
-        emitInstruction("push r8");
-        
-    }
-
-    emitInstruction("inc r9");                      //  If no, increment character count
-    emitInstruction("jmp " + labelInputLoop);       // And jump back to reading another character
-
-    emitInstruction(labelLoopOut + ":");
-    emitInstruction("mov " + bufferRef + ", 0");     // Null-terminate the string
-
-    if (!integerInput) {
-        // We're done with a string
-        return;
-    }
-    emitInstruction("mov qword[" + bufferName + "], r8");
-     
 }
 
 
 void TreeParser::ifStatement() {
+    
+    tree->addToCurrent(IF());
+    tree->branchLeft();
+    boolExpression();
+    tree->closeBranch();
+
+    tree->branchRight();
+    block();
+    tree->closeBranch();
+    matchEndStatement();
+    /*
     std::string labelFalse = getNewLabel();
     std::string labelOut   = getNewLabel();
     // Sets r8 to 0/1 depending on the evaluation
@@ -316,35 +258,24 @@ void TreeParser::ifStatement() {
     emitInstruction(labelOut + ":");
     
     matchEndStatement();
+    */
 }
 
 
 void TreeParser::whileStatement() {
-    std::string labelFalse = getNewLabel();
-    std::string labelTrue  = getNewLabel();
-    
-    emitInstruction(labelTrue + ":");
-    // Sets r8 to 0/1 depending on the evaluation
+   
     tree->addToCurrent(WHILE());
     tree->branchLeft();
     boolExpression();
     tree->closeBranch();
 
-    // Compare it and determine whether to run 'block'
-    emitInstruction("cmp r8, 1");
-    // jump to 'labelFalse' if evaluates to false
-    emitInstruction("jne " + labelFalse);
     tree->branchRight();
     block();
     tree->closeBranch();
-    emitInstruction("jmp " + labelTrue);
-    emitInstruction(labelFalse + ":");
     matchEndStatement();
-
-  
-
-
 }
+
+
 
 void TreeParser::letIntStatement() {
     Token varName = getName();
@@ -435,17 +366,9 @@ void TreeParser::letStringStatement() {
     tree->branchLeft();
     tree->addToCurrent(CONSTANT(strConstant, "str"));
     tree->closeBranch();
-
-    // int bytesNeeded = 0;
-    // for (auto c: look.getContent()) {
-    //     //  Brutal
-    //     emitInstruction("mov byte[" + varName + " + " + std::to_string(bytesNeeded) + "], " + std::to_string(int(c)));
-    //     bytesNeeded++;
-    // }
-    // emitInstruction("mov byte[" + varName + " + " + std::to_string(bytesNeeded) + "], 0" ); // NULL-termination
-    getToken();
-    // emitVariable(varName, "str", "byte", bytesNeeded + 1);
     tree->closeBranch();
+
+    getToken();
 }
 
 
@@ -752,15 +675,8 @@ void TreeParser::ident() {
 
     // If not, store the value into r8
     // We need to pull the variable to know whether to read a byte or ..?
-    Variable var = program.getVariable(name.getContent());
+    
     tree->addToCurrent(VARIABLE(name.getContent()));
-
-    std::string offset = "";
-    if (indexedRefence) {
-        offset = "r9";
-    }
-
-    emitInstruction("mov " + var.getRegister8Size() + ", " + var.makeReferenceTo(offset));
 }
 
 void TreeParser::indexedAssignment(Token name) {
@@ -960,6 +876,7 @@ void TreeParser::boolTerm() {
     std::string labelFalse = getNewLabel();
     
     // If the first token in the boolean expression is a string, expect the other is also
+    /*
     if (
         look.isName &
         program.isStringVariable(look.getContent()) &
@@ -968,7 +885,7 @@ void TreeParser::boolTerm() {
         boolStringComparison();
         return;    
     }
-    
+    */
     BOOLTERM term = BOOLTERM();
     shared_ptr<BOOLTERM> p_term = make_shared<BOOLTERM>(term);
     tree->addToCurrent(term);

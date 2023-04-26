@@ -164,8 +164,8 @@ void GNODE::print() {
         tab << "next: " << getNodeType(next)
         ;
     
-    if (op != "") {
-        std::cout << " and my op is " << op;
+    if (name != "") {
+        std::cout << " and my name is " << name;
     }
     std::cout << "\n";
     
@@ -206,11 +206,11 @@ void GNODE::setOperator(string p_op) {
 
 PRINTSTRCONST::PRINTSTRCONST(string p_value) {
     value = p_value;
-    this->setType("PRINTSTRCONST");
+    setType("PRINTSTRCONST");
 };
 PRINTASCII::PRINTASCII(string p_value) {
     value = p_value;
-    this->setType("PRINTASCII");
+    setType("PRINTASCII");
 };
 
 
@@ -218,12 +218,24 @@ PRINTASCII::PRINTASCII(string p_value) {
 DECLARE::DECLARE(string p_name, string p_datatype) {
     name = p_name;
     datatype = p_datatype;
-    this->setType("DECLARE");
+    setType("DECLARE");
+};
+
+
+INPUT::INPUT(string p_name, string p_datatype) {
+    name = p_name;
+    datatype = p_datatype;
+    setType("INPUT");
 };
 
 WHILE::WHILE() {
-    this->setType("WHILE");
+    setType("WHILE");
 }
+
+IF::IF() {
+    setType("IF");
+}
+
 
 BOOLTERM::BOOLTERM() {
     setType("BOOLTERM");

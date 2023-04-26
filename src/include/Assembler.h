@@ -32,11 +32,13 @@ class Assembler {
         void handlePrintInt(shared_ptr<GNODE> node);
         void handlePrintASCII(shared_ptr<GNODE> node);
         void handleWhile(shared_ptr<GNODE> node);
+        void handleIf(shared_ptr<GNODE> node);
         void handleBoolTerm(shared_ptr<GNODE> node);
         void handleBlock(shared_ptr<GNODE> node);
         void handleExpression(shared_ptr<GNODE> node);
         void handleVariable(shared_ptr<GNODE> node);
         void handleAssign(shared_ptr<GNODE> node);
+        void handleInput(shared_ptr<GNODE> node);
         void handleAddOperation(shared_ptr<GNODE> node, string op);
 
 

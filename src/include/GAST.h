@@ -96,15 +96,18 @@ class GAST {
 
 
 
-class IF: public GNODE {
-
-};
-
 class WHILE: public GNODE {
     public:
         WHILE();
 
 };
+
+
+class IF: public GNODE {
+    public:
+        IF();
+};
+
 
 class FOR: public GNODE {
 
@@ -155,6 +158,10 @@ class PRINTASCII: public GNODE {
 class PRINTINT: public GNODE {
     public:
         PRINTINT();
+};
+class INPUT: public GNODE {
+    public:
+        INPUT(string p_name, string p_vartype);
 };
 
 
