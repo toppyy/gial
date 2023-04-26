@@ -179,14 +179,22 @@ void Assembler::handleIf(shared_ptr<GNODE> node) {
     // Left-child has the condition
     // Right-child has a linked list to the operations within the block
     string labelIn  = program.getNewLabel();
+    string labelElse = program.getNewLabel();
     string labelOut = program.getNewLabel();
     emitInstruction(labelIn + ":");
     traverse(node->getLeft());
     emitInstruction("cmp r8, 1");
-    emitInstruction("jne " + labelOut);
-    traverse(node->getRight());
+    emitInstruction("jne " + labelElse);
+    // The code to be executed if the condition evaluates TRUE is 
+    // wrapped in a nested GNODE. The right branch is executed if TRUE.
+    // The left branch is taken if FALSE and IF-ELSE exists
+    traverse(node->getRight()->getRight());
+    emitInstruction("jmp " + labelOut);
+    emitInstruction(labelElse + ":");
+    if (node->getRight()->getLeft()) {
+        traverse(node->getRight()->getLeft());
+    }
     emitInstruction(labelOut + ":");
-  
 }
 
 

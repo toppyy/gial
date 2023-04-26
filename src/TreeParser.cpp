@@ -231,8 +231,29 @@ void TreeParser::ifStatement() {
     boolExpression();
     tree->closeBranch();
 
+    /*
+        For IF-ELSE:
+            Right branch is a BLOCK-wrapper of which right-branch is taken 
+            IF and the left IF ELSE
+    */
+
+    tree->branchRight();
+    // Init wrapper
+    
+    tree->addToCurrent(BLOCK());
+    
     tree->branchRight();
     block();
+    tree->closeBranch();
+
+    if (look == "MUUTES") {
+        getToken();
+        tree->branchLeft();
+        block();
+        tree->closeBranch();
+    }
+
+    // Wrapper end
     tree->closeBranch();
     matchEndStatement();
     /*
