@@ -52,6 +52,7 @@ class GNODE {
         // Shared btwn operators
         string datatype;
         string name;
+        int size;
 
     private:        
         shared_ptr<GNODE> right;

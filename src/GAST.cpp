@@ -108,7 +108,8 @@ GNODE::GNODE() :
     op(""),
     value(""),
     datatype(""),
-    name("")
+    name(""),
+    size(1)
     {
 
 }

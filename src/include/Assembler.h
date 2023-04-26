@@ -4,7 +4,7 @@
 #include<memory>
 #include<iostream>
 
-using std::shared_ptr, std::string;
+using std::shared_ptr, std::string, std::to_string;
 
 class Assembler {
     public:

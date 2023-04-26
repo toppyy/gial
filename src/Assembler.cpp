@@ -122,7 +122,7 @@ void Assembler::handlePrintASCII(shared_ptr<GNODE> node) {
 void Assembler::handleDeclare(shared_ptr<GNODE> node) {
     
     if (node->datatype == "str") {
-        emitVariable(node->name, "str", "byte", node->value.length());
+        emitVariable(node->name, "str", "byte", node->size + 1); // +1 for NULL-termination
     }
 
     if (node->datatype == "int") {
@@ -157,7 +157,6 @@ void Assembler::handleWhile(shared_ptr<GNODE> node) {
     traverse(node->getRight());
     emitInstruction("jmp " + labelIn);
     emitInstruction(labelOut + ":");
-    emitComment("done with while");
   
 }
 
@@ -210,26 +209,53 @@ void Assembler::handleAssign(shared_ptr<GNODE> node) {
     if (!program.inVariables(name)) {
         error("Assignment to an undeclared variable (" + name + ")");
     }
-    // Evaluate the expression that is beign assigned, the result will be in r8
     checkNullPtr(node->getLeft(), node);
-    traverse(node->getLeft());
+    // If it's an int:
+    //  Evaluate the expression that is beign assigned, the result will be in r8
+    // If it's a constant str:
+    //  Handle pointer locally (do not traverse)
+    shared_ptr<GNODE> left = node->getLeft();     
 
+    if (left->getType() == "CONSTANT" & left->datatype == "str") {
+        int byteIdx = 0;
+        for (auto c: left->value) {
+            emitInstruction("mov byte[" + name + " + " + to_string(byteIdx) + "], " + to_string(int(c)));
+            byteIdx++;
+        }
+        emitInstruction("mov byte[" + name + " + " + to_string(byteIdx) + "], 0" ); // NULL-termination
+        return;
+    }
+
+    traverse(left);
     Variable var = program.getVariable(name);
-    
     emitInstruction("mov " + var.makeReferenceTo() + ", " + var.getRegister8Size());
 }
 
 void Assembler::handleAddOperation(shared_ptr<GNODE> node, string op) {
     emitInstruction("push r8"); // Store result of previous node
-    handleNode(node);
-    emitInstruction("mov r9, r8");
-    emitInstruction("pop r8");
+    handleNode(node);           // Content will be R8 after this
+    
     if (op == "+") {
+        emitInstruction("mov r9, r8");
+        emitInstruction("pop r8");
         emitInstruction("add r8, r9");
     }
     if (op == "-") {
+        emitInstruction("mov r9, r8");
+        emitInstruction("pop r8");
         emitInstruction("sub r8, r9");
         
+    }
+    if (op == "*") {
+        emitInstruction("pop rax");      // The other operand is now in rax
+        emitInstruction("imul rax, r8"); // (signed) multiplication
+        emitInstruction("mov r8, rax");  // Store result into r8 like all calculations
+    }
+    if (op == "/") {
+        emitInstruction("pop rax");    // Pop the value we want to divided from stack (stack uses 64 bits, so we must use rax)
+        emitInstruction("cdq");        // convert qword in eax to qword in edx:eax
+        emitInstruction("idiv r8");    // divisor. Now rax has the quotient. We forget the remainder
+        emitInstruction("mov r8, rax");// Store quotient into r8 like all calculations
     }
 }
 
@@ -266,7 +292,6 @@ void Assembler::emitVariable(string name, string varType, string size, int lengt
     if (!program.inVariables(name)) {
             program.addVariable(name, varType, size, length);
     }
-    
 }
 
 void Assembler::error(string error_message) {

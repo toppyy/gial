@@ -414,10 +414,11 @@ void TreeParser::letIntArray(Token varName) {
 
 void TreeParser::letStringStatement() {
     Token varName = getName();
-
+    tree->addToCurrent(DECLARE(varName.getContent(),"str"));
+    tree->branchLeft();
     if (look != "=") {
-        // No associated assignment    
-        emitStringVariable(varName, 100);
+        // No associated assignment        
+        tree->closeBranch();
         return;
     }
 
@@ -427,16 +428,24 @@ void TreeParser::letStringStatement() {
     if (!look.isString) {
         expected("a string when assigning to a string type");
     }
+    string strConstant = look.getContent();
+    tree->current->size = strConstant.length(); // Store string len with DECLARATION
 
-    int bytesNeeded = 0;
-    for (auto c: look.getContent()) {
-        //  Brutal
-        emitInstruction("mov byte[" + varName + " + " + std::to_string(bytesNeeded) + "], " + std::to_string(int(c)));
-        bytesNeeded++;
-    }
-    emitInstruction("mov byte[" + varName + " + " + std::to_string(bytesNeeded) + "], 0" ); // NULL-termination
+    tree->addToCurrent(ASSIGN(varName.getContent()));
+    tree->branchLeft();
+    tree->addToCurrent(CONSTANT(strConstant, "str"));
+    tree->closeBranch();
+
+    // int bytesNeeded = 0;
+    // for (auto c: look.getContent()) {
+    //     //  Brutal
+    //     emitInstruction("mov byte[" + varName + " + " + std::to_string(bytesNeeded) + "], " + std::to_string(int(c)));
+    //     bytesNeeded++;
+    // }
+    // emitInstruction("mov byte[" + varName + " + " + std::to_string(bytesNeeded) + "], 0" ); // NULL-termination
     getToken();
-    emitVariable(varName, "str", "byte", bytesNeeded + 1);
+    // emitVariable(varName, "str", "byte", bytesNeeded + 1);
+    tree->closeBranch();
 }
 
 
@@ -628,19 +637,14 @@ void TreeParser::expression() {
     // This way -3 + 3 becomes 0 - 3 + 3
 
     tree->addToCurrent(EXPRESSION());
-    //tree->branchLeft();
     tree->setLeftAsDefault();
         
-    if ( isAddOp(lookChar)) {
-        emitInstruction("mov r8, 0");
-    } else {
+    if ( !isAddOp(lookChar)) {
         term();
     }
 
     while (isAddOp(lookChar)) {
-        // tree->addToCurrent(ADDOP(look.getContent()));
         tree->current->setOperator(look.getContent());
-        emitInstruction("push r8");
         if (lookChar == '+') {
             add();
         } else if (lookChar == '-') {
@@ -656,8 +660,8 @@ void TreeParser::expression() {
 void TreeParser::term() {
     factor();
     while (lookChar == '*' | lookChar == '/') {
-        emitInstruction("push r8");
-        if (lookChar == '*') {
+        tree->current->setOperator(look.getContent());
+         if (lookChar == '*') {
             multiply();
         } else if (lookChar == '/') {
             divide();
@@ -745,7 +749,6 @@ void TreeParser::ident() {
         assignment(name);
         return;
     }
-    //std::cout << " handling " << name.getContent() << ", look is " << look.getContent() << "\n";
 
     // If not, store the value into r8
     // We need to pull the variable to know whether to read a byte or ..?
@@ -782,17 +785,11 @@ void TreeParser::indexedAssignment(Token name) {
 }
 
 void TreeParser::assignment(Token name) {
-
     matchToken("=");
-
     tree->addToCurrent(ASSIGN(name.getContent()));
     tree->branchLeft();
     expression();
     tree->closeBranch();
-
-    Variable var = program.getVariable(name.getContent());
-
-    emitInstruction("mov " + var.makeReferenceTo() + ", " + var.getRegister8Size());
 }
 
 bool TreeParser::isAddOp(char x) {
@@ -807,33 +804,21 @@ bool TreeParser::isAlphaNumeric(char x) {
 void TreeParser::add() {
     matchToken("+");
     term();
-    emitInstruction("pop r9");
-    emitInstruction("add r8, r9");
 }   
 
 void TreeParser::minus() {
     matchToken("-");
     term();
-    emitInstruction("pop r9");
-    emitInstruction("sub r9, r8");
-    emitInstruction("mov r8, r9");
 }
 
 void TreeParser::multiply() {
     matchToken("*");
     factor();                 // Moves multiplier to register (r8)
-    emitInstruction("pop rax");      // The other operand is now in rax
-    emitInstruction("imul rax, r8"); // (signed) multiplication
-    emitInstruction("mov r8, rax");  // Store result into r8 like all calculations
 }
 
 void TreeParser::divide() {
     matchToken("/");                // Consume the division character. 'look' now has the divisor
     factor();                       // Moves divisor to register (r8)
-    emitInstruction("pop rax");    // Pop the value we want to divided from stack (stack uses 64 bits, so we must use rax)
-    emitInstruction("cdq");        // convert qword in eax to qword in edx:eax
-    emitInstruction("idiv r8");    // divisor. Now rax has the quotient. We forget the remainder
-    emitInstruction("mov r8, rax");// Store quotient into r8 like all calculations
 }
 
 
