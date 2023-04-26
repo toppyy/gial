@@ -133,6 +133,9 @@ void TreeParser::block() {
 
 /* ---------- STATEMENTS ----------------------------------------------------------------------------------------------------------------  */
 void TreeParser::printStatement() {
+
+
+    tree->addToCurrent (PRINTSTR());
         
 
     if (look.isString) {
@@ -142,7 +145,9 @@ void TreeParser::printStatement() {
         emitInstruction("printBytes " + label + ", 0, " + std::to_string(look.length()));
         emitConstant(label, look.getContent(), "str");
 
-        tree->addToCurrent (PRINTSTRCONST( look.getContent() ));
+        tree->branchLeft();
+        tree->addToCurrent(CONSTANT(look.getContent(), "str"));
+        tree->closeBranch();
 
         getToken();
         return;
@@ -151,25 +156,22 @@ void TreeParser::printStatement() {
     if (look.isName & peek() != "[") {
         // it's a (not indexed) variable . Interpret content as ASCII-string
         // iterate until NULL
-
         Token variable = look;
         getToken();
-        std::string loopStart   = getNewLabel();
 
-        emitInstruction("mov r11, 0");
+        tree->branchLeft();
+        tree->addToCurrent(VARIABLE(variable.getContent()));
+        tree->closeBranch();
         
-        emitInstruction(loopStart + ":");
-        emitInstruction("push r11");
-        emitInstruction("mov dil, byte[" + variable + " + r11]");
-        emitInstruction("call PrintASCII");
-        emitInstruction("pop r11");
-        emitInstruction("inc r11");
-        emitInstruction("mov r8b, byte[" + variable + " + r11]");
-        emitInstruction("cmp r8b, 0");
-        emitInstruction("jne " + loopStart);
         return;
-    }    
+    }
+
+
+    // tree->branchLeft();
+    // tree->addToCurrent ( PRINTASCII("LF")  );
+
     expression();
+    // tree->closeBranch();
     emitInstruction("mov dil, r8b");
     emitInstruction("call PrintASCII");
     return;
@@ -179,12 +181,16 @@ void TreeParser::printStatement() {
 void TreeParser::printIntStatement() {
 
     tree->addToCurrent(PRINTINT());
-
     if (look.isName) {
         // it's a variable. 
         Token varName = getName();
+
+        tree->branchLeft();
+        tree->addToCurrent(VARIABLE(varName.getContent()));
+        tree->closeBranch();
+
         
-        tree->current->name = varName.getContent();
+        // tree->current->name = varName.getContent();
 
         if (look == "[") {
             matchToken("[");
@@ -193,7 +199,7 @@ void TreeParser::printIntStatement() {
         }
     } else {
         // it's an expression
-        tree->openBranch();
+        tree->branchLeft();
         expression();
         tree->closeBranch();
     }
@@ -256,30 +262,6 @@ void TreeParser::ifStatement() {
     // Wrapper end
     tree->closeBranch();
     matchEndStatement();
-    /*
-    std::string labelFalse = getNewLabel();
-    std::string labelOut   = getNewLabel();
-    // Sets r8 to 0/1 depending on the evaluation
-    boolExpression();
-
-    // Compare it and determine whether to run 'block'
-    emitInstruction("cmp r8, 1");
-    emitInstruction("jne " + labelFalse); // jump to 'labelFalse' if evaluates to false
-
-    block();
-    
-    emitInstruction("jmp " + labelOut);
-    emitInstruction(labelFalse + ":");
-
-    if (look == "MUUTES") {
-        getToken();
-        block();
-    }
-    
-    emitInstruction(labelOut + ":");
-    
-    matchEndStatement();
-    */
 }
 
 

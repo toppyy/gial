@@ -79,11 +79,6 @@ void Assembler::handleNode(shared_ptr<GNODE> node) {
         return;
     }
 
-    if (type == "PRINTSTRCONST") {
-        handlePrintStrConst(node);
-        return;
-    }
-
     if (type == "PRINTASCII") {
         handlePrintASCII(node);
         return;
@@ -94,6 +89,10 @@ void Assembler::handleNode(shared_ptr<GNODE> node) {
         return;
     }
 
+    if (type == "PRINTSTR") {
+        handlePrintString(node);
+        return;
+    }
 
     if (type == "ASSIGN") {
         handleAssign(node);
@@ -116,13 +115,6 @@ void Assembler::handleBlock(shared_ptr<GNODE> node) {
     
 }
 
-void Assembler::handlePrintStrConst(shared_ptr<GNODE> node) {
-
-    string value = node->value;
-    string label = program.getNewLabel();
-    emitInstruction("printBytes " + label + ", 0, " + to_string(value.length()));
-    emitConstant(label, value, "str");
-}
 
 void Assembler::handlePrintASCII(shared_ptr<GNODE> node) {
     emitInstruction("mov dil, " + node->value);
@@ -170,7 +162,6 @@ void Assembler::handleWhile(shared_ptr<GNODE> node) {
   
 }
 
-
 void Assembler::handleIf(shared_ptr<GNODE> node) {
 
     checkNullPtr(node->getLeft(), node);
@@ -196,8 +187,6 @@ void Assembler::handleIf(shared_ptr<GNODE> node) {
     }
     emitInstruction(labelOut + ":");
 }
-
-
 
 void Assembler::handleExpression(shared_ptr<GNODE> node) {
     checkNullPtr(node->getLeft(), node);
@@ -298,18 +287,62 @@ void Assembler::handleAddOperation(shared_ptr<GNODE> node, string op) {
     }
 }
 
+void Assembler::handlePrintString(shared_ptr<GNODE> node) {
+
+    checkNullPtr(node->getLeft(), node);
+    shared_ptr<GNODE> left = node->getLeft();
+
+    if (left->getType() == "CONSTANT") {
+                string value = left->value;
+                string label = program.getNewLabel();
+                emitInstruction("printBytes " + label + ", 0, " + to_string(left->value.length()));
+                emitConstant(label, value, "str");
+    }
+
+    if (left->getType() == "VARIABLE") {
+
+        Variable variable = program.getVariable(left->name);
+
+        if (variable.type == "str") {
+
+            string loopStart = program.getNewLabel();
+            string varName   = variable.identifier;
+            
+            // Loop until NULL
+            emitInstruction("mov r11, 0");            
+            emitInstruction(loopStart + ":");
+            emitInstruction("push r11");
+            emitInstruction("mov dil, byte[" + varName + " + r11]");
+            emitInstruction("call PrintASCII");
+            emitInstruction("pop r11");
+            emitInstruction("inc r11");
+            emitInstruction("mov r8b, byte[" + varName + " + r11]");
+            emitInstruction("cmp r8b, 0");
+            emitInstruction("jne " + loopStart);
+            return;
+        }
+
+        error("Expected 'str', got '" + variable.type + "'");
+
+    }
+
+    
+}
+
 void Assembler::handlePrintInt(shared_ptr<GNODE> node) {
     // If 'name' is present, print a variable ref
     // if not, evaluate node on left
     if (node->name != "") {
         Variable var = program.getVariable(node->name);
         emitInstruction("mov rdi, " + var.makeReferenceTo());
+        emitComment("printing variable " + node->name);
     } else {
         shared_ptr<GNODE> left = node->getLeft();
         if (!node) {
             error("Expected PrintInt to have a left node!\n");
         }
         handleNode(left);
+        emitInstruction("mov rdi, r8");
     }
     emitInstruction("call PrintInteger");
 }

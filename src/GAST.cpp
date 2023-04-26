@@ -203,18 +203,6 @@ void GNODE::setOperator(string p_op) {
 }
 
 
-
-PRINTSTRCONST::PRINTSTRCONST(string p_value) {
-    value = p_value;
-    setType("PRINTSTRCONST");
-};
-PRINTASCII::PRINTASCII(string p_value) {
-    value = p_value;
-    setType("PRINTASCII");
-};
-
-
-
 DECLARE::DECLARE(string p_name, string p_datatype) {
     name = p_name;
     datatype = p_datatype;
@@ -235,7 +223,6 @@ WHILE::WHILE() {
 IF::IF() {
     setType("IF");
 }
-
 
 BOOLTERM::BOOLTERM() {
     setType("BOOLTERM");
@@ -258,6 +245,18 @@ BLOCK::BLOCK() {
 PRINTINT::PRINTINT() {
     setType("PRINTINT");
 }
+
+
+PRINTSTR::PRINTSTR() {
+    setType("PRINTSTR");
+}
+
+PRINTASCII::PRINTASCII(string p_value) {
+    value = p_value;
+    setType("PRINTASCII");
+};
+
+
 
 ADDOP::ADDOP(string p_op) {
     op = p_op;

@@ -1,0 +1,12 @@
+LUGU anumber  = 123456
+SANAMBÄTK astr = 'terveissi'
+
+SAN NY 'str constant'
+SIKSES
+SAN NY astr
+SIKSES
+SAN LUGU 9876
+SIKSES
+SAN LUGU anumber
+SIKSES
+

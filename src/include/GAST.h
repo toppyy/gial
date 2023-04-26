@@ -145,10 +145,11 @@ class BOOLTERM: public GNODE {
         BOOLTERM();
 };
 
-class PRINTSTRCONST: public GNODE {
+class PRINTSTR: public GNODE {
     public:
-        PRINTSTRCONST(string p_value);
+        PRINTSTR();
 };
+
 
 class PRINTASCII: public GNODE {
     public:

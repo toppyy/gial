@@ -28,7 +28,7 @@ class Assembler {
         // Operator handlers
         void handleConstant(shared_ptr<GNODE> node);
         void handleDeclare(shared_ptr<GNODE> node);
-        void handlePrintStrConst(shared_ptr<GNODE> node);
+        void handlePrintString(shared_ptr<GNODE> node);
         void handlePrintInt(shared_ptr<GNODE> node);
         void handlePrintASCII(shared_ptr<GNODE> node);
         void handleWhile(shared_ptr<GNODE> node);
