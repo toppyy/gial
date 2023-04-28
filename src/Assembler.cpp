@@ -6,12 +6,11 @@ Assembler::Assembler(Program p_program) :
 }
 
 void Assembler::Assemble(shared_ptr<GAST> p_tree) {
+
     tree = p_tree;
-
-    
     traverse(tree->getRoot());
-
     program.buildProgram();
+
 }
 
 void Assembler::traverse(shared_ptr<GNODE> node) {
@@ -56,6 +55,11 @@ void Assembler::handleNode(shared_ptr<GNODE> node) {
 
     if (type == "IF") {
         handleIf(node);
+        return;
+    }
+
+    if (type == "FOR") {
+        handleFor(node);
         return;
     }
 
@@ -112,7 +116,6 @@ void Assembler::handleBlock(shared_ptr<GNODE> node) {
     // Empty on purpose. Just a container for tree manipulations    
 }
 
-
 void Assembler::handlePrintASCII(shared_ptr<GNODE> node) {
     emitInstruction("mov dil, " + node->value);
     emitInstruction("call PrintASCII");
@@ -159,6 +162,32 @@ void Assembler::handleWhile(shared_ptr<GNODE> node) {
   
 }
 
+void Assembler::handleFor(shared_ptr<GNODE> node) {
+
+    // Right-child has a linked list to the operations within the block
+    checkNullPtr(node->getRight(), node);
+
+    string loopStart    = program.getNewLabel();
+    string variableRef  = "qword[" + node->name + "]";
+    string step         = node->getFromInfo("step");
+    string to           = node->getFromInfo("to");
+
+    emitInstruction("mov r8, " + variableRef);   // Init counter
+    emitInstruction(loopStart + ":");            // Loop start label
+    emitInstruction("push r8");                  // Push counter onto stack
+    
+    traverse(node->getRight());
+
+    emitInstruction("pop r8");                      // Pop counter from stack
+    emitInstruction("add r8, " + step);             // Increment counter from stack
+    emitInstruction("mov " + variableRef + ", r8"); // Update loop variable
+    emitInstruction("cmp r8, " + to);               // Compare counter to n
+    emitInstruction("jl " + loopStart);             // If it's less than n, jmp to labelTrue
+
+  
+}
+
+
 void Assembler::handleIf(shared_ptr<GNODE> node) {
 
     checkNullPtr(node->getLeft(), node);
@@ -189,12 +218,17 @@ void Assembler::handleIf(shared_ptr<GNODE> node) {
 }
 
 void Assembler::handleExpression(shared_ptr<GNODE> node) {
-    checkNullPtr(node->getLeft(), node);    
+    
+    checkNullPtr(node->getLeft(), node);
+    emitComment("expr left");
     traverse(node->getLeft());
+    emitComment("expr left done");
 
     if (node->hasMathOperator()) {
         checkNullPtr(node->getRight(), node);
+        emitComment("expr math");
         handleMathOperation(node->getRight(), node->op);
+        emitComment("expr done");
     }
 
 }
@@ -259,7 +293,6 @@ void Assembler::handleConstant(shared_ptr<GNODE> node) {
 }
 
 void Assembler::handleAssign(shared_ptr<GNODE> node) {
-    emitComment("assign from " + node->getParent()->getType());
     string name = node->name;
 
     if (!program.inVariables(name)) {
@@ -291,7 +324,6 @@ void Assembler::handleAssign(shared_ptr<GNODE> node) {
             byteIdx++;
         }
         emitInstruction("mov byte[" + name + " + " + to_string(byteIdx) + "], 0" ); // NULL-termination
-        emitComment("assign done ");
         return;
     }
 
@@ -306,12 +338,11 @@ void Assembler::handleAssign(shared_ptr<GNODE> node) {
     }
 
     emitInstruction("mov " + var.makeReferenceTo(offset) + ", " + var.getRegister8Size());
-    emitComment("assign done ");
 }
 
 void Assembler::handleMathOperation(shared_ptr<GNODE> node, string op) {
     emitInstruction("push r8"); // Store result of previous node
-    handleNode(node);           // Content will be R8 after this
+    traverse(node);           // Content will be R8 after this
     
     if (op == "+") {
         emitInstruction("mov r9, r8");
@@ -488,15 +519,6 @@ void Assembler::emitVariable(string name, string varType, string size, int lengt
 
 void Assembler::error(string error_message) {
     throw std::runtime_error(error_message);
-}
-
-void Assembler::checkForMathOps(shared_ptr<GNODE> node) {
-    if (node->hasMathOperator()) {
-        checkNullPtr(node->getLeft(), node);
-        // Need to do math with child
-        handleMathOperation(node->getLeft(), node->op);
-        node->makeRightNull(); // We've now consumed right
-    }
 }
 
 void Assembler::checkNullPtr(shared_ptr<GNODE> node, shared_ptr<GNODE> from) {

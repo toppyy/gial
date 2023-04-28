@@ -15,9 +15,6 @@ class TreeParser
 public:
     TreeParser(std::vector<Token> p_tokens, std::set<std::string> p_keywords, Program p_program, std::shared_ptr<GAST> p_tree);
     void init();
-    void build();
-    void buildProgram();
-    void insertToken(Token tkn);
     void mapStatementToFunction(std::string statement);
 
     void error(std::string error_message);

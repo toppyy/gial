@@ -111,7 +111,8 @@ GNODE::GNODE() :
     value(""),
     datatype(""),
     name(""),
-    size(1)
+    size(1),
+    info(map<string,string>())
     {
 
 }
@@ -200,6 +201,14 @@ string GNODE::getType() {
     return type;
 }
 
+string GNODE::getFromInfo(string key) {
+    if (auto search = info.find(key); search != info.end())
+        return search->second;
+    else
+        throw std::runtime_error("Node (" + type +  ") info does not have key " + key + "\n");
+}
+
+
 void GNODE::setOperator(string p_op) {
     op = p_op;
 }
@@ -232,6 +241,12 @@ WHILE::WHILE() {
 
 IF::IF() {
     setType("IF");
+}
+
+FOR::FOR(string p_name, map<string,string> p_info) {
+    name = p_name;
+    info = p_info;
+    setType("FOR");
 }
 
 BOOLTERM::BOOLTERM() {

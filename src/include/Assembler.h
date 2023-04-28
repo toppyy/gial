@@ -16,7 +16,6 @@ class Assembler {
         void handleNode(shared_ptr<GNODE> node);
         void error(string error_message);
         string mapOperatorToInstruction(string op);
-        void checkForMathOps(shared_ptr<GNODE> node);
         void checkNullPtr(shared_ptr<GNODE> node, shared_ptr<GNODE> from);
 
         void emitInstruction(string inst);
@@ -28,6 +27,7 @@ class Assembler {
         // Operator handlers
         void handleConstant(shared_ptr<GNODE> node);
         void handleDeclare(shared_ptr<GNODE> node);
+        void handleFor(shared_ptr<GNODE> node);
         void handlePrintString(shared_ptr<GNODE> node);
         void handlePrintInt(shared_ptr<GNODE> node);
         void handlePrintASCII(shared_ptr<GNODE> node);

@@ -7,16 +7,15 @@ TreeParser::TreeParser(
         Program p_program,
         std::shared_ptr<GAST> p_tree
         ) : 
-                                        labelCount(0),
-                                        look(Token("EOF")),
-                                        lookChar(0),
-                                        tokens(std::vector<Token> {}),
-                                        cursor(0),
-                                        token_count(0),
-                                        program(p_program),
-                                        tree(p_tree)
-                                        
-                                        {
+        labelCount(0),
+        look(Token("EOF")),
+        lookChar(0),
+        tokens(std::vector<Token> {}),
+        cursor(0),
+        token_count(0),
+        program(p_program),
+        tree(p_tree)
+        {
     tokens = p_tokens;
     cursor = 0;
     token_count = tokens.size();
@@ -25,29 +24,10 @@ TreeParser::TreeParser(
 
 }
 
-void TreeParser::build() {
-
-
-}
-
-
-
-
-void TreeParser::buildProgram() {
-    program.buildProgram();
-}
-
 void TreeParser::init() {
-
     getToken();
     block();
 }
-
-void TreeParser::insertToken(Token tkn) {
-    tokens.insert(tokens.begin() + cursor - 1, tkn);
-    token_count++;
-}
-
 
 void TreeParser::mapStatementToFunction(std::string statement ) {
 
@@ -134,21 +114,13 @@ void TreeParser::block() {
 /* ---------- STATEMENTS ----------------------------------------------------------------------------------------------------------------  */
 void TreeParser::printStatement() {
 
-
     tree->addToCurrent (PRINTSTR());
         
-
     if (look.isString) {
         // Is a string constant
-        std::string instr;
-        std::string label = getNewLabel();
-        emitInstruction("printBytes " + label + ", 0, " + std::to_string(look.length()));
-        emitConstant(label, look.getContent(), "str");
-
         tree->branchLeft();
         tree->addToCurrent(CONSTANT(look.getContent(), "str"));
         tree->closeBranch();
-
         getToken();
         return;
     }
@@ -162,14 +134,11 @@ void TreeParser::printStatement() {
         tree->branchLeft();
         tree->addToCurrent(VARIABLE(variable.getContent()));
         tree->closeBranch();
-        
         return;
     }
 
-
     error("Expected a string name or constant");
 }
-
 
 void TreeParser::printIntStatement() {
 
@@ -181,7 +150,6 @@ void TreeParser::printIntStatement() {
         tree->branchLeft();
         tree->addToCurrent(VARIABLE(varName.getContent()));
         
-
         if (look == "[") {
             matchToken("[");
             tree->branchRight();
@@ -199,14 +167,6 @@ void TreeParser::printIntStatement() {
     }
 }
 
-void TreeParser::emitLine() {
-
-    tree->addToCurrent ( PRINTASCII("LF")  );
-    emitInstruction("mov dil, LF");
-    emitInstruction("call PrintASCII");
-    return;
-}
-
 void TreeParser::inputStatement() {
     
     Token varName = getName();
@@ -219,10 +179,7 @@ void TreeParser::inputStatement() {
     }
     tree->addToCurrent( DECLARE(varName.getContent(), datatype));
     tree->addToCurrent( INPUT(  varName.getContent(), datatype));
-
-
 }
-
 
 void TreeParser::ifStatement() {
     
@@ -258,7 +215,6 @@ void TreeParser::ifStatement() {
     matchEndStatement();
 }
 
-
 void TreeParser::whileStatement() {
    
     tree->addToCurrent(WHILE());
@@ -272,8 +228,6 @@ void TreeParser::whileStatement() {
     matchEndStatement();
 }
 
-
-
 void TreeParser::letIntStatement() {
     Token varName = getName();
     
@@ -284,11 +238,8 @@ void TreeParser::letIntStatement() {
     }
     emitIntVariable(varName);
 
-
-
     tree->addToCurrent(DECLARE(varName.getContent(),"int"));
     tree->branchLeft();    
-
 
     if (look != "=") {
         tree->closeBranch();
@@ -296,10 +247,6 @@ void TreeParser::letIntStatement() {
         return;
     }
 
-    // Assign an int
-    // if (!peek().isNumber) {
-    //     expected("integer when assigning to numeric type");
-    // }
     assignment(varName);
     tree->closeBranch();
     return;
@@ -313,7 +260,6 @@ void TreeParser::letIntArray(Token varName) {
 
     tree->addToCurrent(DECLARE(varName.getContent(),"int",arraySize));
 }
-
 
 void TreeParser::letStringStatement() {
     Token varName = getName();
@@ -342,8 +288,6 @@ void TreeParser::letStringStatement() {
 
     getToken();
 }
-
-
 
 void TreeParser::repeatStatement() {
     // implements
@@ -377,21 +321,22 @@ void TreeParser::repeatStatement() {
     matchEndStatement();
 }
 
-
 void TreeParser::forStatement() {
     // For-loops are BASIC-like:
     // FOR x = 0 TO 10 STEP 1
     // (STEP is optional, defaults to 1)
 
-    Token name = getName();
-
-    emitIntVariable(name);
     
-    assignment(name);
+
+    // This will declare 'x' and assign the first value
+    TreeParser::letIntStatement();
+
+    string name = tree->current->name;
+
     matchToken("TOHO");
     expectNumber();
+    string to = getNumber().getContent();
 
-    Token to = getNumber();
     
     std::string step = "1";
     if (look == "HYBYIL") {
@@ -401,20 +346,16 @@ void TreeParser::forStatement() {
         getToken();
     }
 
-    std::string loopStart  = getNewLabel();
-    std::string variableRef = "qword[" + name + "]";
+    tree->addToCurrent(
+            FOR(
+                name,
+                std::map<string, string> { {"to", to }, {"step", step } }
+                )
+            );
 
-    emitInstruction("mov r8, " + variableRef);   // Init counter
-    emitInstruction(loopStart + ":");
-    emitInstruction("push r8");     // Push counter onto stack
-    
+    tree->branchRight();
     block();
-
-    emitInstruction("pop r8");                  // Pop counter from stack
-    emitInstruction("add r8, " + step);         // Increment counter from stack
-    emitInstruction("mov " + variableRef + ", r8"); // Update loop variable
-    emitInstruction("cmp r8, " + to);           // Compare counter to n
-    emitInstruction("jl " + loopStart);         // If it's less than n, jmp to labelTrue
+    tree->closeBranch();
     matchEndStatement();    
 
 }
@@ -438,6 +379,11 @@ void TreeParser::emitStringVariable(Token var, int length) {
 
 void TreeParser::emitIntVariable(Token var) {
     emitVariable(var, "int", "qword", 1);
+}
+
+void TreeParser::emitLine() {
+    tree->addToCurrent ( PRINTASCII("LF")  );
+    return;
 }
 
 

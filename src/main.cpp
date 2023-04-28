@@ -105,7 +105,6 @@ int main(int argc, char *argv[]) {
     scnr.init();
 
 
-    // Parser prsr = Parser(scnr.getTokens(), keywords, Program(std::cout));
     GAST tree = GAST();
     std::shared_ptr<GAST> p_tree = std::make_shared<GAST>(tree);
 

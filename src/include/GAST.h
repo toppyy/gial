@@ -3,7 +3,14 @@
 #include <vector>
 #include <memory>
 #include <stack>
-using std::vector, std::string, std::shared_ptr, std::make_shared, std::stack;
+#include <map>
+using   std::vector,
+        std::string,
+        std::shared_ptr,
+        std::make_shared,
+        std::stack,
+        std::map
+        ;
 
 /* 
     GAST - Gial Abstract Syntax Tree
@@ -34,6 +41,8 @@ class GNODE {
         void    setType(string p_type);
         string  getType();
 
+        string getFromInfo(string key);
+
         void setOperator(string p_op);
       
         virtual void print();
@@ -42,17 +51,16 @@ class GNODE {
         bool hasMathOperator();
         void makeRightNull();
 
-
-        // BOOLTERM
-        string op;
-
-        // CONSTANT
-        string value;
-
         // Shared btwn operators
         string datatype;
         string name;
+        string op;
+        string value;
         int size;
+
+        // A key-value store for operator specific needs
+        map<string, string> info;
+
 
     private:        
         shared_ptr<GNODE> right;
@@ -110,7 +118,8 @@ class IF: public GNODE {
 
 
 class FOR: public GNODE {
-
+    public:
+        FOR(string p_name, map<string,string> p_info);
 };
 
 
