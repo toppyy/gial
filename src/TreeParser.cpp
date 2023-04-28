@@ -1,6 +1,5 @@
 #include "./include/TreeParser.h"
 
-
 TreeParser::TreeParser(
         std::vector<Token> p_tokens,
         std::set<std::string> p_keywords,
@@ -82,7 +81,6 @@ void TreeParser::mapStatementToFunction(std::string statement ) {
     }
 
 }
-
 
 void TreeParser::block() {
     std::string nextToken = "?";
@@ -236,7 +234,6 @@ void TreeParser::letIntStatement() {
         letIntArray(varName);
         return;
     }
-    emitIntVariable(varName);
 
     tree->addToCurrent(DECLARE(varName.getContent(),"int"));
     tree->branchLeft();    
@@ -373,47 +370,9 @@ void TreeParser::forStatement() {
 
 /* ------- END STATEMENTS ----------------------------------------------------------------------------------------------------------------  */
 
-
-std::string TreeParser::getNewLabel() {
-    labelCount += 1;
-    return "LBL_" + std::to_string(labelCount);
-}
-
-void TreeParser::emitInstruction(std::string out) {
-    program.addInstruction(out);
-}
-
-void TreeParser::emitStringVariable(Token var, int length) {
-    emitVariable(var, "str", "byte", length);
-}
-
-void TreeParser::emitIntVariable(Token var) {
-    emitVariable(var, "int", "qword", 1);
-}
-
 void TreeParser::emitLine() {
     tree->addToCurrent ( PRINTASCII("LF")  );
     return;
-}
-
-
-void TreeParser::emitVariable(Token out, std::string varType, std::string size, int length) {
-    std::string content = out.getContent();
-    if (!program.inVariables(content)) {
-            program.addVariable(content, varType, size, length);
-    }
-    
-}
-
-void TreeParser::emitConstant(std::string out, std::string value, std::string varType = "str") {
-    program.addConstant(out, value, varType);
-    
-}
-
-
-
-void TreeParser::emitComment(std::string comment) {
-    emitInstruction("; " + comment);
 }
 
 void TreeParser::error(std::string error_message) {
@@ -425,6 +384,17 @@ void TreeParser::expected(std::string expected_thing) {
     return;
 }
 
+void TreeParser::expectName() {
+    if (!look.isName) {
+        error("Expected a name, got " + look);
+    }
+}
+
+void TreeParser::expectNumber() {
+    if (!look.isNumber) {
+        error("Expected a number, got " + look);
+    }
+}
 Token TreeParser::peek() {
     return tokens[cursor];
 }
@@ -449,7 +419,6 @@ Token TreeParser::getNumber() {
     return Token("");
 }
 
-
 Token TreeParser::getName() {
     if (look.isName) {
         Token rtrn = look;
@@ -460,12 +429,6 @@ Token TreeParser::getName() {
     error("Expected a name, got: " + look);
     return Token("");
 }
-
-Variable TreeParser::getVariable(std::string varname) {
-    return program.getVariable(varname);
-}
-
-
 
 void TreeParser::matchToken(std::string expected_content) {
 
@@ -479,7 +442,6 @@ void TreeParser::matchToken(std::string expected_content) {
 void TreeParser::matchEndStatement() {
     matchToken("NYLOPPUS");
 }
-
 
 /* ----------------------- PARSING EXPRESSION ---------------------------- */
 
@@ -548,23 +510,11 @@ void TreeParser::term() {
 
 void TreeParser::ident() { 
     Token name = getName();
-    std::string instr;
-
-    // check if the name is a name of a function (not a variable)
-    if (lookChar == '(') {
-        matchToken("(");
-        matchToken(")"); // Currently can match only empty argument lists
-        instr = "call " + name;
-        emitInstruction(instr);
-        return;
-    }
 
     // Check if it's an indexed reference
     if (lookChar == '[') {
         matchToken("[");
 
-
-        
         tree->addToCurrent(BLOCK());
         tree->branchRight();
         expression();
@@ -658,24 +608,24 @@ void TreeParser::boolExpression() {
         nextTokenContent == "JA" |
         nextTokenContent == "TAI"
     ) {
-        
+        // TODO
         matchToken(nextTokenContent); // eat the token
-        emitInstruction("push r8");
+        //emitInstruction("push r8");
         boolExpression();
-        emitInstruction("pop r9");
+        //emitInstruction("pop r9");
         
         if (nextTokenContent == "JA") {
-            emitInstruction("and r8, r9");
+            //emitInstruction("and r8, r9");
         }
         if (nextTokenContent == "TAI") {
-            emitInstruction("or r8, r9");
+            //emitInstruction("or r8, r9");
         }
         nextTokenContent = look.getContent();
     }
 }
 
 void TreeParser::boolStringComparison() {
-
+    /*
     std::string A = look.getContent();
     getToken();
     
@@ -757,12 +707,12 @@ void TreeParser::boolStringComparison() {
     emitInstruction("mov r8, 1");
 
     emitInstruction(loopEnd + ":");
+    */
     
 }   
 
 void TreeParser::boolTerm() {   
     // When return R8 must be 0/1 depending on the comparison
-    std::string labelFalse = getNewLabel();
     
     // If the first token in the boolean expression is a string, expect the other is also
     /*
@@ -783,8 +733,7 @@ void TreeParser::boolTerm() {
     tree->closeBranch();
     
     tree->current->setOperator(look.getContent());
-    std::string op = mapOperatorToInstruction();
-    
+    matchToken(look.getContent());
     
     if (program.isStringVariable(look.getContent())) {
         error("Mismatch: can't compare to type string with content: " + look);
@@ -792,40 +741,4 @@ void TreeParser::boolTerm() {
     tree->branchRight();
     expression();
     tree->closeBranch();
-}
-
-std::string TreeParser::mapOperatorToInstruction() {
-
-    std::string lookOp = look.getContent();
-
-    std::unordered_map<std::string,std::string> operatorToInstruction {
-        {"==", "je"},
-        {"!=", "jne"},
-        {">", "jg"},
-        {"<", "jl"},
-        {">=", "jge"},
-        {"<=", "jle"}
-    };
-
-
-    if (operatorToInstruction.count(lookOp) == 0) {
-            expected(" ==, !=, >=, <=, <, <, got: " + lookOp);
-    }
-
-    matchToken(lookOp);
-    auto search = operatorToInstruction.find(lookOp);
-
-    return search->second;
-}
-
-
-void TreeParser::expectName() {
-    if (!look.isName) {
-        error("Expected a name, got " + look);
-    }
-}
-void TreeParser::expectNumber() {
-    if (!look.isNumber) {
-        error("Expected a number, got " + look);
-    }
 }

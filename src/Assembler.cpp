@@ -192,7 +192,6 @@ void Assembler::handleFor(shared_ptr<GNODE> node) {
   
 }
 
-
 void Assembler::handleIf(shared_ptr<GNODE> node) {
 
     checkNullPtr(node->getLeft(), node);

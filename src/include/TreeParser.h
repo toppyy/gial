@@ -28,17 +28,7 @@ public:
     void expectNumber();
     void expectName();
     Token peek();
-    Variable getVariable(std::string varname);
 
-    std::string getNewLabel();
-
-    void emitComment(std::string comment);
-    void emitLine();
-    void emitInstruction(std::string out);
-    void emitVariable(Token out, std::string varType, std::string size, int length);
-    void emitStringVariable(Token var, int length);
-    void emitIntVariable(Token var);
-    void emitConstant(std::string out, std::string value, std::string varType);
 
     void block();
 
@@ -55,14 +45,13 @@ public:
 
     // Parsing boolean expressions ---------
 
-    std::string mapOperatorToInstruction();
     void boolExpression();
     void boolTerm();
     void boolStringComparison();
-    void relOp();
 
     // Statements ---------------------------
 
+    void emitLine();
     void printStatement();
     void printIntStatement();
     void inputStatement();
@@ -72,8 +61,6 @@ public:
     void letStringStatement();
     void letIntStatement();
     void repeatStatement();
-
-    // Helpers
     void letIntArray(Token var);
 
 private:
