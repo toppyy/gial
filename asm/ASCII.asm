@@ -46,6 +46,9 @@ global PrintInteger
 ; The array (or a subset of it) is printed after there's nothing to divide
 ; Example: integer 25 is represented by ASCII-codes [50, 53]
 PrintInteger:
+    cmp rdi, 0                          ; If it's zero, do nada
+    je printZeroAndExit
+
     mov r9, 9                           ; to track where to store the current ASCII-code
     mov byte[negative], 1               ; a flag for negative values (so when can correctly calculate ASCII-code)
     mov r10, 10
@@ -92,6 +95,11 @@ printASCIIcodes:
     add r9, 1
 
     printBytes numberCodes, r9, r10
+    ret
+
+printZeroAndExit:
+    mov dil, 48
+    call PrintASCII
     ret
 
 global PrintASCII
