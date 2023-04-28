@@ -297,27 +297,31 @@ void TreeParser::repeatStatement() {
     //
 
     // n is either a integer or a variable ref
-    std::string n;
+    string to = look.getContent(), toType;
     if (look.isNumber) {
-       n = look.getContent();
+       toType = "int";
     }  else if (look.isName) {
-       n =  "qword[" + look + "]";
+       toType = "variable";
     } else {
         error("Expected a number or a variable name after TOIST. Got: " + look);
     }
 
-    std::string labelRepetition  = getNewLabel();
+    // Create an internal variable for FOR-loop
+    // Must be unique so construct a string based on tree state
+    string name = "GIALREP" + std::to_string(cursor);
+    tree->addToCurrent(DECLARE(name,"int"));
 
-    emitInstruction("mov r8, 0");   // Init counter
-    emitInstruction(labelRepetition + ":");
-    emitInstruction("push r8");     // Push counter onto stack
-    
+    // REPEAT is represented as a FOR-loop internally
+    tree->addToCurrent(
+            FOR(
+                name,
+                std::map<string, string> { {"to", to }, { "toType", toType }, {"step", "1" } }
+                )
+            );
+
+    tree->branchRight();
     block();
-
-    emitInstruction("pop r8");                 // Pop counter from stack
-    emitInstruction("inc r8");                 // Increment counter from stack
-    emitInstruction("cmp r8, " + n);           // Compare counter to n
-    emitInstruction("jl " + labelRepetition);  // If it's less than n, jmp to labelTrue
+    tree->closeBranch();
     matchEndStatement();
 }
 
@@ -326,18 +330,24 @@ void TreeParser::forStatement() {
     // FOR x = 0 TO 10 STEP 1
     // (STEP is optional, defaults to 1)
 
-    
-
     // This will declare 'x' and assign the first value
     TreeParser::letIntStatement();
 
     string name = tree->current->name;
 
     matchToken("TOHO");
-    expectNumber();
-    string to = getNumber().getContent();
+    // Looping "to" - either a integer or a variable ref
+    // toType will tell if it's a variable ref or an int
 
-    
+    string to = look.getContent(), toType;
+    if (look.isNumber) {
+       toType = "int";
+    }  else if (look.isName) {
+       toType = "variable";
+    } else {
+        error("Expected a number or a variable name after TOHO. Got: " + look);
+    }
+
     std::string step = "1";
     if (look == "HYBYIL") {
         getToken();
@@ -349,14 +359,14 @@ void TreeParser::forStatement() {
     tree->addToCurrent(
             FOR(
                 name,
-                std::map<string, string> { {"to", to }, {"step", step } }
+                std::map<string, string> { {"to", to }, { "toType", toType }, {"step", step } }
                 )
             );
 
     tree->branchRight();
     block();
     tree->closeBranch();
-    matchEndStatement();    
+    matchEndStatement();
 
 }
 

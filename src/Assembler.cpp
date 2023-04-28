@@ -171,6 +171,11 @@ void Assembler::handleFor(shared_ptr<GNODE> node) {
     string variableRef  = "qword[" + node->name + "]";
     string step         = node->getFromInfo("step");
     string to           = node->getFromInfo("to");
+    string toType       = node->getFromInfo("toType");
+
+    if (toType == "variable") {
+        to = "qword[" + to + "]";
+    }
 
     emitInstruction("mov r8, " + variableRef);   // Init counter
     emitInstruction(loopStart + ":");            // Loop start label
