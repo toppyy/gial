@@ -562,7 +562,7 @@ void TreeParser::expression() {
         term();
     tree->closeBranch();
 
-    while (isAddOp(lookChar) | lookChar == '*' | lookChar == '/') {
+    while (lookChar == '+' | lookChar == '-' | lookChar == '*' | lookChar == '/') {
         tree->current->setOperator(look.getContent());
         getToken();
         tree->branchRight();
@@ -574,13 +574,7 @@ void TreeParser::expression() {
 
 }   
 
-
-
 void TreeParser::term() {
-    factor();
-}
-
-void TreeParser::factor() {
    
     // If an opening parenthesis is met, start an another expression recursively
     // This works because nothing is emitted before the 'inner most' parenthesis have been met
@@ -702,43 +696,12 @@ void TreeParser::assignment(Token name) {
     tree->closeBranch();
 }
 
-bool TreeParser::isAddOp(char x) {
-    return x == '+' | x == '-';
-}
-
-bool TreeParser::isAlphaNumeric(char x) {
-    return isAlpha(x) | isDigit(x);
-}
-
-
-void TreeParser::add() {
-    matchToken("+");
-    term();
-}   
-
-void TreeParser::minus() {
-    matchToken("-");
-    term();
-}
-
-void TreeParser::multiply() {
-    matchToken("*");
-    factor();                 // Moves multiplier to register (r8)
-}
-
-void TreeParser::divide() {
-    matchToken("/");                // Consume the division character. 'look' now has the divisor
-    factor();                       // Moves divisor to register (r8)
-}
-
-
 bool TreeParser::isAlpha(char x) {
     return 
         (x >= 65 & x <= 90) // A-Z
         |
         (x >= 97 & x <= 122); // a-z
 }
-
 
 bool TreeParser::isDigit(char x) {
     return x >= 48 & x <= 57; // 0-9
