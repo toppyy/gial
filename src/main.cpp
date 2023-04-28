@@ -117,10 +117,11 @@ int main(int argc, char *argv[]) {
     // traverseTree(p_tree->current, 0);
 
     auto asmblr = Assembler(Program(std::cout));
-
     asmblr.Assemble(p_tree);
 
-
+    // for (shared_ptr<GNODE> n: p_tree->gnodes) {
+    //     std::cout << n->getType() << "\n";
+    // }
  
     // // // Do the parsing
     // prsr.init();

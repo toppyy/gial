@@ -109,10 +109,7 @@ void Assembler::handleNode(shared_ptr<GNODE> node) {
 }
 
 void Assembler::handleBlock(shared_ptr<GNODE> node) {
-    if (node->getNext()) {
-        traverse(node->getNext());
-    }
-    
+    // Empty on purpose. Just a container for tree manipulations    
 }
 
 
@@ -167,6 +164,8 @@ void Assembler::handleIf(shared_ptr<GNODE> node) {
     checkNullPtr(node->getLeft(), node);
     checkNullPtr(node->getRight(), node);
 
+    emitComment("If started");
+
     // Left-child has the condition
     // Right-child has a linked list to the operations within the block
     string labelIn  = program.getNewLabel();
@@ -186,11 +185,18 @@ void Assembler::handleIf(shared_ptr<GNODE> node) {
         traverse(node->getRight()->getLeft());
     }
     emitInstruction(labelOut + ":");
+    emitComment("If done");
 }
 
 void Assembler::handleExpression(shared_ptr<GNODE> node) {
-    checkNullPtr(node->getLeft(), node);
+    checkNullPtr(node->getLeft(), node);    
     traverse(node->getLeft());
+
+    if (node->hasMathOperator()) {
+        checkNullPtr(node->getRight(), node);
+        handleAddOperation(node->getRight(), node->op);
+    }
+
 }
 
 void Assembler::handleVariable(shared_ptr<GNODE> node) {
@@ -198,13 +204,22 @@ void Assembler::handleVariable(shared_ptr<GNODE> node) {
     // We need to pull the variable to know whether to read a byte or ..?
     Variable var = program.getVariable(node->name);
 
-    emitInstruction("mov " + var.getRegister8Size() + ", " + var.makeReferenceTo());
+    // If there's a right branch, it's an indexed assignment
+    // The right branch has an expr that will evaluate to the index (usually an int constant)
+    shared_ptr<GNODE> right = node->getRight();
 
-    checkForMathOps(node);
+    string offset = "";
+    if (right) {
+        // Store the index into a register (R9) and offset
+        // the MOV-operation with the value in this register
+        traverse(right);            // The value is now in R8
+        offset = "r8";
+    }
+    emitInstruction("mov " + var.getRegister8Size() + ", " + var.makeReferenceTo(offset));
 }
 
 void Assembler::handleBoolTerm(shared_ptr<GNODE> node) {
-
+    emitComment("bool-term started");
     // Evaluate left expression; result is stored into r8
     traverse(node->getLeft());
     // Push result onto stack
@@ -227,22 +242,33 @@ void Assembler::handleBoolTerm(shared_ptr<GNODE> node) {
 
 void Assembler::handleConstant(shared_ptr<GNODE> node) {
     emitInstruction("mov r8, " + node->value);
-    checkForMathOps(node);
 }
 
 void Assembler::handleAssign(shared_ptr<GNODE> node) {
-    emitComment("assign");
+    emitComment("assign from " + node->getParent()->getType());
     string name = node->name;
 
     if (!program.inVariables(name)) {
         error("Assignment to an undeclared variable (" + name + ")");
     }
     checkNullPtr(node->getLeft(), node);
+
+    // If there's a right branch, it's an indexed assignment
+    // The right branch has an expr that will evaluate to the index (usually an int constant)
+    shared_ptr<GNODE> right = node->getRight();
+
+    if (right) {
+        // We store the index into a register (R9). Later on (see below)
+        // Well offset the MOV-operation with the value in this register
+        traverse(right);            // The value is now in R8
+        emitInstruction("push r8"); // Onto stack
+    }
+
     // If it's an int:
     //  Evaluate the expression that is beign assigned, the result will be in r8
     // If it's a constant str:
     //  Handle pointer locally (do not traverse)
-    shared_ptr<GNODE> left = node->getLeft();     
+    shared_ptr<GNODE> left = node->getLeft();  
 
     if (left->getType() == "CONSTANT" & left->datatype == "str") {
         int byteIdx = 0;
@@ -251,12 +277,22 @@ void Assembler::handleAssign(shared_ptr<GNODE> node) {
             byteIdx++;
         }
         emitInstruction("mov byte[" + name + " + " + to_string(byteIdx) + "], 0" ); // NULL-termination
+        emitComment("assign done ");
         return;
     }
 
     traverse(left);
     Variable var = program.getVariable(name);
-    emitInstruction("mov " + var.makeReferenceTo() + ", " + var.getRegister8Size());
+
+    string offset = "";
+    if (right) { 
+        // Indexed assignment. Pop the index from stack
+        emitInstruction("pop r9");
+        offset = "r9";
+    }
+
+    emitInstruction("mov " + var.makeReferenceTo(offset) + ", " + var.getRegister8Size());
+    emitComment("assign done ");
 }
 
 void Assembler::handleAddOperation(shared_ptr<GNODE> node, string op) {

@@ -17,6 +17,7 @@ GAST::GAST() : gnodes(vector<shared_ptr<GNODE>> {}),
 };
 
 
+
 void GAST::openBranch() {
     branchStack.push(current);
 }
@@ -50,13 +51,14 @@ void GAST::addToCurrent(GNODE node) {
         current->setLeft(ptr);
         nextToLeft = false;
     }
-    else if (toLeft) {
-        current->setLeft(ptr);
-    }  
     else if (nextToRight) {
         current->setRight(ptr);
         nextToRight = false;
     }
+    else if (toLeft) {
+        current->setLeft(ptr);
+    }  
+    
     else {
         current->setNext(ptr);
     }
@@ -164,8 +166,8 @@ void GNODE::print() {
         tab << "next: " << getNodeType(next)
         ;
     
-    if (name != "") {
-        std::cout << " and my name is " << name;
+    if (op != "") {
+        std::cout << " and my op is " << op;
     }
     std::cout << "\n";
     

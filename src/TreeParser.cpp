@@ -167,14 +167,7 @@ void TreeParser::printStatement() {
     }
 
 
-    // tree->branchLeft();
-    // tree->addToCurrent ( PRINTASCII("LF")  );
-
-    expression();
-    // tree->closeBranch();
-    emitInstruction("mov dil, r8b");
-    emitInstruction("call PrintASCII");
-    return;
+    error("Expected a string name or constant");
 }
 
 
@@ -303,9 +296,9 @@ void TreeParser::letIntStatement() {
     }
 
     // Assign an int
-    if (!peek().isNumber) {
-        expected("integer when assigning to numeric type");
-    }
+    // if (!peek().isNumber) {
+    //     expected("integer when assigning to numeric type");
+    // }
     assignment(varName);
     tree->closeBranch();
     return;
@@ -563,21 +556,22 @@ void TreeParser::expression() {
     // This way -3 + 3 becomes 0 - 3 + 3
 
     tree->addToCurrent(EXPRESSION());
-    tree->setLeftAsDefault();
+    shared_ptr<GNODE> current = tree->current;
+    //tree->setLeftAsDefault();
         
-    if ( !isAddOp(lookChar)) {
+    tree->branchLeft();
         term();
-    }
+    tree->closeBranch();
 
-    while (isAddOp(lookChar)) {
+    while (isAddOp(lookChar) | lookChar == '*' | lookChar == '/') {
         tree->current->setOperator(look.getContent());
-        if (lookChar == '+') {
-            add();
-        } else if (lookChar == '-') {
-            minus();
-        }
+        getToken();
+        tree->branchRight();
+        term();
+        tree->closeBranch();
     }
     tree->unsetLeftAsDefault();
+    tree->current = current; // Return to the 'level' of this expr
 
 }   
 
@@ -585,14 +579,14 @@ void TreeParser::expression() {
 
 void TreeParser::term() {
     factor();
-    while (lookChar == '*' | lookChar == '/') {
-        tree->current->setOperator(look.getContent());
-         if (lookChar == '*') {
-            multiply();
-        } else if (lookChar == '/') {
-            divide();
-        }
-    }
+    // while (lookChar == '*' | lookChar == '/') {
+    //     tree->current->setOperator(look.getContent());
+    //      if (lookChar == '*') {
+    //         multiply();
+    //     } else if (lookChar == '/') {
+    //         divide();
+    //     }
+    // }
 }
 
 void TreeParser::factor() {
@@ -656,51 +650,64 @@ void TreeParser::ident() {
     }
 
     // Check if it's an indexed reference
-    bool indexedRefence = false;
     if (lookChar == '[') {
-        indexedRefence = true;
         matchToken("[");
+
+
+        
+        tree->addToCurrent(BLOCK());
+        tree->branchRight();
         expression();
+        tree->closeBranch();
+
         matchToken("]");
-        // Move whatever was between brackets into r9
-        emitInstruction("mov r9, r8");
+
+        if (look == "=") {
+            // This manipulates current BLOCK
+            indexedAssignment(name);
+            return;
+        } else {
+            // It's an indexed variable ref
+
+            tree->addToCurrent(VARIABLE(name.getContent()));
+            // Add index to the left branch of variable
+            tree->current->setRight(tree->current->getParent()->getRight());
+            tree->current->getParent()->makeRightNull();
+
+
+            return;
+        }
     }        
     
     // Check if it's an assignment to a variable
     if (look == "=") {
-        if (indexedRefence) {
-            indexedAssignment(name);
-            return;
-        }
         assignment(name);
         return;
     }
 
-    // If not, store the value into r8
-    // We need to pull the variable to know whether to read a byte or ..?
-    
+    // If not, store the value into r8   
     tree->addToCurrent(VARIABLE(name.getContent()));
 }
 
 void TreeParser::indexedAssignment(Token name) {
 
-    // R8 has the result of the of expression in brackets
-    // We need it later, so push it on the stack
-    emitInstruction("push r8"); 
-
     matchToken("=");
 
-    // Side-effect of this is that we check the variable has been declared
-    Variable var = program.getVariable(name.getContent());
+    // Create ASSIGNment. Do some tree manipulation so
+    // that this has the expr describing the index as the right
+    // child (atm it is in the parent BLOCK's right branch)
+    // This is also manipulated further in ident()
+    tree->addToCurrent(ASSIGN(name.getContent()));
 
-    // What is assigned?
+    shared_ptr<GNODE> indexExpr = tree->current->getParent()->getRight();
+    tree->current->setRight(indexExpr);
+    indexExpr->setParent(tree->current);
+    tree->current->getParent()->makeRightNull();
+    tree->current->getParent()->setNext(tree->current);
+
+    tree->branchLeft();
     expression();
-
-    // Do the assignment
-    emitInstruction("pop r9");
-    emitInstruction("mov " + var.makeReferenceTo("r9") + ", " + var.getRegister8Size());
-
-    return;
+    tree->closeBranch();
 }
 
 void TreeParser::assignment(Token name) {
@@ -896,13 +903,7 @@ void TreeParser::boolTerm() {
     expression();
     tree->closeBranch();
     
-
-
-    //std::cout << " current is " << tree->current->getType() << "\n";
-
     tree->current->setOperator(look.getContent());
-    
-    emitInstruction("push r8");
     std::string op = mapOperatorToInstruction();
     
     
@@ -911,18 +912,7 @@ void TreeParser::boolTerm() {
     }
     tree->branchRight();
     expression();
-    tree->closeBranch();    
-    
-
-    
-
-    emitInstruction("pop r9");
-    emitInstruction("cmp r9, r8");
-    emitInstruction("mov r8, 1");
-    emitInstruction(op + " " + labelFalse);
-    emitInstruction("mov r8, 0");
-    emitInstruction(labelFalse + ":");
-    
+    tree->closeBranch();
 }
 
 std::string TreeParser::mapOperatorToInstruction() {
