@@ -39,7 +39,7 @@ class Assembler {
         void handleVariable(shared_ptr<GNODE> node);
         void handleAssign(shared_ptr<GNODE> node);
         void handleInput(shared_ptr<GNODE> node);
-        void handleAddOperation(shared_ptr<GNODE> node, string op);
+        void handleMathOperation(shared_ptr<GNODE> node, string op);
 
 
     private:

@@ -170,6 +170,7 @@ class INPUT: public GNODE {
 class DECLARE: public GNODE {
     public:
         DECLARE(string p_name, string p_vartype);
+        DECLARE(string p_name, string p_vartype, int p_size);
 };
 
 class ADDOP: public GNODE {

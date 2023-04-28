@@ -125,7 +125,7 @@ void Assembler::handleDeclare(shared_ptr<GNODE> node) {
     }
 
     if (node->datatype == "int") {
-        emitVariable(node->name, "int", "qword", 1);
+        emitVariable(node->name, "int", "qword", node->size);
     }
 
     shared_ptr<GNODE> left = node->getLeft();
@@ -194,7 +194,7 @@ void Assembler::handleExpression(shared_ptr<GNODE> node) {
 
     if (node->hasMathOperator()) {
         checkNullPtr(node->getRight(), node);
-        handleAddOperation(node->getRight(), node->op);
+        handleMathOperation(node->getRight(), node->op);
     }
 
 }
@@ -309,7 +309,7 @@ void Assembler::handleAssign(shared_ptr<GNODE> node) {
     emitComment("assign done ");
 }
 
-void Assembler::handleAddOperation(shared_ptr<GNODE> node, string op) {
+void Assembler::handleMathOperation(shared_ptr<GNODE> node, string op) {
     emitInstruction("push r8"); // Store result of previous node
     handleNode(node);           // Content will be R8 after this
     
@@ -494,7 +494,7 @@ void Assembler::checkForMathOps(shared_ptr<GNODE> node) {
     if (node->hasMathOperator()) {
         checkNullPtr(node->getLeft(), node);
         // Need to do math with child
-        handleAddOperation(node->getLeft(), node->op);
+        handleMathOperation(node->getLeft(), node->op);
         node->makeRightNull(); // We've now consumed right
     }
 }

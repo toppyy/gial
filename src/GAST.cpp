@@ -211,6 +211,14 @@ DECLARE::DECLARE(string p_name, string p_datatype) {
     setType("DECLARE");
 };
 
+DECLARE::DECLARE(string p_name, string p_datatype, int p_size) {
+    name = p_name;
+    datatype = p_datatype;
+    size = p_size;
+    setType("DECLARE");
+};
+
+
 
 INPUT::INPUT(string p_name, string p_datatype) {
     name = p_name;

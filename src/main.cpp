@@ -119,16 +119,6 @@ int main(int argc, char *argv[]) {
     auto asmblr = Assembler(Program(std::cout));
     asmblr.Assemble(p_tree);
 
-    // for (shared_ptr<GNODE> n: p_tree->gnodes) {
-    //     std::cout << n->getType() << "\n";
-    // }
- 
-    // // // Do the parsing
-    // prsr.init();
-    
-    // // // Build the program
-    //prsr.buildProgram();
-
     // Finished  
     std::cout << "\n\n";
     

@@ -180,16 +180,17 @@ void TreeParser::printIntStatement() {
 
         tree->branchLeft();
         tree->addToCurrent(VARIABLE(varName.getContent()));
-        tree->closeBranch();
-
         
-        // tree->current->name = varName.getContent();
 
         if (look == "[") {
             matchToken("[");
+            tree->branchRight();
             expression();
+            tree->closeBranch();
             matchToken("]");    
         }
+
+        tree->closeBranch();
     } else {
         // it's an expression
         tree->branchLeft();
@@ -305,37 +306,12 @@ void TreeParser::letIntStatement() {
 }
 
 void TreeParser::letIntArray(Token varName) {
+    
     matchToken("[");
-    Token arraySize = getNumber();
+    int arraySize = stoi(getNumber().getContent()); // TODO: Catch non-numbers
     matchToken("]");
 
-    emitVariable(varName, "int", "qword", stoi(arraySize.getContent()));
-
-
-    if (look != "=") {
-        // No associated assignment        
-        return;
-    }
-
-    matchToken("=");
-    matchToken("[");
-
-    Variable var = program.getVariable(varName.getContent());
-
-    std::vector<Token> numbers;
-    int i = 0;
-    emitInstruction("mov r9, 0");
-    while (look != "]") {
-        if (look.isNumber) {
-            emitInstruction("mov " + var.size + "[ " + varName + " + " + std::to_string(i) + "], " + look);
-            i += 8;
-        }
-        getToken();
-    }
-    matchToken("]");
-
-
-
+    tree->addToCurrent(DECLARE(varName.getContent(),"int",arraySize));
 }
 
 
