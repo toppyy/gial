@@ -596,17 +596,16 @@ void TreeParser::boolExpression() {
     // boolExpression = (boolTerm operator boolTerm)
     // but recursive: so (boolExpression operator boolTerm) is also valid
 
+    tree->addToCurrent(BOOLEXPR());
+    tree->branchLeft();
     if (lookChar == '(') {
         matchToken("(");
         boolExpression();
         matchToken(")");
-        
     } else {
-        tree->addToCurrent(BOOLEXPR());
-        tree->branchLeft();
         boolTerm();
-        tree->closeBranch();
     }
+    tree->closeBranch();
     
     std::string nextTokenContent = look.getContent();
     

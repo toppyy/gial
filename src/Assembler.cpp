@@ -229,17 +229,12 @@ void Assembler::handleIf(shared_ptr<GNODE> node) {
 void Assembler::handleExpression(shared_ptr<GNODE> node) {
     
     checkNullPtr(node->getLeft(), node);
-    emitComment("expr left");
     traverse(node->getLeft());
-    emitComment("expr left done");
 
     if (node->hasMathOperator()) {
         checkNullPtr(node->getRight(), node);
-        emitComment("expr math");
         handleMathOperation(node->getRight(), node->op);
-        emitComment("expr done");
     }
-
 }
 
 void Assembler::handleVariable(shared_ptr<GNODE> node) {
