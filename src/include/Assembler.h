@@ -34,6 +34,7 @@ class Assembler {
         void handleWhile(shared_ptr<GNODE> node);
         void handleIf(shared_ptr<GNODE> node);
         void handleBoolTerm(shared_ptr<GNODE> node);
+        void handleBoolExpression(shared_ptr<GNODE> node);
         void handleBlock(shared_ptr<GNODE> node);
         void handleExpression(shared_ptr<GNODE> node);
         void handleVariable(shared_ptr<GNODE> node);

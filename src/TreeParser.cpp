@@ -595,31 +595,33 @@ void TreeParser::boolExpression() {
     // Try to parse a boolean expression
     // boolExpression = (boolTerm operator boolTerm)
     // but recursive: so (boolExpression operator boolTerm) is also valid
+
     if (lookChar == '(') {
         matchToken("(");
         boolExpression();
         matchToken(")");
         
     } else {
+        tree->addToCurrent(BOOLEXPR());
+        tree->branchLeft();
         boolTerm();
+        tree->closeBranch();
     }
+    
     std::string nextTokenContent = look.getContent();
+    
     while (
         nextTokenContent == "JA" |
         nextTokenContent == "TAI"
     ) {
-        // TODO
-        matchToken(nextTokenContent); // eat the token
-        //emitInstruction("push r8");
-        boolExpression();
-        //emitInstruction("pop r9");
+        std::string op = nextTokenContent == "JA" ? "and" : "or";
+        tree->current->setOperator(op);
+        matchToken(nextTokenContent);
         
-        if (nextTokenContent == "JA") {
-            //emitInstruction("and r8, r9");
-        }
-        if (nextTokenContent == "TAI") {
-            //emitInstruction("or r8, r9");
-        }
+        tree->branchRight();
+        boolExpression();
+        tree->closeBranch();
+        
         nextTokenContent = look.getContent();
     }
 }

@@ -63,6 +63,11 @@ void Assembler::handleNode(shared_ptr<GNODE> node) {
         return;
     }
 
+    if (type == "BOOLEXPR") {
+        handleBoolExpression(node);
+        return;
+    }
+
     if (type == "BOOLTERM") {
         handleBoolTerm(node);
         return;
@@ -254,6 +259,26 @@ void Assembler::handleVariable(shared_ptr<GNODE> node) {
         offset = "r8";
     }
     emitInstruction("mov " + var.getRegister8Size() + ", " + var.makeReferenceTo(offset));
+}
+
+void Assembler::handleBoolExpression(shared_ptr<GNODE> node) {
+
+    // A wrapper for bool term(s)
+    // If it's a single term, just execute it
+    // If there's two terms, apply approriate boolean operator
+    checkNullPtr(node->getLeft(),node);
+
+    traverse(node->getLeft());
+
+    if (!node->getRight()) {
+        return;
+    }
+    emitInstruction("push r8");
+    traverse(node->getRight());
+    emitInstruction("pop r9");
+
+    emitInstruction(node->op + " r8, r9");
+
 }
 
 void Assembler::handleBoolTerm(shared_ptr<GNODE> node) {

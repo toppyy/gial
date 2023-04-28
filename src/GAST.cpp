@@ -252,6 +252,9 @@ FOR::FOR(string p_name, map<string,string> p_info) {
 BOOLTERM::BOOLTERM() {
     setType("BOOLTERM");
 }
+BOOLEXPR::BOOLEXPR() {
+    setType("BOOLEXPR");
+}
 
 
 EXPRESSION::EXPRESSION() {

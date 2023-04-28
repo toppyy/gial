@@ -154,6 +154,11 @@ class BOOLTERM: public GNODE {
         BOOLTERM();
 };
 
+class BOOLEXPR: public GNODE {
+    public:
+        BOOLEXPR();
+};
+
 class PRINTSTR: public GNODE {
     public:
         PRINTSTR();
