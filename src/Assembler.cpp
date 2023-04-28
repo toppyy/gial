@@ -241,7 +241,21 @@ void Assembler::handleBoolTerm(shared_ptr<GNODE> node) {
 }
 
 void Assembler::handleConstant(shared_ptr<GNODE> node) {
-    emitInstruction("mov r8, " + node->value);
+
+    if (node->datatype == "int") {
+        emitInstruction("mov r8, " + node->value);
+        return;
+    }
+
+    if (node->datatype == "chr") {
+        emitInstruction("mov r8, '" + node->value + "'");
+        return;
+    }
+
+    if (node->datatype == "str") {
+        error("Dont know how to handle str-constant atm");
+        return;
+    }
 }
 
 void Assembler::handleAssign(shared_ptr<GNODE> node) {

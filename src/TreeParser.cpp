@@ -557,7 +557,6 @@ void TreeParser::expression() {
 
     tree->addToCurrent(EXPRESSION());
     shared_ptr<GNODE> current = tree->current;
-    //tree->setLeftAsDefault();
         
     tree->branchLeft();
         term();
@@ -579,14 +578,6 @@ void TreeParser::expression() {
 
 void TreeParser::term() {
     factor();
-    // while (lookChar == '*' | lookChar == '/') {
-    //     tree->current->setOperator(look.getContent());
-    //      if (lookChar == '*') {
-    //         multiply();
-    //     } else if (lookChar == '/') {
-    //         divide();
-    //     }
-    // }
 }
 
 void TreeParser::factor() {
@@ -600,11 +591,9 @@ void TreeParser::factor() {
         return;
     }
     
-    std::string instr;
-
-    if (look.isString & look.length() == 1) { // TODO: Should be checked in bool term
-        instr = "mov r8, '" + look + "'";
-        emitInstruction(instr);
+     if (look.isString & look.length() == 1) {
+        // Single character
+        tree->addToCurrent(CONSTANT(look.getContent(), "chr"));
         getToken();
         return;
     }
@@ -616,13 +605,8 @@ void TreeParser::factor() {
     }
 
     
-    Token nextToken = look;
     if (isDigit(lookChar)) {
-
-        tree->addToCurrent(CONSTANT(nextToken.content, "int"));
-
-        instr = "mov r8, " + nextToken;
-        emitInstruction(instr);
+        tree->addToCurrent(CONSTANT(look.getContent(), "int"));
         getToken();
         return;
     }
@@ -632,7 +616,7 @@ void TreeParser::factor() {
     }
 
 
-    error("Should have not reached token \\w content " + nextToken);
+    error("Should have not reached token \\w content " + look.getContent());
     return;
 }   
 
