@@ -311,7 +311,7 @@ void Assembler::handleBoolTerm(shared_ptr<GNODE> node) {
         // R8 is a pointer to the beginning of *right* string of expr
         // R9 is a pointer to the beginnning of *left* string of expr
         emitComment("comparing strings!");
-        doStringComparison(node->op);
+        doStringComparison(opInstruction);
         return;
     }
 
@@ -629,6 +629,8 @@ void Assembler::doStringComparison(string op) {
     string loopEndFalse = program.getNewLabel();
     string loopEndTrue  = program.getNewLabel();
 
+
+
     // Init loop counter
     emitInstruction("mov r12, 0");
     emitInstruction(loopStart + ":");
@@ -636,6 +638,49 @@ void Assembler::doStringComparison(string op) {
     // Use R11 and R12 as a temporary containers for operations
     // (could be done with just one of them though. both ops of cmp cannot be memory)
 
+    emitInstruction("mov r10b, byte[r8 + r12]");
+	emitInstruction("mov r11b, byte[r9 + r12]");
+	emitInstruction("cmp r10b, r11b");
+    // Operations start
+    emitComment("op is " + op);
+    if (op == "je") {  
+        emitInstruction("jne " + loopEndFalse);
+        emitInstruction("cmp r10b, 0");
+	    emitInstruction("je " + loopEndTrue);
+
+    } else if(op == "jne") {
+        emitInstruction("jne " + loopEndTrue);
+        emitInstruction("cmp r10b, 0");
+	    emitInstruction("je " + loopEndFalse);
+
+    } else if(op == "jl") {
+        emitInstruction("jl " + loopEndFalse);
+        emitInstruction("cmp r10b, r11b");
+        emitInstruction("jg " + loopEndTrue);
+        emitInstruction("cmp r10b, 0");
+	    emitInstruction("je " + loopEndFalse);
+
+    } else if(op == "jg") {
+        emitInstruction("jg " + loopEndFalse);
+        emitInstruction("cmp r10b, r11b");
+        emitInstruction("jl " + loopEndTrue);
+        emitInstruction("cmp r10b, 0");
+	    emitInstruction("je " + loopEndFalse);
+
+    }
+
+    // Operations end
+	emitInstruction("inc r12");
+	emitInstruction("jmp " + loopStart);
+	emitInstruction(loopEndTrue + ":");
+	emitInstruction("mov r8,1");
+	emitInstruction("jmp " + loopEnd);
+	emitInstruction(loopEndFalse + ":");
+	emitInstruction("mov r8, 0");
+	emitInstruction(loopEnd + ":");
+
+
+    /*
     emitInstruction("mov r10b, byte[r8 + r12]");
 	emitInstruction("mov r11b, byte[r9 + r12]");
 	emitInstruction("cmp r10b, r11b");
@@ -650,5 +695,6 @@ void Assembler::doStringComparison(string op) {
 	emitInstruction(loopEndFalse + ":");
 	emitInstruction("mov r8, 0");
 	emitInstruction(loopEnd + ":");
+    */
 
 }
