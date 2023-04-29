@@ -167,8 +167,8 @@ void GNODE::print() {
         tab << "next: " << getNodeType(next)
         ;
     
-    if (op != "") {
-        std::cout << " and my op is " << op;
+    if (datatype != "") {
+        std::cout << " and my op is " << datatype;
     }
     std::cout << "\n";
     

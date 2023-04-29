@@ -17,6 +17,8 @@ class Assembler {
         void error(string error_message);
         string mapOperatorToInstruction(string op);
         void checkNullPtr(shared_ptr<GNODE> node, shared_ptr<GNODE> from);
+        bool checkIfExpressionIsAString(shared_ptr<GNODE> node);
+        void doStringComparison(string op);
 
         void emitInstruction(string inst);
         void emitConstant(string out, string value, string varType);

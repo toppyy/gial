@@ -713,22 +713,8 @@ void TreeParser::boolStringComparison() {
 }   
 
 void TreeParser::boolTerm() {   
-    // When return R8 must be 0/1 depending on the comparison
-    
-    // If the first token in the boolean expression is a string, expect the other is also
-    /*
-    if (
-        look.isName &
-        program.isStringVariable(look.getContent()) &
-        peek() != "[" // If it's a index, proceed
-        ) {
-        boolStringComparison();
-        return;    
-    }
-    */
-    BOOLTERM term = BOOLTERM();
-    shared_ptr<BOOLTERM> p_term = make_shared<BOOLTERM>(term);
-    tree->addToCurrent(term);
+
+    tree->addToCurrent(BOOLTERM());
     tree->branchLeft();
     expression();
     tree->closeBranch();
@@ -736,9 +722,6 @@ void TreeParser::boolTerm() {
     tree->current->setOperator(look.getContent());
     matchToken(look.getContent());
     
-    if (program.isStringVariable(look.getContent())) {
-        error("Mismatch: can't compare to type string with content: " + look);
-    }
     tree->branchRight();
     expression();
     tree->closeBranch();

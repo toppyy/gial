@@ -242,18 +242,29 @@ void Assembler::handleVariable(shared_ptr<GNODE> node) {
     // We need to pull the variable to know whether to read a byte or ..?
     Variable var = program.getVariable(node->name);
 
+    
     // If there's a right branch, it's an indexed assignment
     // The right branch has an expr that will evaluate to the index (usually an int constant)
     shared_ptr<GNODE> right = node->getRight();
 
-    string offset = "";
     if (right) {
         // Store the index into a register (R9) and offset
         // the MOV-operation with the value in this register
         traverse(right);            // The value is now in R8
-        offset = "r8";
+        string offset = "r8";
+        emitInstruction("mov " + var.getRegister8Size() + ", " + var.makeReferenceTo(offset));
+        return;
     }
-    emitInstruction("mov " + var.getRegister8Size() + ", " + var.makeReferenceTo(offset));
+    
+
+    // If it's a (non-indexed) string ref, move the address of the pointer to R8
+    if (program.isStringVariable(var.identifier)) {
+        emitInstruction("mov r8, " + var.identifier);
+        return;
+    }
+
+    emitInstruction("mov " + var.getRegister8Size() + ", " + var.makeReferenceTo());
+
 }
 
 void Assembler::handleBoolExpression(shared_ptr<GNODE> node) {
@@ -278,17 +289,33 @@ void Assembler::handleBoolExpression(shared_ptr<GNODE> node) {
 
 void Assembler::handleBoolTerm(shared_ptr<GNODE> node) {
     emitComment("bool-term started");
+
+    string opInstruction = mapOperatorToInstruction(node->op);
+
     // Evaluate left expression; result is stored into r8
     traverse(node->getLeft());
     // Push result onto stack
     emitInstruction("push r8");
     // Eval right expression
     traverse(node->getRight());
+    // Now we have values/pointers in R8 and R9
+    emitInstruction("pop r9");
+    
+    // Check if we're comparing strings
+    bool leftIsStr  = checkIfExpressionIsAString(node->getLeft());
+    bool rightIsStr = checkIfExpressionIsAString(node->getRight());
+
+    if (leftIsStr && rightIsStr) {
+        // Strings need a bit of special interest
+        // Reduce comparison to a single value with a helper function
+        // R8 is a pointer to the beginning of *right* string of expr
+        // R9 is a pointer to the beginnning of *left* string of expr
+        emitComment("comparing strings!");
+        doStringComparison(node->op);
+        return;
+    }
 
     string labelFalse = program.getNewLabel();
-    string opInstruction = mapOperatorToInstruction(node->op);
-
-    emitInstruction("pop r9");
     emitInstruction("cmp r9, r8");
     emitInstruction("mov r8, 1");
     emitInstruction(opInstruction + " " + labelFalse);
@@ -568,4 +595,60 @@ string Assembler::mapOperatorToInstruction(string op) {
 
     auto search = operatorToInstruction.find(op);
     return search->second;
+}
+
+bool Assembler::checkIfExpressionIsAString(shared_ptr<GNODE> node) {
+    // Traverses the node to check if has child node type of 'str'
+    if (node->getType() == "VARIABLE") {
+        if (program.isStringVariable(node->name)) {
+            return true;
+        }
+    }
+    bool res = false;
+    if (node->getLeft()) {
+        res = checkIfExpressionIsAString(node->getLeft());
+    }
+    if (node->getRight()) {
+        res = checkIfExpressionIsAString(node->getRight());
+    }
+    return res;
+}
+
+void Assembler::doStringComparison(string op) {
+    /*
+        Loop through the strings until either reaches NULL or comparison operation is satisfied
+        Operations:
+            je  = Equal. Return false if any character is not equal
+            jne = Not equal. Return true if any character is not equal
+            jl  = A is before B in ASCII-order. Return true if any character of A is before B
+            jg  = A is after B in ASCII-order. Return true if any character of B is before A
+    
+    */
+    string loopStart    = program.getNewLabel();
+    string loopEnd      = program.getNewLabel();
+    string loopEndFalse = program.getNewLabel();
+    string loopEndTrue  = program.getNewLabel();
+
+    // Init loop counter
+    emitInstruction("mov r12, 0");
+    emitInstruction(loopStart + ":");
+
+    // Use R11 and R12 as a temporary containers for operations
+    // (could be done with just one of them though. both ops of cmp cannot be memory)
+
+    emitInstruction("mov r10b, byte[r8 + r12]");
+	emitInstruction("mov r11b, byte[r9 + r12]");
+	emitInstruction("cmp r10b, r11b");
+	emitInstruction("jne " + loopEndFalse);
+	emitInstruction("cmp r10, 0");
+	emitInstruction("je " + loopEndTrue);
+	emitInstruction("inc r12");
+	emitInstruction("jmp " + loopStart);
+	emitInstruction(loopEndTrue + ":");
+	emitInstruction("mov r8,1");
+	emitInstruction("jmp " + loopEnd);
+	emitInstruction(loopEndFalse + ":");
+	emitInstruction("mov r8, 0");
+	emitInstruction(loopEnd + ":");
+
 }
