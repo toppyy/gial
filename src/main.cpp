@@ -2,9 +2,8 @@
 #include <vector>
 #include <fstream> 
 #include <string>
-#include "./include/Parser.h"
 #include "./include/GAST.h"
-#include "./include/TreeParser.h"
+#include "./include/Parser.h"
 #include "./include/Assembler.h"
 #include "./include/Scanner.h"
 #include "./include/Program.h"
@@ -108,12 +107,11 @@ int main(int argc, char *argv[]) {
     GAST tree = GAST();
     std::shared_ptr<GAST> p_tree = std::make_shared<GAST>(tree);
 
-    TreeParser treeprsr = TreeParser(scnr.getTokens(), keywords, Program(std::cout), p_tree);
+    Parser prsr = Parser(scnr.getTokens(), keywords, Program(std::cout), p_tree);
 
-    treeprsr.init();
+    prsr.init();
 
     p_tree->returnToRoot();
-    // traverseTree(p_tree->current, 0);
 
     auto asmblr = Assembler(Program(std::cout));
     asmblr.Assemble(p_tree);

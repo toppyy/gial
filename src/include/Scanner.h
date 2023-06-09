@@ -6,14 +6,16 @@
 #include<set>
 #include "./Token.h"
 
+using std::string, std::set, std::vector;
+
 class Scanner {
     public:
-        Scanner(std::string p_content, std::set<std::string> p_keywords);
+        Scanner(string p_content, set<string> p_keywords);
 
         
         void init();
-        void error(std::string error_message);
-        void expected(std::string expected_thing);
+        void error(string error_message);
+        void expected(string expected_thing);
         void skipWhite();
         void getChar();
 
@@ -23,21 +25,21 @@ class Scanner {
         bool isDigit(char x);
         bool isQuote(char x);
     
-        std::string getOperator();
-        std::string getName();
-        std::string getString();
-        std::string getNum();
-        std::vector<Token> getTokens();
+        string getOperator();
+        string getName();
+        string getString();
+        string getNum();
+        vector<Token> getTokens();
 
-        std::string lookAheadName();
+        string lookAheadName();
         char peekCharacter();
 
         Token scan();
-        Token handleName(std::string name);
-        Token createNumberToken(std::string p_content);
-        Token createStringToken(std::string p_content);
-        Token createNameToken(std::string p_content);
-        Token createKeywordToken(std::string p_content);
+        Token handleName(string name);
+        Token createNumberToken(string p_content);
+        Token createStringToken(string p_content);
+        Token createNameToken(string p_content);
+        Token createKeywordToken(string p_content);
         
     private:
         char look;
@@ -46,7 +48,7 @@ class Scanner {
         int  cursor_max;
 
 
-        std::set<std::string> keywords; 
-        std::string content;
-        std::vector<Token> tokens;  
+        set<string> keywords; 
+        string content;
+        vector<Token> tokens;  
 };

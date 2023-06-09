@@ -4,14 +4,14 @@
 #define TAB 9
 #define SPACE 32
 
-Scanner::Scanner(std::string p_content, std::set<std::string> p_keywords) :
+Scanner::Scanner(string p_content, set<string> p_keywords) :
                                     content(),
                                     cursor(0),
                                     cursor_max(0),
                                     look(0),
-                                    tokens(std::vector<Token> {}),
+                                    tokens(vector<Token> {}),
 
-                                    keywords(std::set<std::string> {}) 
+                                    keywords(set<string> {}) 
 {
     content = p_content;
     cursor = 0;
@@ -22,28 +22,26 @@ Scanner::Scanner(std::string p_content, std::set<std::string> p_keywords) :
 }
 
 void Scanner::init() {
-    Token token  = Token("non empty");
-    int i = 10;
+    Token token  = Token("placeholder");
+
     while (token.getContent() != "EOF") {
         token = scan();
         if (token.length() == 0) {
             continue;
         }
 
-        tokens.push_back(token);        
-
-        i--;
+        tokens.push_back(token);
     };
 
 }
 
-std::vector<Token> Scanner::getTokens() {
+vector<Token> Scanner::getTokens() {
     return tokens;
 }
 
-Token Scanner::handleName(std::string name) {
+Token Scanner::handleName(string name) {
 
-    std::string wNextToken = name + " " + lookAheadName();
+    string wNextToken = name + " " + lookAheadName();
 
     if (keywords.count(wNextToken) > 0) {
         skipWhite();
@@ -58,10 +56,6 @@ Token Scanner::handleName(std::string name) {
     return createNameToken(name);
 }
 
-
-
-
-
 Token Scanner::scan() {
 
     skipWhite();
@@ -72,7 +66,7 @@ Token Scanner::scan() {
     
 
     if (isAlpha(look)) {
-        std::string name = getName();
+        string name = getName();
         return handleName(name);
     }
     
@@ -117,7 +111,7 @@ Token Scanner::scan() {
     }
 
 
-    std::string rtrn = "";
+    string rtrn = "";
     rtrn.push_back(look);
     getChar();
     
@@ -128,9 +122,9 @@ char Scanner::peekCharacter() {
     return content[cursor];
 }
 
-std::string Scanner::lookAheadName() {
+string Scanner::lookAheadName() {
     // Looks ahead until a white space or end of cursor is met
-    std::string token = "";
+    string token = "";
     int lookCursor = cursor;
     while ( isAlphaNumeric(content[lookCursor]) ) {
         token.push_back(content[lookCursor]);
@@ -141,8 +135,8 @@ std::string Scanner::lookAheadName() {
 
 
 
-std::string Scanner::getString() {
-    std::string token = "";
+string Scanner::getString() {
+    string token = "";
     getChar(); // Eat quote beginning
     while (!isQuote(look)) {
         token.push_back(look);
@@ -154,8 +148,8 @@ std::string Scanner::getString() {
 
 
 
-std::string Scanner::getName() {
-    std::string token = "";
+string Scanner::getName() {
+    string token = "";
     
     if (!isAlpha(look)) {
         expected("Name");
@@ -168,8 +162,8 @@ std::string Scanner::getName() {
 }
 
 
-std::string Scanner::getNum() {
-    std::string value = "";
+string Scanner::getNum() {
+    string value = "";
     if (!isDigit(look)) {
         expected("Integer");
     }
@@ -182,12 +176,10 @@ std::string Scanner::getNum() {
 }
 
 
-
-
 void Scanner::getChar() {
     // We need to allow going over the string buffer by one byte
     // The logic looks 'ahead' one character
-    std::string err_msg = "Unexpected end!\n";
+    string err_msg = "Unexpected end!\n";
     if (cursor >= cursor_max + 1) {
         error(err_msg);
     }
@@ -225,35 +217,34 @@ bool Scanner::isQuote(char x) {
 }
 
 
-void Scanner::error(std::string error_message) {
+void Scanner::error(string error_message) {
     throw std::runtime_error(error_message);
 }
 
-void Scanner::expected(std::string expected_thing) {
+void Scanner::expected(string expected_thing) {
     error("Expected: " + expected_thing + "\n");
 }
 
 
-
-Token Scanner::createStringToken(std::string p_content) {
+Token Scanner::createStringToken(string p_content) {
     Token newToken = Token(p_content);
     newToken.isString = true;
     return newToken;
 }
 
-Token Scanner::createKeywordToken(std::string p_content) {
+Token Scanner::createKeywordToken(string p_content) {
     Token newToken = Token(p_content);
     newToken.isKeyword = true;
     return newToken;
 }
 
-Token Scanner::createNumberToken(std::string p_content) {
+Token Scanner::createNumberToken(string p_content) {
     Token newToken = Token(p_content);
     newToken.isNumber = true;
     return newToken;
 }
 
-Token Scanner::createNameToken(std::string p_content) {
+Token Scanner::createNameToken(string p_content) {
     Token newToken = Token(p_content);
     newToken.isName = true;
     return newToken;
