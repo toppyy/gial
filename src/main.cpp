@@ -3,6 +3,9 @@
 #include <fstream> 
 #include <string>
 #include "./include/Parser.h"
+#include "./include/GAST.h"
+#include "./include/TreeParser.h"
+#include "./include/Assembler.h"
 #include "./include/Scanner.h"
 #include "./include/Program.h"
 #include "./keywords.cpp"
@@ -16,6 +19,36 @@ char handleScandics(char cur, char prev) {
         return 0;
     }
     return cur;
+}
+
+void traverseTree(std::shared_ptr<GNODE> node, int depth) {
+
+
+    int tabs = depth;
+    string tab = "";
+    while (tabs > 0) {
+        std::cout << "\t";
+        tabs--;
+    }
+    node->print();
+
+    std::shared_ptr<GNODE> left = node->getLeft();
+    std::shared_ptr<GNODE> right  = node->getRight();
+    std::shared_ptr<GNODE> next  = node->getNext();
+
+    if (left != nullptr) {
+        traverseTree(left, depth + 1);
+    }
+
+    if (right != nullptr) {
+        traverseTree(right, depth + 1);
+    }
+
+    if (next != nullptr) {
+        traverseTree(next, depth);
+    }
+
+    return;
 }
 
 
@@ -72,13 +105,18 @@ int main(int argc, char *argv[]) {
     scnr.init();
 
 
-    Parser prsr = Parser(scnr.getTokens(), keywords, Program(std::cout));
- 
-    // // // Do the parsing
-    prsr.init();
-    
-    // // // Build the program
-    prsr.buildProgram();
+    GAST tree = GAST();
+    std::shared_ptr<GAST> p_tree = std::make_shared<GAST>(tree);
+
+    TreeParser treeprsr = TreeParser(scnr.getTokens(), keywords, Program(std::cout), p_tree);
+
+    treeprsr.init();
+
+    p_tree->returnToRoot();
+    // traverseTree(p_tree->current, 0);
+
+    auto asmblr = Assembler(Program(std::cout));
+    asmblr.Assemble(p_tree);
 
     // Finished  
     std::cout << "\n\n";

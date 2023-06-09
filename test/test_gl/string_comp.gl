@@ -2,7 +2,7 @@
 SANAMBÄTK a = 'abcd'
 SANAMBÄTK acopy = 'abcd'
 
-SANAMBÄTK z = 'zasds'
+SANAMBÄTK z = 'azsds'
 
 JOS (a == acopy) 
         SAN NY 'ok'

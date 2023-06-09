@@ -1,6 +1,6 @@
 #include "./include/Program.h"
 
-Variable::Variable(std::string p_identifier, std::string p_type, std::string p_size, int p_length) :
+Variable::Variable(string p_identifier, string p_type, string p_size, int p_length) :
     identifier(""),
     type(""),
     length(),
@@ -23,11 +23,11 @@ int Variable::sizeInBytes() {
     return -1;
 }
 
-std::string Variable::strSizeInBytes() {
+string Variable::strSizeInBytes() {
     return std::to_string(sizeInBytes());
 }
 
-std::string Variable::getRegister8Size() {
+string Variable::getRegister8Size() {
     if (size == "qword") {
         return "r8";
     }
@@ -39,12 +39,12 @@ std::string Variable::getRegister8Size() {
 }
 
 
-std::string Variable::makeReferenceTo() {
+string Variable::makeReferenceTo() {
     // Returns example: qword[varName]
     return size + "[" + identifier + "]";
 }
 
-std::string Variable::makeReferenceTo(std::string offsetRegister) {
+string Variable::makeReferenceTo(string offsetRegister) {
     if (offsetRegister=="") {
         return makeReferenceTo();
     }
@@ -54,7 +54,7 @@ std::string Variable::makeReferenceTo(std::string offsetRegister) {
 }
 
 
-Constant::Constant(std::string p_identifier, std::string p_value, std::string p_type) : 
+Constant::Constant(string p_identifier, string p_value, string p_type) : 
     identifier(""),
     type(""),
     value("")
@@ -66,43 +66,44 @@ Constant::Constant(std::string p_identifier, std::string p_value, std::string p_
 
 
 Program::Program(std::ostream& p_output_stream) :
-        instructions(std::vector<std::string> {}),
+        instructions(std::vector<string> {}),
         icount(0),
-        variables(std::unordered_map<std::string, Variable > {}),
+        labelCount(0),
+        variables(std::unordered_map<string, Variable > {}),
         output_stream(p_output_stream)
         {
         
         int icount = 0;
-        instructions = std::vector<std::string> {};
+        instructions = std::vector<string> {};
 }
 
-std::vector<std::string> Program::getInstructions() {
+std::vector<string> Program::getInstructions() {
     return instructions;
 }
 
-void Program::addInstruction(std::string instruction) {
+void Program::addInstruction(string instruction) {
     instructions.push_back(instruction);
     icount++;
 }
 
-void Program::addConstant(std::string identifier, std::string value,std::string type) {
+void Program::addConstant(string identifier, string value,string type) {
     constants.insert({ identifier, Constant(identifier, value, type) });
 }
 
 
-void Program::addVariable(std::string identifier, std::string type, std::string size, int length) {
+void Program::addVariable(string identifier, string type, string size, int length) {
     variables.insert({ identifier, Variable(identifier, type, size, length) });
 }
 
-bool Program::inVariables(std::string variable) {
+bool Program::inVariables(string variable) {
     return variables.count(variable) > 0;
 }
 
-void Program::outputLine(std::string s) {
+void Program::outputLine(string s) {
     output_stream << s << "\n";
 }
 
-Variable Program::getVariable(std::string identifier) {
+Variable Program::getVariable(string identifier) {
     if (auto search = variables.find(identifier); search != variables.end()) {
         return search->second;
     } else {
@@ -111,7 +112,7 @@ Variable Program::getVariable(std::string identifier) {
     return Variable("","","",0); // Unreachable
 }
 
-bool Program::isStringVariable(std::string variable) {
+bool Program::isStringVariable(string variable) {
     if (!inVariables(variable))  {
         return false;
     }
@@ -121,6 +122,11 @@ bool Program::isStringVariable(std::string variable) {
 
     return false;
  
+}
+
+string Program::getNewLabel() {
+    labelCount += 1;
+    return "LBL_" + std::to_string(labelCount);
 }
 
 void Program::buildProgram() {
@@ -152,12 +158,12 @@ void Program::buildProgram() {
     // Variable declarations
     for (auto& variable: variables) {
 
-        std::string sizeReserveUnit = "resq";
+        string sizeReserveUnit = "resq";
         if (variable.second.size == "byte") {
             sizeReserveUnit = "resb";
         }
 
-        std::string variableDeclaration = variable.second.identifier + " " + sizeReserveUnit + " ";
+        string variableDeclaration = variable.second.identifier + " " + sizeReserveUnit + " ";
         variableDeclaration  += std::to_string(variable.second.length);
 
         output_stream << "\t" + variableDeclaration + "\n";
@@ -167,7 +173,7 @@ void Program::buildProgram() {
     // Variable declarations
     for (auto& constant: constants) {
 
-        std::string constantDeclaration = constant.second.identifier + " db " + "\"" + constant.second.value +  "\""   ;
+        string constantDeclaration = constant.second.identifier + " db " + "\"" + constant.second.value +  "\""   ;
 
         outputLine("\t" + constantDeclaration);
     }
