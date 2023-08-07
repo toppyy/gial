@@ -4,7 +4,7 @@ LUGU b      = 555
 
 
 JOS (a == acopy) 
-        SAN NY 'ok'
+        SAN NY 'ok0'
         SIKSES
 MUUTES 
         SAN NY 'fail'
@@ -15,12 +15,12 @@ JOS (a == b)
         SAN NY 'fail'
         SIKSES
 MUUTES 
-        SAN NY 'ok'
+        SAN NY 'ok1'
         SIKSES
 NYLOPPUS
 
 JOS (a >= acopy) 
-        SAN NY 'ok'
+        SAN NY 'ok2'
         SIKSES
 MUUTES 
         SAN NY 'fail'
@@ -29,7 +29,7 @@ NYLOPPUS
 
 
 JOS (a <= acopy) 
-        SAN NY 'ok'
+        SAN NY 'ok3'
         SIKSES
 MUUTES 
         SAN NY 'fail'
@@ -37,7 +37,7 @@ MUUTES
 NYLOPPUS
 
 JOS (a <= b) 
-        SAN NY 'ok'
+        SAN NY 'ok4'
         SIKSES
 MUUTES 
         SAN NY 'fail'
@@ -48,7 +48,7 @@ JOS (a >= b)
         SAN NY 'fail'
         SIKSES
 MUUTES 
-        SAN NY 'ok'
+        SAN NY 'ok5'
         SIKSES
 NYLOPPUS
 
@@ -56,12 +56,12 @@ JOS (a > b)
         SAN NY 'fail'
         SIKSES
 MUUTES 
-        SAN NY 'ok'
+        SAN NY 'ok6'
         SIKSES
 NYLOPPUS
 
 JOS (a < b) 
-        SAN NY 'ok'
+        SAN NY 'ok7'
         SIKSES
 MUUTES 
         SAN NY 'fail'

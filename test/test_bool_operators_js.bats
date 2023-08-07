@@ -3,14 +3,11 @@
 setup_file() {
 
     mkdir -p ./test/build
-    ./build/gl test/test_gl/bool_operators.gl > ./test/build/bool_operators.asm
-    nasm -f elf64 test/build/bool_operators.asm -o test/build/bool_operators.o
-    ld -o ./test/build/bool_operators.out ./test/build/bool_operators.o ./build/ASCII.o
-    
+    ./build/gl test/test_gl/bool_operators.gl JS > ./test/build/bool_operators.js
 }
 
 @test "bool_operators is correct" {
-    run ./test/build/bool_operators.out
+    run node ./test/build/bool_operators.js
 
     [[ $"${lines[0]}" == "ok0" ]]
     [[ $"${lines[1]}" == "ok1" ]]
@@ -25,5 +22,5 @@ setup_file() {
 
 
 teardown_file() {
-    rm ./test/build/bool_operators.*
+    rm -f ./test/build/bool_operators.js
 }

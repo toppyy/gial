@@ -18,5 +18,5 @@ setup_file() {
 
 
 teardown_file() {
-    rm -f ./test/build/arithmeticz.js
+    rm -f ./test/build/arithmetic.js
 }

@@ -2,11 +2,13 @@
 
 Javascript::Javascript() {
    tree = nullptr;
+   wrapToAsyncFunction = false;
 }
 
 void Javascript::assemble(shared_ptr<GAST> p_tree) {
 
 
+  
     // Init instruction set with a stack
     emitInstruction("const stack = [];");
 
@@ -14,9 +16,19 @@ void Javascript::assemble(shared_ptr<GAST> p_tree) {
     traverse(tree->getRoot());
     //buildProgram();
 
+    if (wrapToAsyncFunction) {
+        std::cout << "res = async function() {";
+    }
+
+
+    if (wrapToAsyncFunction) {
+        emitInstruction("}();");
+    }
     for (auto instr: instructions) {
         std::cout << instr << "\n";
     }
+
+
 
 }
 
@@ -130,16 +142,22 @@ void Javascript::handleBlock(shared_ptr<GNODE> node) {
 
 void Javascript::handlePrintASCII(shared_ptr<GNODE> node) {
     if (node->value == "LF") {
-        // console.log includes LF
+        ///console.log includes LF
+        emitInstruction("console.log('')");
         return;
     }
-    consoleLog(node->value,true);
+
+    writeToStdout(node->value,true);
 }
 
 void Javascript::handleDeclare(shared_ptr<GNODE> node) {
-    
-    emitInstruction("let " + node->name + ";");
 
+    if (node->datatype == "int" && node->size > 1) {
+        emitInstruction("var " + node->name + " = Array("+std::to_string(node->size)+");");
+    } else {
+        emitInstruction("var " + node->name + ";");
+    }
+    
     shared_ptr<GNODE> left = node->getLeft();
     if (left) {
         
@@ -153,17 +171,60 @@ void Javascript::handleDeclare(shared_ptr<GNODE> node) {
 
 void Javascript::handleWhile(shared_ptr<GNODE> node) {
 
+    checkNullPtr(node->getLeft(), node);
+    checkNullPtr(node->getRight(), node);
 
+    // Left-child has the condition
+    // Right-child has a linked list to the operations within the block
+    emitInstruction("var whileR8;");
+    traverse(node->getLeft());
+    emitInstruction("whileR8 = stack.pop()");
+    emitInstruction("while (whileR8)");
+    
+    emitInstruction("{");
+        traverse(node->getRight());
+        traverse(node->getLeft());
+        emitInstruction("whileR8 = stack.pop()");
+    emitInstruction("};");
   
 }
 
 void Javascript::handleFor(shared_ptr<GNODE> node) {
 
+    // Right-child has a linked list to the operations within the block
+    checkNullPtr(node->getRight(), node);
+
+    string variableRef  = node->name;
+    string step         = node->getFromInfo("step");
+    string to           = node->getFromInfo("to");
+    string toType       = node->getFromInfo("toType");
+
+
+    emitInstruction("var tmp = " + node->name + ";");
+    emitInstruction("for (let "+node->name+" =tmp; "+node->name+" < "+to+"; "+node->name+"+="+step+") {");
+        traverse(node->getRight());
+    emitInstruction("};"); 
   
 }
 
 void Javascript::handleIf(shared_ptr<GNODE> node) {
+    checkNullPtr(node->getLeft(), node);
+    checkNullPtr(node->getRight(), node);
 
+    emitComment("If started");
+
+    // Left-child has the condition. Traverse it to get the result onto stack
+    traverse(node->getLeft());
+    emitInstruction("if (stack.pop()) {");
+    traverse(node->getRight()->getRight());
+    // The code to be executed if the condition evaluates TRUE is 
+    // wrapped in a nested GNODE. The right branch is executed if TRUE.
+    // The left branch is taken if FALSE and IF-ELSE exists
+    emitInstruction("} else {");
+    if (node->getRight()->getLeft()) {
+        traverse(node->getRight()->getLeft());
+    }
+    emitInstruction("}");
 }
 
 void Javascript::handleExpression(shared_ptr<GNODE> node) {
@@ -199,12 +260,40 @@ void Javascript::handleVariable(shared_ptr<GNODE> node) {
 }
 
 void Javascript::handleBoolExpression(shared_ptr<GNODE> node) {
+    
+    // A wrapper for bool term(s)
+    // If it's a single term, just execute it
+    // If there's two terms, apply approriate boolean operator
+    checkNullPtr(node->getLeft(),node);
 
+    traverse(node->getLeft());
 
+    if (!node->getRight()) {
+        return;
+    }
+    emitInstruction("var r9 = stack.pop();");
+    traverse(node->getRight());
+    emitInstruction("var r8 = stack.pop();");
+
+    emitInstruction("stack.push(r8 " + node->op + " r9);");
 }
 
 void Javascript::handleBoolTerm(shared_ptr<GNODE> node) {
+    emitComment("bool-term started");
+
+    // Evaluate left expression; result is stored on the stack
+    traverse(node->getLeft());
+    // Eval right expression
+    traverse(node->getRight());
+    // Now we have values in R8 and R9
+    emitInstruction("var r9 = stack.pop();");
+    emitInstruction("var r8 = stack.pop();");
     
+    // Check if we're comparing strings
+    bool leftIsStr  = checkIfExpressionIsAString(node->getLeft());
+    bool rightIsStr = checkIfExpressionIsAString(node->getRight());
+
+    emitInstruction("stack.push(r8 " + node->op + " r9);");
 }
 
 void Javascript::handleConstant(shared_ptr<GNODE> node) {
@@ -213,10 +302,7 @@ void Javascript::handleConstant(shared_ptr<GNODE> node) {
         error("Dont know how to handle str-constant atm");
         return;
     }
-
-   
     emitInstruction("stack.push(" + node->value + ");");
-
 }
 
 void Javascript::handleAssign(shared_ptr<GNODE> node) {
@@ -231,12 +317,7 @@ void Javascript::handleAssign(shared_ptr<GNODE> node) {
     // The right branch has an expr that will evaluate to the index (usually an int constant)
     shared_ptr<GNODE> right = node->getRight();
 
-    if (right) {
-        // We store the index into a register (R9). Later on (see below)
-        // Well offset the MOV-operation with the value in this register
-        traverse(right);            // The value is now in R8
-        emitInstruction("push r8"); // Onto stack
-    }
+   
 
     // If it's an int:
     //  Evaluate the expression that is beign assigned, the result will be in r8
@@ -249,16 +330,19 @@ void Javascript::handleAssign(shared_ptr<GNODE> node) {
         return;
     }
    
+
+    if (right) {
+        // We store the index into a register (R9). Later on (see below)
+        // Well offset the MOV-operation with the value in this register
+        traverse(right);            // The value is now on the stack
+        emitInstruction("var tmp = stack.pop();");
+        traverse(left);
+        emitInstruction(name + "[tmp] = stack.pop();");
+        return;
+    }
+
     traverse(left);
     emitInstruction(name + " = stack.pop();");
-
-    // string offset = "";
-    // if (right) { 
-    //     // Indexed assignment. Pop the index from stack
-    //     emitInstruction("pop r9");
-    //     offset = "r9";
-    // }
-
     
 }
 
@@ -297,7 +381,7 @@ void Javascript::handlePrintString(shared_ptr<GNODE> node) {
     }
 
     if (left->getType() == "VARIABLE") {
-        consoleLog(left->name);
+        writeToStdout(left->name);
     }
 
 }
@@ -306,28 +390,33 @@ void Javascript::handlePrintInt(shared_ptr<GNODE> node) {
     // If 'name' is present, print a variable ref
     // if not, evaluate node on left
     if (node->name != "") {
-        consoleLog(node->name);
+        writeToStdout(node->name);
         return;
     } 
     
     
     shared_ptr<GNODE> left = node->getLeft();
 
-    if (left->getType() == "VARIABLE") {
-        consoleLog(left->name);
-        return;
-    }
+    // if (left->getType() == "VARIABLE") {
+    //     handleNode(left->name);
+    //     return;
+    // }
     
     if (!node) {
         error("Expected PrintInt to have a left node!\n");
     }
     handleNode(left);
-    consoleLog("stack.pop()");
+    writeToStdout("stack.pop()");
 }
 
 void Javascript::handleInput(shared_ptr<GNODE> node) {
 
+    wrapToAsyncFunction = true; // Need to wrap as async to utilize await
 
+    string bufferName = node->name;
+
+    emitInstruction("const readline = require('node:readline/promises').createInterface({ input: process.stdin, output: process.stdout, });");
+    emitInstruction(node->name  + " = await readline.question('');");
 
 }
 
@@ -373,11 +462,11 @@ void Javascript::doStringComparison(string op) {
 
 }
 
-void Javascript::consoleLog(string tolog, bool quote) {
+void Javascript::writeToStdout(string tolog, bool quote) {
 
     if (quote) {
-        emitInstruction("console.log('" + tolog + "');");
+        emitInstruction("process.stdout.write('" + tolog + "');");
         return;
     }
-    emitInstruction("console.log(" + tolog + ");");
+    emitInstruction("process.stdout.write(String(" + tolog + "));");
 }
