@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
     GAST tree = GAST();
     std::shared_ptr<GAST> p_tree = std::make_shared<GAST>(tree);
 
-    Parser prsr = Parser(scnr.getTokens(), keywords, Program(std::cout), p_tree);
+    Parser prsr = Parser(scnr.getTokens(), keywords, p_tree);
 
     prsr.init();
 

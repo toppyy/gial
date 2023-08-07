@@ -3,7 +3,6 @@
 Parser::Parser(
         vector<Token> p_tokens,
         set<string> p_keywords,
-        Program p_program,
         shared_ptr<GAST> p_tree
         ) : 
         labelCount(0),
@@ -12,7 +11,6 @@ Parser::Parser(
         tokens(vector<Token> {}),
         cursor(0),
         token_count(0),
-        program(p_program),
         tree(p_tree)
         {
     tokens = p_tokens;
@@ -624,93 +622,6 @@ void Parser::boolExpression() {
         nextTokenContent = look.getContent();
     }
 }
-
-void Parser::boolStringComparison() {
-    /*
-    string A = look.getContent();
-    getToken();
-    
-    string op = mapOperatorToInstruction();
-    
-    string B = look.getContent();
-
-    if (!program.isStringVariable(B)) {
-        error("Expected a string, got: " + B);
-    }
-    getToken();
-
-    string loopStart = getNewLabel();
-    string loopEnd = getNewLabel();
-    string loopEndFalse = getNewLabel();
-    string loopEndTrue  = getNewLabel();
-
-
-    emitInstruction("mov r12, 0"); // Char index            
-    emitInstruction(loopStart + ":");
-
-    // Compare characters at R11
-    emitInstruction("mov r8b, byte[" + A + " + r12]");
-    emitInstruction("mov r9b, byte[" + B + " + r12]");
-
-
-    if (op == "je") {
-        emitInstruction("cmp r8b, r9b");        
-        emitInstruction("jne " + loopEndFalse);
-        
-        emitInstruction("mov r8b, byte[" + A + " + r12]");
-        emitInstruction("cmp r8b, 0");
-        emitInstruction("je " + loopEndTrue);
-
-    } else if (op == "jne") {
-        emitInstruction("cmp r8b, r9b");        
-        emitInstruction("jne " + loopEndTrue);
-        
-        emitInstruction("mov r8b, byte[" + A + " + r12]");
-        emitInstruction("cmp r8b, 0");
-        emitInstruction("je " + loopEndFalse);
-
-    } else if(op == "jl") {
-
-        emitInstruction("cmp r8b, r9b");
-        emitInstruction("jl " + loopEndTrue);
-
-        emitInstruction("cmp r8b, r9b");
-        emitInstruction("jg " + loopEndFalse);
-                    
-        emitInstruction("mov r8b, byte[" + A + " + r12]");
-        emitInstruction("cmp r8b, 0");
-        emitInstruction("je " + loopEndFalse);
-
-
-    } else if(op == "jg") {
-
-        emitInstruction("cmp r8b, r9b");
-        emitInstruction("jg " + loopEndTrue);
-
-        emitInstruction("cmp r8b, r9b");
-        emitInstruction("jl " + loopEndFalse);
-
-        emitInstruction("mov r8b, byte[" + A + " + r12]");
-        emitInstruction("cmp r8b, 0");
-        emitInstruction("je " + loopEndFalse);
-
-    }                            
-    emitInstruction("inc r12");
-
-    // Return to the beginning of loop
-    emitInstruction("jmp " + loopStart);
-
-    emitInstruction(loopEndFalse + ":");
-    emitInstruction("mov r8, 0");
-    emitInstruction("jmp " + loopEnd);
-
-    emitInstruction(loopEndTrue + ":");
-    emitInstruction("mov r8, 1");
-
-    emitInstruction(loopEnd + ":");
-    */
-    
-}   
 
 void Parser::boolTerm() {   
 

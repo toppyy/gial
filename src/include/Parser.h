@@ -15,7 +15,7 @@ using std::string, std::vector, std::shared_ptr, std::set;
 class Parser
 {
 public:
-    Parser(vector<Token> p_tokens, set<string> p_keywords, Program p_program, shared_ptr<GAST> p_tree);
+    Parser(vector<Token> p_tokens, set<string> p_keywords, shared_ptr<GAST> p_tree);
     void init();
     void mapStatementToFunction(string statement);
 
@@ -49,7 +49,6 @@ public:
 
     void boolExpression();
     void boolTerm();
-    void boolStringComparison();
 
     // Statements ---------------------------
 
@@ -73,6 +72,5 @@ private:
     int cursor;
     int token_count;
     shared_ptr<GAST> tree;
-    Program program;
     set<string> keywords;
 };
