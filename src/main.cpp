@@ -5,6 +5,7 @@
 #include "./include/GAST.h"
 #include "./include/Parser.h"
 #include "./include/NASM.h"
+#include "./include/Javascript.h"
 #include "./include/Assembler.h"
 #include "./include/Scanner.h"
 #include "./keywords.cpp"
@@ -57,12 +58,19 @@ int main(int argc, char *argv[]) {
 
     // The first argument is the path to the file containing the sourcecode to compile
     char* filename;
+    char* p_assembler;
+
+
 
     for (int i = 0; i < argc; ++i) {
         if (i == 1) {
             filename = argv[i];
         }
+        if (i == 2) {
+            p_assembler = argv[i];
+        }
     }
+   
 
     // Read from the text file
     FILE* pFile;
@@ -113,9 +121,13 @@ int main(int argc, char *argv[]) {
 
     p_tree->returnToRoot();
 
-    auto asmblr = NASM();
-    asmblr.assemble(p_tree);
-
+    Assembler* asmblr = nullptr;
+    if ( strcmp(p_assembler,"JS") == 0) {
+        asmblr = new Javascript();
+    } else {
+        asmblr = new NASM();    
+    }
+    asmblr->assemble(p_tree);
     // Finished  
     std::cout << "\n\n";
     
