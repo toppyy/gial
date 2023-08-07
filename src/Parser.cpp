@@ -369,7 +369,7 @@ void Parser::forStatement() {
 /* ------- END STATEMENTS ----------------------------------------------------------------------------------------------------------------  */
 
 void Parser::emitLine() {
-    tree->addToCurrent ( PRINTASCII("LF")  );
+    tree->addToCurrent ( PRINTASCII("LF")  ); // TODO: don't use PRINTASCII? 
     return;
 }
 

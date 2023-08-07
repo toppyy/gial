@@ -60,7 +60,8 @@ int main(int argc, char *argv[]) {
     char* filename;
     char* p_assembler;
 
-
+    char default_assembler[5] = "NASM"; 
+    p_assembler = default_assembler;
 
     for (int i = 0; i < argc; ++i) {
         if (i == 1) {
@@ -120,14 +121,19 @@ int main(int argc, char *argv[]) {
     prsr.init();
 
     p_tree->returnToRoot();
-
-    Assembler* asmblr = nullptr;
+    
+    std::unique_ptr<Assembler> asmblr;
     if ( strcmp(p_assembler,"JS") == 0) {
-        asmblr = new Javascript();
+        asmblr = std::make_unique<Javascript>();
     } else {
-        asmblr = new NASM();    
+        // NASM nasm = NASM();
+        asmblr = std::make_unique<NASM>();
     }
+    
+    
     asmblr->assemble(p_tree);
+
+
     // Finished  
     std::cout << "\n\n";
     

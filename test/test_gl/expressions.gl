@@ -6,6 +6,6 @@ LUGU expr2  = ((1 + 9000) * 2)
 SAN LUGU expr2
 SIKSES
 
-LUGU expr2  = ((1*3) + 2)/5
-SAN LUGU expr2
+LUGU expr3  = ((1*3) + 2)/5
+SAN LUGU expr3
 SIKSES

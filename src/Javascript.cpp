@@ -1,12 +1,15 @@
 #include "./include/Javascript.h"
 
-
 Javascript::Javascript() {
    tree = nullptr;
 }
 
 void Javascript::assemble(shared_ptr<GAST> p_tree) {
-    
+
+
+    // Init instruction set with a stack
+    emitInstruction("const stack = [];");
+
     tree = p_tree;
     traverse(tree->getRoot());
     //buildProgram();
@@ -126,11 +129,26 @@ void Javascript::handleBlock(shared_ptr<GNODE> node) {
 }
 
 void Javascript::handlePrintASCII(shared_ptr<GNODE> node) {
-    emitInstruction("console.log('" + node->value + "')");
+    if (node->value == "LF") {
+        // console.log includes LF
+        return;
+    }
+    consoleLog(node->value,true);
 }
 
 void Javascript::handleDeclare(shared_ptr<GNODE> node) {
+    
+    emitInstruction("let " + node->name + ";");
 
+    shared_ptr<GNODE> left = node->getLeft();
+    if (left) {
+        
+        if (left->getType() != "ASSIGN") {
+            error("Declare expected assignment, got " + left->getType());
+        }
+        checkNullPtr(node->getLeft(), node);
+        handleAssign(node->getLeft());
+    }
 }
 
 void Javascript::handleWhile(shared_ptr<GNODE> node) {
@@ -174,14 +192,66 @@ void Javascript::handleBoolTerm(shared_ptr<GNODE> node) {
 
 void Javascript::handleConstant(shared_ptr<GNODE> node) {
 
+    if (node->datatype == "str") {
+        error("Dont know how to handle str-constant atm");
+        return;
+    }
+
+   
+    emitInstruction("stack.push(" + node->value + ");");
+
 }
 
 void Javascript::handleAssign(shared_ptr<GNODE> node) {
+    string name = node->name;
+
+    // if (!program->inVariables(name)) {
+    //     error("Assignment to an undeclared variable (" + name + ")");
+    // }
+    checkNullPtr(node->getLeft(), node);
+
+    // If there's a right branch, it's an indexed assignment
+    // The right branch has an expr that will evaluate to the index (usually an int constant)
+    shared_ptr<GNODE> right = node->getRight();
+
+    if (right) {
+        // We store the index into a register (R9). Later on (see below)
+        // Well offset the MOV-operation with the value in this register
+        traverse(right);            // The value is now in R8
+        emitInstruction("push r8"); // Onto stack
+    }
+
+    // If it's an int:
+    //  Evaluate the expression that is beign assigned, the result will be in r8
+    // If it's a constant str:
+    //  Handle pointer locally (do not traverse)
+    shared_ptr<GNODE> left = node->getLeft();  
+
+    if (left->getType() == "CONSTANT" & left->datatype == "str") {
+        emitInstruction(name + " = '" + left->value + "';");
+        return;
+    }
+   
+    traverse(left);
+    emitInstruction(name + " = stack.pop();");
+
+    // string offset = "";
+    // if (right) { 
+    //     // Indexed assignment. Pop the index from stack
+    //     emitInstruction("pop r9");
+    //     offset = "r9";
+    // }
+
     
 }
 
 void Javascript::handleMathOperation(shared_ptr<GNODE> node, string op) {
+
     
+    traverse(node);           // Content will be on the stack after this
+    
+    // Result of previous node is also on the stack so:
+    emitInstruction("stack.push( stack.pop() "  + op + " stack.pop() );");
 }
 
 void Javascript::handlePrintString(shared_ptr<GNODE> node) {
@@ -195,13 +265,32 @@ void Javascript::handlePrintString(shared_ptr<GNODE> node) {
     }
 
     if (left->getType() == "VARIABLE") {
-        emitInstruction("console.log(" + left->name + ")");
+        consoleLog(left->name);
     }
 
 }
 
 void Javascript::handlePrintInt(shared_ptr<GNODE> node) {
+    // If 'name' is present, print a variable ref
+    // if not, evaluate node on left
+    if (node->name != "") {
+        consoleLog(node->name);
+        return;
+    } 
     
+    
+    shared_ptr<GNODE> left = node->getLeft();
+
+    if (left->getType() == "VARIABLE") {
+        consoleLog(left->name);
+        return;
+    }
+    
+    if (!node) {
+        error("Expected PrintInt to have a left node!\n");
+    }
+    handleNode(left);
+    consoleLog("stack.pop()");
 }
 
 void Javascript::handleInput(shared_ptr<GNODE> node) {
@@ -250,4 +339,13 @@ bool Javascript::checkIfExpressionIsAString(shared_ptr<GNODE> node) {
 void Javascript::doStringComparison(string op) {
     
 
+}
+
+void Javascript::consoleLog(string tolog, bool quote) {
+
+    if (quote) {
+        emitInstruction("console.log('" + tolog + "');");
+        return;
+    }
+    emitInstruction("console.log(" + tolog + ");");
 }

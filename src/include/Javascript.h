@@ -47,4 +47,6 @@ class Javascript: public Assembler {
     private:
         shared_ptr<GAST> tree;
         std::vector<string> instructions;
+
+        void consoleLog(string tolog, bool quote = false);
 };
