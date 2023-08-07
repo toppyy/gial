@@ -4,7 +4,7 @@
 #include <string>
 #include "./include/GAST.h"
 #include "./include/Parser.h"
-#include "./include/Assembler.h"
+#include "./include/NASM.h"
 #include "./include/Scanner.h"
 #include "./include/Program.h"
 #include "./keywords.cpp"
@@ -113,8 +113,8 @@ int main(int argc, char *argv[]) {
 
     p_tree->returnToRoot();
 
-    auto asmblr = Assembler(Program(std::cout));
-    asmblr.Assemble(p_tree);
+    auto asmblr = NASM(Program(std::cout));
+    asmblr.assemble(p_tree);
 
     // Finished  
     std::cout << "\n\n";

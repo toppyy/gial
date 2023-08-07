@@ -1,11 +1,11 @@
-#include "./include/Assembler.h"
+#include "./include/NASM.h"
 
-Assembler::Assembler(Program p_program) :
+NASM::NASM(Program p_program) :
     tree(nullptr),
     program(p_program) {
 }
 
-void Assembler::Assemble(shared_ptr<GAST> p_tree) {
+void NASM::assemble(shared_ptr<GAST> p_tree) {
 
     tree = p_tree;
     traverse(tree->getRoot());
@@ -13,7 +13,7 @@ void Assembler::Assemble(shared_ptr<GAST> p_tree) {
 
 }
 
-void Assembler::traverse(shared_ptr<GNODE> node) {
+void NASM::traverse(shared_ptr<GNODE> node) {
 
     handleNode(node);
 
@@ -26,7 +26,7 @@ void Assembler::traverse(shared_ptr<GNODE> node) {
     /* Note: left- and rightbranches are always traversed inside the node-handlers if need be.  */
 } 
 
-void Assembler::handleNode(shared_ptr<GNODE> node) {
+void NASM::handleNode(shared_ptr<GNODE> node) {
 
     if (!node) {
         error("nullptr in handle node!"); // TODO raise exception
@@ -117,16 +117,16 @@ void Assembler::handleNode(shared_ptr<GNODE> node) {
 
 }
 
-void Assembler::handleBlock(shared_ptr<GNODE> node) {
+void NASM::handleBlock(shared_ptr<GNODE> node) {
     // Empty on purpose. Just a container for tree manipulations    
 }
 
-void Assembler::handlePrintASCII(shared_ptr<GNODE> node) {
+void NASM::handlePrintASCII(shared_ptr<GNODE> node) {
     emitInstruction("mov dil, " + node->value);
     emitInstruction("call PrintASCII");
 }
 
-void Assembler::handleDeclare(shared_ptr<GNODE> node) {
+void NASM::handleDeclare(shared_ptr<GNODE> node) {
     
     if (node->datatype == "str") {
         emitVariable(node->name, "str", "byte", node->size + 1); // +1 for NULL-termination
@@ -148,7 +148,7 @@ void Assembler::handleDeclare(shared_ptr<GNODE> node) {
 
 }
 
-void Assembler::handleWhile(shared_ptr<GNODE> node) {
+void NASM::handleWhile(shared_ptr<GNODE> node) {
 
     checkNullPtr(node->getLeft(), node);
     checkNullPtr(node->getRight(), node);
@@ -167,7 +167,7 @@ void Assembler::handleWhile(shared_ptr<GNODE> node) {
   
 }
 
-void Assembler::handleFor(shared_ptr<GNODE> node) {
+void NASM::handleFor(shared_ptr<GNODE> node) {
 
     // Right-child has a linked list to the operations within the block
     checkNullPtr(node->getRight(), node);
@@ -197,7 +197,7 @@ void Assembler::handleFor(shared_ptr<GNODE> node) {
   
 }
 
-void Assembler::handleIf(shared_ptr<GNODE> node) {
+void NASM::handleIf(shared_ptr<GNODE> node) {
 
     checkNullPtr(node->getLeft(), node);
     checkNullPtr(node->getRight(), node);
@@ -226,7 +226,7 @@ void Assembler::handleIf(shared_ptr<GNODE> node) {
     emitComment("If done");
 }
 
-void Assembler::handleExpression(shared_ptr<GNODE> node) {
+void NASM::handleExpression(shared_ptr<GNODE> node) {
     
     checkNullPtr(node->getLeft(), node);
     traverse(node->getLeft());
@@ -237,7 +237,7 @@ void Assembler::handleExpression(shared_ptr<GNODE> node) {
     }
 }
 
-void Assembler::handleVariable(shared_ptr<GNODE> node) {
+void NASM::handleVariable(shared_ptr<GNODE> node) {
     // Moves a variable reference to r8
     // We need to pull the variable to know whether to read a byte or ..?
     Variable var = program.getVariable(node->name);
@@ -267,7 +267,7 @@ void Assembler::handleVariable(shared_ptr<GNODE> node) {
 
 }
 
-void Assembler::handleBoolExpression(shared_ptr<GNODE> node) {
+void NASM::handleBoolExpression(shared_ptr<GNODE> node) {
 
     // A wrapper for bool term(s)
     // If it's a single term, just execute it
@@ -287,7 +287,7 @@ void Assembler::handleBoolExpression(shared_ptr<GNODE> node) {
 
 }
 
-void Assembler::handleBoolTerm(shared_ptr<GNODE> node) {
+void NASM::handleBoolTerm(shared_ptr<GNODE> node) {
     emitComment("bool-term started");
 
     string opInstruction = mapOperatorToInstruction(node->op);
@@ -325,7 +325,7 @@ void Assembler::handleBoolTerm(shared_ptr<GNODE> node) {
     // R8 = 1 if the expression is true, 0 if not
 }
 
-void Assembler::handleConstant(shared_ptr<GNODE> node) {
+void NASM::handleConstant(shared_ptr<GNODE> node) {
 
     if (node->datatype == "int") {
         emitInstruction("mov r8, " + node->value);
@@ -343,7 +343,7 @@ void Assembler::handleConstant(shared_ptr<GNODE> node) {
     }
 }
 
-void Assembler::handleAssign(shared_ptr<GNODE> node) {
+void NASM::handleAssign(shared_ptr<GNODE> node) {
     string name = node->name;
 
     if (!program.inVariables(name)) {
@@ -391,7 +391,7 @@ void Assembler::handleAssign(shared_ptr<GNODE> node) {
     emitInstruction("mov " + var.makeReferenceTo(offset) + ", " + var.getRegister8Size());
 }
 
-void Assembler::handleMathOperation(shared_ptr<GNODE> node, string op) {
+void NASM::handleMathOperation(shared_ptr<GNODE> node, string op) {
     emitInstruction("push r8"); // Store result of previous node
     traverse(node);           // Content will be R8 after this
     
@@ -419,7 +419,7 @@ void Assembler::handleMathOperation(shared_ptr<GNODE> node, string op) {
     }
 }
 
-void Assembler::handlePrintString(shared_ptr<GNODE> node) {
+void NASM::handlePrintString(shared_ptr<GNODE> node) {
 
     checkNullPtr(node->getLeft(), node);
     shared_ptr<GNODE> left = node->getLeft();
@@ -461,7 +461,7 @@ void Assembler::handlePrintString(shared_ptr<GNODE> node) {
     
 }
 
-void Assembler::handlePrintInt(shared_ptr<GNODE> node) {
+void NASM::handlePrintInt(shared_ptr<GNODE> node) {
     // If 'name' is present, print a variable ref
     // if not, evaluate node on left
     if (node->name != "") {
@@ -479,7 +479,7 @@ void Assembler::handlePrintInt(shared_ptr<GNODE> node) {
     emitInstruction("call PrintInteger");
 }
 
-void Assembler::handleInput(shared_ptr<GNODE> node) {
+void NASM::handleInput(shared_ptr<GNODE> node) {
 
 
     string bufferName = node->name;
@@ -549,36 +549,36 @@ void Assembler::handleInput(shared_ptr<GNODE> node) {
 
 }
 
-void Assembler::emitInstruction(string inst) {
+void NASM::emitInstruction(string inst) {
     program.addInstruction(inst);
 }
 
-void Assembler::emitConstant(string out, string value, string varType = "str") {
+void NASM::emitConstant(string out, string value, string varType = "str") {
     program.addConstant(out, value, varType);
     
 }
 
-void Assembler::emitComment(std::string comment) {
+void NASM::emitComment(std::string comment) {
     emitInstruction("; " + comment);
 }
 
-void Assembler::emitVariable(string name, string varType, string size, int length) {
+void NASM::emitVariable(string name, string varType, string size, int length) {
     if (!program.inVariables(name)) {
             program.addVariable(name, varType, size, length);
     }
 }
 
-void Assembler::error(string error_message) {
+void NASM::error(string error_message) {
     throw std::runtime_error(error_message);
 }
 
-void Assembler::checkNullPtr(shared_ptr<GNODE> node, shared_ptr<GNODE> from) {
+void NASM::checkNullPtr(shared_ptr<GNODE> node, shared_ptr<GNODE> from) {
     if (!node) {
         error("nullptr! Origin: " + from->getType());
     }
 }
 
-string Assembler::mapOperatorToInstruction(string op) {
+string NASM::mapOperatorToInstruction(string op) {
 
     std::unordered_map<string,string> operatorToInstruction {
         {"==", "je"},
@@ -597,7 +597,7 @@ string Assembler::mapOperatorToInstruction(string op) {
     return search->second;
 }
 
-bool Assembler::checkIfExpressionIsAString(shared_ptr<GNODE> node) {
+bool NASM::checkIfExpressionIsAString(shared_ptr<GNODE> node) {
     // Traverses the node to check if has child node type of 'str'
     if (node->getType() == "VARIABLE") {
         if (program.isStringVariable(node->name)) {
@@ -614,7 +614,7 @@ bool Assembler::checkIfExpressionIsAString(shared_ptr<GNODE> node) {
     return res;
 }
 
-void Assembler::doStringComparison(string op) {
+void NASM::doStringComparison(string op) {
     /*
         Loop through the strings until either reaches NULL or comparison operation is satisfied
         Operations:
