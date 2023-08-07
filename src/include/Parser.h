@@ -5,7 +5,6 @@
 #include <iostream>
 #include <exception>
 #include <memory>
-#include "./Program.h"
 #include "./Scanner.h"
 #include "./Token.h"
 #include "./GAST.h"

@@ -5,8 +5,8 @@
 #include "./include/GAST.h"
 #include "./include/Parser.h"
 #include "./include/NASM.h"
+#include "./include/Assembler.h"
 #include "./include/Scanner.h"
-#include "./include/Program.h"
 #include "./keywords.cpp"
 
 char handleScandics(char cur, char prev) {
@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
 
     p_tree->returnToRoot();
 
-    auto asmblr = NASM(Program(std::cout));
+    auto asmblr = NASM();
     asmblr.assemble(p_tree);
 
     // Finished  

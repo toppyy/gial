@@ -1,14 +1,15 @@
 #pragma once
 #include "./GAST.h"
-#include "./Program.h"
+#include "./Assembler.h"
+#include "./NASMProgram.h"
 #include<memory>
 #include<iostream>
 
-using std::shared_ptr, std::string, std::to_string;
+using std::shared_ptr, std::unique_ptr, std::string, std::to_string;
 
-class NASM {
+class NASM: public Assembler {
     public:
-        NASM(Program p_program);
+        NASM();
 
 
         void assemble(shared_ptr<GAST> p_tree);
@@ -47,6 +48,6 @@ class NASM {
 
     private:
         shared_ptr<GAST> tree;
-        Program program;
+        unique_ptr<NASMProgram> program;
 
 };

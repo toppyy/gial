@@ -1,15 +1,18 @@
 #include "./include/NASM.h"
+#include "./include/NASMProgram.h"
 
-NASM::NASM(Program p_program) :
-    tree(nullptr),
-    program(p_program) {
+NASM::NASM() {
+    tree    = nullptr;
+    program = nullptr;
 }
 
 void NASM::assemble(shared_ptr<GAST> p_tree) {
+    
+    program = std::make_unique<NASMProgram>(std::cout);
 
     tree = p_tree;
     traverse(tree->getRoot());
-    program.buildProgram();
+    program->buildProgram();
 
 }
 
@@ -155,8 +158,8 @@ void NASM::handleWhile(shared_ptr<GNODE> node) {
 
     // Left-child has the condition
     // Right-child has a linked list to the operations within the block
-    string labelIn  = program.getNewLabel();
-    string labelOut = program.getNewLabel();
+    string labelIn  = program->getNewLabel();
+    string labelOut = program->getNewLabel();
     emitInstruction(labelIn + ":");
     traverse(node->getLeft());
     emitInstruction("cmp r8, 1");
@@ -172,7 +175,7 @@ void NASM::handleFor(shared_ptr<GNODE> node) {
     // Right-child has a linked list to the operations within the block
     checkNullPtr(node->getRight(), node);
 
-    string loopStart    = program.getNewLabel();
+    string loopStart    = program->getNewLabel();
     string variableRef  = "qword[" + node->name + "]";
     string step         = node->getFromInfo("step");
     string to           = node->getFromInfo("to");
@@ -206,9 +209,9 @@ void NASM::handleIf(shared_ptr<GNODE> node) {
 
     // Left-child has the condition
     // Right-child has a linked list to the operations within the block
-    string labelIn  = program.getNewLabel();
-    string labelElse = program.getNewLabel();
-    string labelOut = program.getNewLabel();
+    string labelIn  = program->getNewLabel();
+    string labelElse = program->getNewLabel();
+    string labelOut = program->getNewLabel();
     emitInstruction(labelIn + ":");
     traverse(node->getLeft());
     emitInstruction("cmp r8, 1");
@@ -240,7 +243,7 @@ void NASM::handleExpression(shared_ptr<GNODE> node) {
 void NASM::handleVariable(shared_ptr<GNODE> node) {
     // Moves a variable reference to r8
     // We need to pull the variable to know whether to read a byte or ..?
-    Variable var = program.getVariable(node->name);
+    Variable var = program->getVariable(node->name);
 
     
     // If there's a right branch, it's an indexed assignment
@@ -258,7 +261,7 @@ void NASM::handleVariable(shared_ptr<GNODE> node) {
     
 
     // If it's a (non-indexed) string ref, move the address of the pointer to R8
-    if (program.isStringVariable(var.identifier)) {
+    if (program->isStringVariable(var.identifier)) {
         emitInstruction("mov r8, " + var.identifier);
         return;
     }
@@ -315,7 +318,7 @@ void NASM::handleBoolTerm(shared_ptr<GNODE> node) {
         return;
     }
 
-    string labelFalse = program.getNewLabel();
+    string labelFalse = program->getNewLabel();
     emitInstruction("cmp r9, r8");
     emitInstruction("mov r8, 1");
     emitInstruction(opInstruction + " " + labelFalse);
@@ -346,7 +349,7 @@ void NASM::handleConstant(shared_ptr<GNODE> node) {
 void NASM::handleAssign(shared_ptr<GNODE> node) {
     string name = node->name;
 
-    if (!program.inVariables(name)) {
+    if (!program->inVariables(name)) {
         error("Assignment to an undeclared variable (" + name + ")");
     }
     checkNullPtr(node->getLeft(), node);
@@ -379,7 +382,7 @@ void NASM::handleAssign(shared_ptr<GNODE> node) {
     }
 
     traverse(left);
-    Variable var = program.getVariable(name);
+    Variable var = program->getVariable(name);
 
     string offset = "";
     if (right) { 
@@ -426,18 +429,18 @@ void NASM::handlePrintString(shared_ptr<GNODE> node) {
 
     if (left->getType() == "CONSTANT") {
                 string value = left->value;
-                string label = program.getNewLabel();
+                string label = program->getNewLabel();
                 emitInstruction("printBytes " + label + ", 0, " + to_string(left->value.length()));
                 emitConstant(label, value, "str");
     }
 
     if (left->getType() == "VARIABLE") {
 
-        Variable variable = program.getVariable(left->name);
+        Variable variable = program->getVariable(left->name);
 
         if (variable.type == "str") {
 
-            string loopStart = program.getNewLabel();
+            string loopStart = program->getNewLabel();
             string varName   = variable.identifier;
             
             // Loop until NULL
@@ -465,7 +468,7 @@ void NASM::handlePrintInt(shared_ptr<GNODE> node) {
     // If 'name' is present, print a variable ref
     // if not, evaluate node on left
     if (node->name != "") {
-        Variable var = program.getVariable(node->name);
+        Variable var = program->getVariable(node->name);
         emitInstruction("mov rdi, " + var.makeReferenceTo());
         emitComment("printing variable " + node->name);
     } else {
@@ -483,8 +486,8 @@ void NASM::handleInput(shared_ptr<GNODE> node) {
 
 
     string bufferName = node->name;
-    string labelInputLoop = program.getNewLabel();
-    string labelLoopOut = program.getNewLabel();
+    string labelInputLoop = program->getNewLabel();
+    string labelLoopOut = program->getNewLabel();
     
     string bufferRef = "byte[" + bufferName + " + r9]";
 
@@ -550,11 +553,11 @@ void NASM::handleInput(shared_ptr<GNODE> node) {
 }
 
 void NASM::emitInstruction(string inst) {
-    program.addInstruction(inst);
+    program->addInstruction(inst);
 }
 
 void NASM::emitConstant(string out, string value, string varType = "str") {
-    program.addConstant(out, value, varType);
+    program->addConstant(out, value, varType);
     
 }
 
@@ -563,8 +566,8 @@ void NASM::emitComment(std::string comment) {
 }
 
 void NASM::emitVariable(string name, string varType, string size, int length) {
-    if (!program.inVariables(name)) {
-            program.addVariable(name, varType, size, length);
+    if (!program->inVariables(name)) {
+            program->addVariable(name, varType, size, length);
     }
 }
 
@@ -600,7 +603,7 @@ string NASM::mapOperatorToInstruction(string op) {
 bool NASM::checkIfExpressionIsAString(shared_ptr<GNODE> node) {
     // Traverses the node to check if has child node type of 'str'
     if (node->getType() == "VARIABLE") {
-        if (program.isStringVariable(node->name)) {
+        if (program->isStringVariable(node->name)) {
             return true;
         }
     }
@@ -624,10 +627,10 @@ void NASM::doStringComparison(string op) {
             jg  = A is after B in ASCII-order. Return true if any character of B is before A
     
     */
-    string loopStart    = program.getNewLabel();
-    string loopEnd      = program.getNewLabel();
-    string loopEndFalse = program.getNewLabel();
-    string loopEndTrue  = program.getNewLabel();
+    string loopStart    = program->getNewLabel();
+    string loopEnd      = program->getNewLabel();
+    string loopEndFalse = program->getNewLabel();
+    string loopEndTrue  = program->getNewLabel();
 
 
 

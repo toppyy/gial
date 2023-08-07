@@ -33,9 +33,9 @@ class Constant {
 };
 
 
-class Program {
+class NASMProgram {
     public:
-        Program(std::ostream &p_output_stream);
+        NASMProgram(std::ostream &p_output_stream);
         std::vector<string> getInstructions();
         void addInstruction(string instruction);
         void addVariable(string identifier, string type, string size, int length);

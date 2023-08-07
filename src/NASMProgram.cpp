@@ -1,4 +1,4 @@
-#include "./include/Program.h"
+#include "./include/NASMProgram.h"
 
 Variable::Variable(string p_identifier, string p_type, string p_size, int p_length) :
     identifier(""),
@@ -65,7 +65,7 @@ Constant::Constant(string p_identifier, string p_value, string p_type) :
 }
 
 
-Program::Program(std::ostream& p_output_stream) :
+NASMProgram::NASMProgram(std::ostream& p_output_stream) :
         instructions(std::vector<string> {}),
         icount(0),
         labelCount(0),
@@ -77,33 +77,33 @@ Program::Program(std::ostream& p_output_stream) :
         instructions = std::vector<string> {};
 }
 
-std::vector<string> Program::getInstructions() {
+std::vector<string> NASMProgram::getInstructions() {
     return instructions;
 }
 
-void Program::addInstruction(string instruction) {
+void NASMProgram::addInstruction(string instruction) {
     instructions.push_back(instruction);
     icount++;
 }
 
-void Program::addConstant(string identifier, string value,string type) {
+void NASMProgram::addConstant(string identifier, string value,string type) {
     constants.insert({ identifier, Constant(identifier, value, type) });
 }
 
 
-void Program::addVariable(string identifier, string type, string size, int length) {
+void NASMProgram::addVariable(string identifier, string type, string size, int length) {
     variables.insert({ identifier, Variable(identifier, type, size, length) });
 }
 
-bool Program::inVariables(string variable) {
+bool NASMProgram::inVariables(string variable) {
     return variables.count(variable) > 0;
 }
 
-void Program::outputLine(string s) {
+void NASMProgram::outputLine(string s) {
     output_stream << s << "\n";
 }
 
-Variable Program::getVariable(string identifier) {
+Variable NASMProgram::getVariable(string identifier) {
     if (auto search = variables.find(identifier); search != variables.end()) {
         return search->second;
     } else {
@@ -112,7 +112,7 @@ Variable Program::getVariable(string identifier) {
     return Variable("","","",0); // Unreachable
 }
 
-bool Program::isStringVariable(string variable) {
+bool NASMProgram::isStringVariable(string variable) {
     if (!inVariables(variable))  {
         return false;
     }
@@ -124,12 +124,12 @@ bool Program::isStringVariable(string variable) {
  
 }
 
-string Program::getNewLabel() {
+string NASMProgram::getNewLabel() {
     labelCount += 1;
     return "LBL_" + std::to_string(labelCount);
 }
 
-void Program::buildProgram() {
+void NASMProgram::buildProgram() {
     // Responsible for putting instructions and variable declarations in their place
     // to create a complete program
 
