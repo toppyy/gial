@@ -17,5 +17,5 @@ setup_file() {
 
 
 teardown_file() {
-    rm -f ./test/build/expression.js
+    rm -f ./test/build/expressions.js
 }

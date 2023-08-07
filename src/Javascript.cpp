@@ -178,7 +178,24 @@ void Javascript::handleExpression(shared_ptr<GNODE> node) {
 }
 
 void Javascript::handleVariable(shared_ptr<GNODE> node) {
+    // Moves a variable reference onto the stack
+
+    // If there's a right branch, it's an indexed reference
+    // The right branch has an expr that will evaluate to the index (usually an int constant)
+    shared_ptr<GNODE> right = node->getRight();
+
+    if (right) {
+        // Store the index into a register (R9) and offset
+        // the MOV-operation with the value in this register
+        traverse(right);            // The value is now on the stack
+        emitInstruction("stack.push(" + node->name +"[stack.pop()]);");
+        return;
+    }
     
+
+    // Otherwise, push it onto the stack
+    emitInstruction("stack.push(" + node->name + ")");
+
 }
 
 void Javascript::handleBoolExpression(shared_ptr<GNODE> node) {
@@ -247,11 +264,26 @@ void Javascript::handleAssign(shared_ptr<GNODE> node) {
 
 void Javascript::handleMathOperation(shared_ptr<GNODE> node, string op) {
 
-    
-    traverse(node);           // Content will be on the stack after this
+    // Content of traversing will be on the stack after this
+    traverse(node);           
     
     // Result of previous node is also on the stack so:
-    emitInstruction("stack.push( stack.pop() "  + op + " stack.pop() );");
+
+    if (op == "+" || op == "*") {
+        // these are commutative so
+        emitInstruction("stack.push( stack.pop() "  + op + " stack.pop() );");
+        return;
+    }
+
+    if (op == "-" || op == "/") {
+        emitInstruction("var r9 = stack.pop();");
+        emitInstruction("var r8 = stack.pop();");
+        emitInstruction("stack.push( r8 "  + op + " r9 );");
+        return;
+    }
+
+    error("Don't know how to deal with operator: "+op+"\n");
+    
 }
 
 void Javascript::handlePrintString(shared_ptr<GNODE> node) {
