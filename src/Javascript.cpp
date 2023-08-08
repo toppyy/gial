@@ -142,7 +142,6 @@ void Javascript::handleBlock(shared_ptr<GNODE> node) {
 
 void Javascript::handlePrintASCII(shared_ptr<GNODE> node) {
     if (node->value == "LF") {
-        ///console.log includes LF
         emitInstruction("console.log('')");
         return;
     }
@@ -210,8 +209,6 @@ void Javascript::handleFor(shared_ptr<GNODE> node) {
 void Javascript::handleIf(shared_ptr<GNODE> node) {
     checkNullPtr(node->getLeft(), node);
     checkNullPtr(node->getRight(), node);
-
-    emitComment("If started");
 
     // Left-child has the condition. Traverse it to get the result onto stack
     traverse(node->getLeft());
@@ -288,10 +285,7 @@ void Javascript::handleBoolTerm(shared_ptr<GNODE> node) {
     // Now we have values in R8 and R9
     emitInstruction("var r9 = stack.pop();");
     emitInstruction("var r8 = stack.pop();");
-    
-    // Check if we're comparing strings
-    bool leftIsStr  = checkIfExpressionIsAString(node->getLeft());
-    bool rightIsStr = checkIfExpressionIsAString(node->getRight());
+
 
     emitInstruction("stack.push(r8 " + node->op + " r9);");
 }
@@ -316,8 +310,6 @@ void Javascript::handleAssign(shared_ptr<GNODE> node) {
     // If there's a right branch, it's an indexed assignment
     // The right branch has an expr that will evaluate to the index (usually an int constant)
     shared_ptr<GNODE> right = node->getRight();
-
-   
 
     // If it's an int:
     //  Evaluate the expression that is beign assigned, the result will be in r8
@@ -393,14 +385,8 @@ void Javascript::handlePrintInt(shared_ptr<GNODE> node) {
         writeToStdout(node->name);
         return;
     } 
-    
-    
-    shared_ptr<GNODE> left = node->getLeft();
 
-    // if (left->getType() == "VARIABLE") {
-    //     handleNode(left->name);
-    //     return;
-    // }
+    shared_ptr<GNODE> left = node->getLeft();
     
     if (!node) {
         error("Expected PrintInt to have a left node!\n");
@@ -424,18 +410,10 @@ void Javascript::emitInstruction(string inst) {
     instructions.push_back(inst);
 }
 
-void Javascript::emitConstant(string out, string value, string varType = "str") {
-    
-    
-}
-
 void Javascript::emitComment(std::string comment) {
     emitInstruction("// " + comment);
 }
 
-void Javascript::emitVariable(string name, string varType, string size, int length) {
-
-}
 
 void Javascript::error(string error_message) {
     throw std::runtime_error(error_message);
@@ -445,21 +423,6 @@ void Javascript::checkNullPtr(shared_ptr<GNODE> node, shared_ptr<GNODE> from) {
     if (!node) {
         error("nullptr! Origin: " + from->getType());
     }
-}
-
-string Javascript::mapOperatorToInstruction(string op) {
-
-    return "";
-}
-
-bool Javascript::checkIfExpressionIsAString(shared_ptr<GNODE> node) {
-   
-    return true;
-}
-
-void Javascript::doStringComparison(string op) {
-    
-
 }
 
 void Javascript::writeToStdout(string tolog, bool quote) {

@@ -10,23 +10,17 @@ using std::shared_ptr, std::string, std::to_string;
 class Javascript: public Assembler {
     public:
         Javascript();
-
         void assemble(shared_ptr<GAST> p_tree);
+    
+    private:
         void traverse(shared_ptr<GNODE> node);
         void handleNode(shared_ptr<GNODE> node);
         void error(string error_message);
-        string mapOperatorToInstruction(string op);
         void checkNullPtr(shared_ptr<GNODE> node, shared_ptr<GNODE> from);
-        bool checkIfExpressionIsAString(shared_ptr<GNODE> node);
-        void doStringComparison(string op);
 
         void emitInstruction(string inst);
-        void emitConstant(string out, string value, string varType);
-        void emitVariable(string out, string varType, string size, int length);
         void emitComment(std::string comment);
         
-
-        // Operator handlers
         void handleConstant(shared_ptr<GNODE> node);
         void handleDeclare(shared_ptr<GNODE> node);
         void handleFor(shared_ptr<GNODE> node);
@@ -44,7 +38,7 @@ class Javascript: public Assembler {
         void handleInput(shared_ptr<GNODE> node);
         void handleMathOperation(shared_ptr<GNODE> node, string op);
 
-    private:
+    
         shared_ptr<GAST> tree;
         std::vector<string> instructions;
 

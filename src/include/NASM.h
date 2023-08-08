@@ -10,9 +10,9 @@ using std::shared_ptr, std::unique_ptr, std::string, std::to_string;
 class NASM: public Assembler {
     public:
         NASM();
-
-
         void assemble(shared_ptr<GAST> p_tree);
+
+    private:
         void traverse(shared_ptr<GNODE> node);
         void handleNode(shared_ptr<GNODE> node);
         void error(string error_message);
@@ -46,7 +46,7 @@ class NASM: public Assembler {
         void handleMathOperation(shared_ptr<GNODE> node, string op);
 
 
-    private:
+    
         shared_ptr<GAST> tree;
         unique_ptr<NASMProgram> program;
 
