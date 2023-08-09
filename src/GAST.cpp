@@ -1,20 +1,19 @@
 #include "./include/GAST.h"
 
 
-GAST::GAST() : gnodes(vector<shared_ptr<GNODE>> {}),
-    current(nullptr),
+
+GAST::GAST() :
     toLeft(false),
     nextToLeft(false),
     nextToRight(false),
-    branchStack(stack<shared_ptr<GNODE>>()) {
-    GNODE root = GNODE();
-    root.isRoot = true;
-    root.setType("root");
-    shared_ptr<GNODE> ptr = make_shared<GNODE>(root);
-    current = ptr;
-    gnodes.push_back(ptr);
-    
+    branchStack(stack<shared_ptr<GNODE>>())
+    {
+    current = make_shared<GNODE>();
+    current->isRoot = true;
+    current->setType("root");
+    root = current;
 };
+
 
 
 
@@ -27,11 +26,6 @@ void GAST::closeBranch() {
     branchStack.pop();
 }
 
-void GAST::addAsLeftToCurrent(GNODE node) {
-    node.setParent(current);
-    gnodes.push_back(make_shared<GNODE>(node));
-    current->setLeft(make_shared<GNODE>(node));
-}
 
 void GAST::setLeftAsDefault() {
     toLeft = true;
@@ -41,40 +35,28 @@ void GAST::unsetLeftAsDefault() {
 }
 
 
-
-void GAST::addToCurrent(GNODE node) {
-    node.setParent(current);
-    shared_ptr<GNODE> ptr = make_shared<GNODE>(node);
-    node.setParent(current->getParent());
-    gnodes.push_back(ptr);
+void GAST::addToCurrent(shared_ptr<GNODE> node) {
+    
+    node->setParent(current);    
+    
     if (nextToLeft) {
-        current->setLeft(ptr);
+        current->setLeft(node);
         nextToLeft = false;
     }
     else if (nextToRight) {
-        current->setRight(ptr);
+        current->setRight(node);
         nextToRight = false;
     }
     else if (toLeft) {
-        current->setLeft(ptr);
+        current->setLeft(node);
     }  
     
     else {
-        current->setNext(ptr);
+        current->setNext(node);
     }
-    
-    current = ptr;
+    current = node;
 }
 
-void GAST::moveToNode(GNODE node) {
-
-}
-void GAST::branchFromroot(GNODE node) {
-
-}
-void GAST::returnToRoot() {
-    current = gnodes[0];
-}
 
 
 bool GAST::toParent() {
@@ -86,7 +68,7 @@ bool GAST::toParent() {
 }
 
 shared_ptr<GNODE> GAST::getRoot() {
-    return gnodes[0];
+    return root;
 }
 
 void GAST::branchLeft() {
@@ -104,8 +86,8 @@ void GAST::branchRight() {
 GNODE::GNODE() : 
     isRoot(false),
     right(nullptr),
+    next(nullptr),
     left(nullptr),
-    parent(nullptr),
     type("unknown"),
     op(""),
     value(""),
@@ -148,32 +130,6 @@ string getNodeType(shared_ptr<GNODE> node) {
     return node->getType();
 }
 
-void GNODE::print() {
-    int tabs = 1;
-    if (type.length() <= 7) {
-        tabs++;
-    }
-    string tab = "";
-    while (tabs > 0) {
-        tab += "\t";
-        tabs--;
-    }
-    //std::cout << getType() ; //<< tab << "(" << getNodeType(parent) << ")";
-    std::cout <<
-        this->getType() <<
-        tab << "parent: " << getNodeType(parent) <<
-        tab << "right: "  << getNodeType(right) <<
-        tab << "left: " << getNodeType(left) << 
-        tab << "next: " << getNodeType(next)
-        ;
-    
-    if (datatype != "") {
-        std::cout << " and my op is " << datatype;
-    }
-    std::cout << "\n";
-    
-}
-
 bool GNODE::hasMathOperator() {
     
     if (op == "+" | op == "-" | op == "*" | op == "/") {
@@ -190,7 +146,7 @@ shared_ptr<GNODE> GNODE::getNext() {
     return next;
 }
 shared_ptr<GNODE> GNODE::getParent() {
-    return parent;
+    return parent.lock();
 }
 
 shared_ptr<GNODE> GNODE::getRight() {

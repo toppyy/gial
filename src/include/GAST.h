@@ -7,6 +7,7 @@
 using   std::vector,
         std::string,
         std::shared_ptr,
+        std::weak_ptr,
         std::make_shared,
         std::stack,
         std::map
@@ -44,8 +45,7 @@ class GNODE {
         string getFromInfo(string key);
 
         void setOperator(string p_op);
-      
-        virtual void print();
+    
         bool isRoot;
         
         bool hasMathOperator();
@@ -66,7 +66,7 @@ class GNODE {
         shared_ptr<GNODE> right;
         shared_ptr<GNODE> left;
         shared_ptr<GNODE> next;
-        shared_ptr<GNODE> parent;
+        weak_ptr<GNODE> parent;
         string type;
 };
 
@@ -74,27 +74,19 @@ class GNODE {
 class GAST {
     public:
         GAST();
-//        GNODE root;
         
-        vector<shared_ptr<GNODE>> gnodes;
-
         bool toParent();
-        void addAsLeftToCurrent(GNODE node);
-        void addAsRightToCurrent(GNODE node);
-        void addToCurrent(GNODE node);
+        void addToCurrent(shared_ptr<GNODE> node);
         void openBranch();
         void closeBranch();
-        void moveToNode(GNODE node);
-        void branchFromroot(GNODE node);
-        void returnToRoot();
         void branchLeft();
         void branchRight();
         void setLeftAsDefault();
         void unsetLeftAsDefault();
 
         shared_ptr<GNODE> getRoot();
-
         shared_ptr<GNODE> current;
+        shared_ptr<GNODE> root;
         
         stack<shared_ptr<GNODE>> branchStack;
         bool nextToLeft;

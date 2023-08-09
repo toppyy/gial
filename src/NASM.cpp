@@ -32,7 +32,7 @@ void NASM::traverse(shared_ptr<GNODE> node) {
 void NASM::handleNode(shared_ptr<GNODE> node) {
 
     if (!node) {
-        error("nullptr in handle node!"); // TODO raise exception
+        error("nullptr in handle node!");
     }
 
     string type = node->getType();

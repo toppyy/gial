@@ -21,37 +21,6 @@ char handleScandics(char cur, char prev) {
     return cur;
 }
 
-void traverseTree(std::shared_ptr<GNODE> node, int depth) {
-
-
-    int tabs = depth;
-    string tab = "";
-    while (tabs > 0) {
-        std::cout << "\t";
-        tabs--;
-    }
-    node->print();
-
-    std::shared_ptr<GNODE> left = node->getLeft();
-    std::shared_ptr<GNODE> right  = node->getRight();
-    std::shared_ptr<GNODE> next  = node->getNext();
-
-    if (left != nullptr) {
-        traverseTree(left, depth + 1);
-    }
-
-    if (right != nullptr) {
-        traverseTree(right, depth + 1);
-    }
-
-    if (next != nullptr) {
-        traverseTree(next, depth);
-    }
-
-    return;
-}
-
-
 int main(int argc, char *argv[]) {
 
 
@@ -112,27 +81,34 @@ int main(int argc, char *argv[]) {
     Scanner scnr = Scanner(content, keywords);
     scnr.init();
 
-
+    
     GAST tree = GAST();
-    std::shared_ptr<GAST> p_tree = std::make_shared<GAST>(tree);
-
-    Parser prsr = Parser(scnr.getTokens(), keywords, p_tree);
+    
+    //std::shared_ptr<GAST> p_tree = std::make_shared<GAST>( GAST(root) );
+    
+    Parser prsr = Parser(scnr.getTokens(), keywords, tree);
+   
 
     prsr.init();
-
-    p_tree->returnToRoot();
     
-    std::unique_ptr<Assembler> asmblr;
+    // tree.returnToRoot();
+    
+    // std::unique_ptr<Assembler> asmblr;
+    // if ( strcmp(p_assembler,"JS") == 0) {
+    //     asmblr = std::make_unique<Javascript>();
+    // } else {
+    //     asmblr = std::make_unique<NASM>();
+    // }
+    // asmblr->assemble(p_tree);
+
+    std::shared_ptr<GAST> p_tree = std::make_shared<GAST>( tree );
     if ( strcmp(p_assembler,"JS") == 0) {
-        asmblr = std::make_unique<Javascript>();
+        Javascript asmblr = Javascript();
+        asmblr.assemble(p_tree);
     } else {
-        // NASM nasm = NASM();
-        asmblr = std::make_unique<NASM>();
+        NASM asmblr = NASM();
+        asmblr.assemble(p_tree);
     }
-    
-    
-    asmblr->assemble(p_tree);
-
 
     // Finished  
     std::cout << "\n\n";

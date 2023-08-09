@@ -16,11 +16,11 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 all: gl
 
 gl: $(OBJ)
-	$(CC) $(OBJ) -o $(ODIR)/gl
+	$(CC)  $(OBJ) -o $(ODIR)/gl 
 
 
 $(ODIR)/%.o: $(SRC)%.cpp 
-	$(CC) -c -o $@ $< $(CFLAGS)
+	$(CC) -g -c -o $@ $< $(CFLAGS)
 
 
 .PHONY: clean

@@ -4,6 +4,7 @@
 #include<memory>
 #include<vector>
 #include<iostream>
+#include <bits/stdc++.h>
 
 using std::shared_ptr, std::string, std::to_string;
 
@@ -17,8 +18,10 @@ class Javascript: public Assembler {
         void handleNode(shared_ptr<GNODE> node);
         void error(string error_message);
         void checkNullPtr(shared_ptr<GNODE> node, shared_ptr<GNODE> from);
+        void writeToStdout(string tolog, bool quote = false);
 
         void emitInstruction(string inst);
+        void emitVariable(string name);
         void emitComment(std::string comment);
         
         void handleConstant(shared_ptr<GNODE> node);
@@ -38,10 +41,10 @@ class Javascript: public Assembler {
         void handleInput(shared_ptr<GNODE> node);
         void handleMathOperation(shared_ptr<GNODE> node, string op);
 
-    
+        bool variableDeclared(string name);
+
         shared_ptr<GAST> tree;
         std::vector<string> instructions;
-
-        void writeToStdout(string tolog, bool quote = false);
+        std::vector<string> variables;
         bool wrapToAsyncFunction;
 };

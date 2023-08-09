@@ -3,7 +3,7 @@
 Parser::Parser(
         vector<Token> p_tokens,
         set<string> p_keywords,
-        shared_ptr<GAST> p_tree
+        GAST &p_tree
         ) : 
         labelCount(0),
         look(Token("EOF")),
@@ -110,13 +110,13 @@ void Parser::block() {
 /* ---------- STATEMENTS ----------------------------------------------------------------------------------------------------------------  */
 void Parser::printStatement() {
 
-    tree->addToCurrent (PRINTSTR());
+    tree.addToCurrent(make_shared<PRINTSTR>());
         
     if (look.isString) {
         // Is a string constant
-        tree->branchLeft();
-        tree->addToCurrent(CONSTANT(look.getContent(), "str"));
-        tree->closeBranch();
+        tree.branchLeft();
+        tree.addToCurrent(make_shared<CONSTANT>(look.getContent(), "str"));
+        tree.closeBranch();
         getToken();
         return;
     }
@@ -127,9 +127,9 @@ void Parser::printStatement() {
         Token variable = look;
         getToken();
 
-        tree->branchLeft();
-        tree->addToCurrent(VARIABLE(variable.getContent()));
-        tree->closeBranch();
+        tree.branchLeft();
+        tree.addToCurrent(make_shared<VARIABLE>(variable.getContent()));
+        tree.closeBranch();
         return;
     }
 
@@ -138,28 +138,28 @@ void Parser::printStatement() {
 
 void Parser::printIntStatement() {
 
-    tree->addToCurrent(PRINTINT());
+    tree.addToCurrent(make_shared<PRINTINT>());
     if (look.isName) {
         // it's a variable. 
         Token varName = getName();
 
-        tree->branchLeft();
-        tree->addToCurrent(VARIABLE(varName.getContent()));
+        tree.branchLeft();
+        tree.addToCurrent(make_shared<VARIABLE>(varName.getContent()));
         
         if (look == "[") {
             matchToken("[");
-            tree->branchRight();
+            tree.branchRight();
             expression();
-            tree->closeBranch();
+            tree.closeBranch();
             matchToken("]");    
         }
 
-        tree->closeBranch();
+        tree.closeBranch();
     } else {
         // it's an expression
-        tree->branchLeft();
+        tree.branchLeft();
         expression();
-        tree->closeBranch();
+        tree.closeBranch();
     }
 }
 
@@ -173,16 +173,16 @@ void Parser::inputStatement() {
         datatype = "int";
         getToken(); // Eat LUGU
     }
-    tree->addToCurrent( DECLARE(varName.getContent(), datatype));
-    tree->addToCurrent( INPUT(  varName.getContent(), datatype));
+    tree.addToCurrent(make_shared<DECLARE>(varName.getContent(), datatype));
+    tree.addToCurrent(make_shared<INPUT>(  varName.getContent(), datatype));
 }
 
 void Parser::ifStatement() {
     
-    tree->addToCurrent(IF());
-    tree->branchLeft();
+    tree.addToCurrent(make_shared<IF>());
+    tree.branchLeft();
     boolExpression();
-    tree->closeBranch();
+    tree.closeBranch();
 
     /*
         For IF-ELSE:
@@ -190,37 +190,37 @@ void Parser::ifStatement() {
             IF and the left IF ELSE
     */
 
-    tree->branchRight();
+    tree.branchRight();
     // Init wrapper
     
-    tree->addToCurrent(BLOCK());
+    tree.addToCurrent(make_shared<BLOCK>());
     
-    tree->branchRight();
+    tree.branchRight();
     block();
-    tree->closeBranch();
+    tree.closeBranch();
 
     if (look == "MUUTES") {
         getToken();
-        tree->branchLeft();
+        tree.branchLeft();
         block();
-        tree->closeBranch();
+        tree.closeBranch();
     }
 
     // Wrapper end
-    tree->closeBranch();
+    tree.closeBranch();
     matchEndStatement();
 }
 
 void Parser::whileStatement() {
    
-    tree->addToCurrent(WHILE());
-    tree->branchLeft();
+    tree.addToCurrent(make_shared<WHILE>());
+    tree.branchLeft();
     boolExpression();
-    tree->closeBranch();
+    tree.closeBranch();
 
-    tree->branchRight();
+    tree.branchRight();
     block();
-    tree->closeBranch();
+    tree.closeBranch();
     matchEndStatement();
 }
 
@@ -233,17 +233,17 @@ void Parser::letIntStatement() {
         return;
     }
 
-    tree->addToCurrent(DECLARE(varName.getContent(),"int"));
-    tree->branchLeft();    
+    tree.addToCurrent(make_shared<DECLARE>(varName.getContent(),"int"));
+    tree.branchLeft();    
 
     if (look != "=") {
-        tree->closeBranch();
+        tree.closeBranch();
         // No associated assignment        
         return;
     }
 
     assignment(varName);
-    tree->closeBranch();
+    tree.closeBranch();
     return;
 }
 
@@ -253,16 +253,16 @@ void Parser::letIntArray(Token varName) {
     int arraySize = stoi(getNumber().getContent()); // TODO: Catch non-numbers
     matchToken("]");
 
-    tree->addToCurrent(DECLARE(varName.getContent(),"int",arraySize));
+    tree.addToCurrent(make_shared<DECLARE>(varName.getContent(),"int",arraySize));
 }
 
 void Parser::letStringStatement() {
     Token varName = getName();
-    tree->addToCurrent(DECLARE(varName.getContent(),"str"));
-    tree->branchLeft();
+    tree.addToCurrent(make_shared<DECLARE>(varName.getContent(),"str"));
+    tree.branchLeft();
     if (look != "=") {
         // No associated assignment        
-        tree->closeBranch();
+        tree.closeBranch();
         return;
     }
 
@@ -273,13 +273,13 @@ void Parser::letStringStatement() {
         expected("a string when assigning to a string type");
     }
     string strConstant = look.getContent();
-    tree->current->size = strConstant.length(); // Store string len with DECLARATION
+    tree.current->size = strConstant.length(); // Store string len with DECLARATION
 
-    tree->addToCurrent(ASSIGN(varName.getContent()));
-    tree->branchLeft();
-    tree->addToCurrent(CONSTANT(strConstant, "str"));
-    tree->closeBranch();
-    tree->closeBranch();
+    tree.addToCurrent(make_shared<ASSIGN>(varName.getContent()));
+    tree.branchLeft();
+    tree.addToCurrent(make_shared<CONSTANT>(strConstant, "str"));
+    tree.closeBranch();
+    tree.closeBranch();
 
     getToken();
 }
@@ -304,19 +304,19 @@ void Parser::repeatStatement() {
     // Create an internal variable for FOR-loop
     // Must be unique so construct a string based on tree state
     string name = "GIALREP" + std::to_string(cursor);
-    tree->addToCurrent(DECLARE(name,"int"));
+    tree.addToCurrent(make_shared<DECLARE>(name,"int"));
 
     // REPEAT is represented as a FOR-loop internally
-    tree->addToCurrent(
-            FOR(
+    tree.addToCurrent(
+            make_shared<FOR>(
                 name,
                 map<string, string> { {"to", to }, { "toType", toType }, {"step", "1" } }
                 )
             );
 
-    tree->branchRight();
+    tree.branchRight();
     block();
-    tree->closeBranch();
+    tree.closeBranch();
     matchEndStatement();
 }
 
@@ -328,7 +328,7 @@ void Parser::forStatement() {
     // This will declare 'x' and assign the first value
     Parser::letIntStatement();
 
-    string name = tree->current->name;
+    string name = tree.current->name;
 
     matchToken("TOHO");
     // Looping "to" - either a integer or a variable ref
@@ -351,16 +351,16 @@ void Parser::forStatement() {
         getToken();
     }
 
-    tree->addToCurrent(
-            FOR(
+    tree.addToCurrent(
+            make_shared<FOR>(
                 name,
                 map<string, string> { {"to", to }, { "toType", toType }, {"step", step } }
                 )
             );
 
-    tree->branchRight();
+    tree.branchRight();
     block();
-    tree->closeBranch();
+    tree.closeBranch();
     matchEndStatement();
 
 }
@@ -369,7 +369,7 @@ void Parser::forStatement() {
 /* ------- END STATEMENTS ----------------------------------------------------------------------------------------------------------------  */
 
 void Parser::emitLine() {
-    tree->addToCurrent ( PRINTASCII("LF")  ); // TODO: don't use PRINTASCII? 
+    tree.addToCurrent(make_shared<PRINTASCII>("LF")  ); // TODO: don't use PRINTASCII? 
     return;
 }
 
@@ -447,22 +447,22 @@ void Parser::expression() {
     // Trick: Add a zero to start calculations with
     // This way -3 + 3 becomes 0 - 3 + 3
 
-    tree->addToCurrent(EXPRESSION());
-    shared_ptr<GNODE> current = tree->current;
+    tree.addToCurrent(make_shared<EXPRESSION>());
+    shared_ptr<GNODE> current = tree.current;
         
-    tree->branchLeft();
+    tree.branchLeft();
         term();
-    tree->closeBranch();
+    tree.closeBranch();
 
     while (lookChar == '+' | lookChar == '-' | lookChar == '*' | lookChar == '/') {
-        tree->current->setOperator(look.getContent());
+        tree.current->setOperator(look.getContent());
         getToken();
-        tree->branchRight();
+        tree.branchRight();
         term();
-        tree->closeBranch();
+        tree.closeBranch();
     }
-    tree->unsetLeftAsDefault();
-    tree->current = current; // Return to the 'level' of this expr
+    tree.unsetLeftAsDefault();
+    tree.current = current; // Return to the 'level' of this expr
 
 }   
 
@@ -479,7 +479,7 @@ void Parser::term() {
     
      if (look.isString & look.length() == 1) {
         // Single character
-        tree->addToCurrent(CONSTANT(look.getContent(), "chr"));
+        tree.addToCurrent(make_shared<CONSTANT>(look.getContent(), "chr"));
         getToken();
         return;
     }
@@ -492,7 +492,7 @@ void Parser::term() {
 
     
     if (isDigit(lookChar)) {
-        tree->addToCurrent(CONSTANT(look.getContent(), "int"));
+        tree.addToCurrent(make_shared<CONSTANT>(look.getContent(), "int"));
         getToken();
         return;
     }
@@ -513,10 +513,10 @@ void Parser::ident() {
     if (lookChar == '[') {
         matchToken("[");
 
-        tree->addToCurrent(BLOCK());
-        tree->branchRight();
+        tree.addToCurrent(make_shared<BLOCK>());
+        tree.branchRight();
         expression();
-        tree->closeBranch();
+        tree.closeBranch();
 
         matchToken("]");
 
@@ -527,10 +527,10 @@ void Parser::ident() {
         } else {
             // It's an indexed variable ref
 
-            tree->addToCurrent(VARIABLE(name.getContent()));
+            tree.addToCurrent(make_shared<VARIABLE>(name.getContent()));
             // Add index to the left branch of variable
-            tree->current->setRight(tree->current->getParent()->getRight());
-            tree->current->getParent()->makeRightNull();
+            tree.current->setRight(tree.current->getParent()->getRight());
+            tree.current->getParent()->makeRightNull();
 
 
             return;
@@ -544,7 +544,7 @@ void Parser::ident() {
     }
 
     // If not, store the value into r8   
-    tree->addToCurrent(VARIABLE(name.getContent()));
+    tree.addToCurrent(make_shared<VARIABLE>(name.getContent()));
 }
 
 void Parser::indexedAssignment(Token name) {
@@ -555,25 +555,26 @@ void Parser::indexedAssignment(Token name) {
     // that this has the expr describing the index as the right
     // child (atm it is in the parent BLOCK's right branch)
     // This is also manipulated further in ident()
-    tree->addToCurrent(ASSIGN(name.getContent()));
+    tree.addToCurrent(make_shared<ASSIGN>(name.getContent()));
 
-    shared_ptr<GNODE> indexExpr = tree->current->getParent()->getRight();
-    tree->current->setRight(indexExpr);
-    indexExpr->setParent(tree->current);
-    tree->current->getParent()->makeRightNull();
-    tree->current->getParent()->setNext(tree->current);
 
-    tree->branchLeft();
+    shared_ptr<GNODE> indexExpr = tree.current->getParent()->getRight();
+    tree.current->setRight(indexExpr);
+    indexExpr->setParent(tree.current);
+    tree.current->getParent()->makeRightNull();
+    tree.current->getParent()->setNext(tree.current);
+
+    tree.branchLeft();
     expression();
-    tree->closeBranch();
+    tree.closeBranch();
 }
 
 void Parser::assignment(Token name) {
     matchToken("=");
-    tree->addToCurrent(ASSIGN(name.getContent()));
-    tree->branchLeft();
+    tree.addToCurrent(make_shared<ASSIGN>(name.getContent()));
+    tree.branchLeft();
     expression();
-    tree->closeBranch();
+    tree.closeBranch();
 }
 
 bool Parser::isAlpha(char x) {
@@ -594,8 +595,8 @@ void Parser::boolExpression() {
     // boolExpression = (boolTerm operator boolTerm)
     // but recursive: so (boolExpression operator boolTerm) is also valid
 
-    tree->addToCurrent(BOOLEXPR());
-    tree->branchLeft();
+    tree.addToCurrent(make_shared<BOOLEXPR>());
+    tree.branchLeft();
     if (lookChar == '(') {
         matchToken("(");
         boolExpression();
@@ -603,7 +604,7 @@ void Parser::boolExpression() {
     } else {
         boolTerm();
     }
-    tree->closeBranch();
+    tree.closeBranch();
     
     string nextTokenContent = look.getContent();
     
@@ -612,12 +613,12 @@ void Parser::boolExpression() {
         nextTokenContent == "TAI"
     ) {
         string op = nextTokenContent == "JA" ? "and" : "or";
-        tree->current->setOperator(op);
+        tree.current->setOperator(op);
         matchToken(nextTokenContent);
         
-        tree->branchRight();
+        tree.branchRight();
         boolExpression();
-        tree->closeBranch();
+        tree.closeBranch();
         
         nextTokenContent = look.getContent();
     }
@@ -625,15 +626,15 @@ void Parser::boolExpression() {
 
 void Parser::boolTerm() {   
 
-    tree->addToCurrent(BOOLTERM());
-    tree->branchLeft();
+    tree.addToCurrent(make_shared<BOOLTERM>());
+    tree.branchLeft();
     expression();
-    tree->closeBranch();
+    tree.closeBranch();
     
-    tree->current->setOperator(look.getContent());
+    tree.current->setOperator(look.getContent());
     matchToken(look.getContent());
     
-    tree->branchRight();
+    tree.branchRight();
     expression();
-    tree->closeBranch();
+    tree.closeBranch();
 }

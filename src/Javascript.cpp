@@ -1,20 +1,21 @@
 #include "./include/Javascript.h"
 
-Javascript::Javascript() {
-   tree = nullptr;
-   wrapToAsyncFunction = false;
+Javascript::Javascript()
+    // : 
+    // instructions(std::vector<string> {}),
+    //variables(std::vector<string> {})
+    {
+    tree = nullptr;
+    wrapToAsyncFunction = false;
 }
 
 void Javascript::assemble(shared_ptr<GAST> p_tree) {
 
-
-  
     // Init instruction set with a stack
     emitInstruction("const stack = [];");
 
     tree = p_tree;
     traverse(tree->getRoot());
-    //buildProgram();
 
     if (wrapToAsyncFunction) {
         std::cout << "res = async function() {";
@@ -27,9 +28,6 @@ void Javascript::assemble(shared_ptr<GAST> p_tree) {
     for (auto instr: instructions) {
         std::cout << instr << "\n";
     }
-
-
-
 }
 
 void Javascript::traverse(shared_ptr<GNODE> node) {
@@ -48,7 +46,7 @@ void Javascript::traverse(shared_ptr<GNODE> node) {
 void Javascript::handleNode(shared_ptr<GNODE> node) {
 
     if (!node) {
-        error("nullptr in handle node!"); // TODO raise exception
+        error("nullptr in handle node!");
     }
 
     string type = node->getType();
@@ -156,6 +154,7 @@ void Javascript::handleDeclare(shared_ptr<GNODE> node) {
     } else {
         emitInstruction("var " + node->name + ";");
     }
+
     
     shared_ptr<GNODE> left = node->getLeft();
     if (left) {
@@ -302,7 +301,7 @@ void Javascript::handleConstant(shared_ptr<GNODE> node) {
 void Javascript::handleAssign(shared_ptr<GNODE> node) {
     string name = node->name;
 
-    // if (!program->inVariables(name)) {
+    // if (!variableDeclared(name)) {
     //     error("Assignment to an undeclared variable (" + name + ")");
     // }
     checkNullPtr(node->getLeft(), node);
@@ -432,4 +431,19 @@ void Javascript::writeToStdout(string tolog, bool quote) {
         return;
     }
     emitInstruction("process.stdout.write(String(" + tolog + "));");
+}
+
+bool Javascript::variableDeclared(string name) {
+    // for (auto s: variables) {
+    //     if (s == name) {
+    //         return true;
+    //     }
+    // }
+    // return false;
+    // return variables.find(name) != variables.end();
+}
+
+void Javascript::emitVariable(string name) {
+    //variables.insert(name);
+    // variables.push_back(name);
 }
