@@ -1,9 +1,10 @@
 #include "./include/Javascript.h"
 
 Javascript::Javascript()
-    // : 
-    // instructions(std::vector<string> {}),
-    //variables(std::vector<string> {})
+    : 
+    instructions(std::vector<string> {}),
+    variables(std::set<string> {})
+
     {
     tree = nullptr;
     wrapToAsyncFunction = false;
@@ -13,6 +14,7 @@ void Javascript::assemble(shared_ptr<GAST> p_tree) {
 
     // Init instruction set with a stack
     emitInstruction("const stack = [];");
+    emitVariable("stack"); // Reserve 'stack' variable. TODO: use random strings
 
     tree = p_tree;
     traverse(tree->getRoot());
@@ -20,9 +22,7 @@ void Javascript::assemble(shared_ptr<GAST> p_tree) {
     if (wrapToAsyncFunction) {
         std::cout << "res = async function() {";
     }
-
-
-    if (wrapToAsyncFunction) {
+    if (wrapToAsyncFunction) { // TODO ? 
         emitInstruction("}();");
     }
     for (auto instr: instructions) {
@@ -155,6 +155,7 @@ void Javascript::handleDeclare(shared_ptr<GNODE> node) {
         emitInstruction("var " + node->name + ";");
     }
 
+    emitVariable(node->name);
     
     shared_ptr<GNODE> left = node->getLeft();
     if (left) {
@@ -301,9 +302,9 @@ void Javascript::handleConstant(shared_ptr<GNODE> node) {
 void Javascript::handleAssign(shared_ptr<GNODE> node) {
     string name = node->name;
 
-    // if (!variableDeclared(name)) {
-    //     error("Assignment to an undeclared variable (" + name + ")");
-    // }
+    if (!variableDeclared(name)) {
+        error("Assignment to an undeclared variable (" + name + ")");
+    }
     checkNullPtr(node->getLeft(), node);
 
     // If there's a right branch, it's an indexed assignment
@@ -434,16 +435,9 @@ void Javascript::writeToStdout(string tolog, bool quote) {
 }
 
 bool Javascript::variableDeclared(string name) {
-    // for (auto s: variables) {
-    //     if (s == name) {
-    //         return true;
-    //     }
-    // }
-    // return false;
-    // return variables.find(name) != variables.end();
+    return variables.find(name) != variables.end();
 }
 
 void Javascript::emitVariable(string name) {
-    //variables.insert(name);
-    // variables.push_back(name);
+    variables.insert(name);
 }

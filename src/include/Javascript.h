@@ -45,6 +45,6 @@ class Javascript: public Assembler {
 
         shared_ptr<GAST> tree;
         std::vector<string> instructions;
-        std::vector<string> variables;
+        std::set<string> variables;
         bool wrapToAsyncFunction;
 };
