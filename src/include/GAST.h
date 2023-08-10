@@ -7,8 +7,10 @@
 using   std::vector,
         std::string,
         std::shared_ptr,
+        std::unique_ptr,
         std::weak_ptr,
         std::make_shared,
+        std::make_unique,
         std::stack,
         std::map
         ;
@@ -27,17 +29,17 @@ class GNODE {
     public:
         GNODE();
         
-        void    setLeft(shared_ptr<GNODE> p_left);
-        shared_ptr<GNODE>  getLeft();
+        void    setLeft(uint32_t p_left);
+        uint32_t getLeft();
 
-        void    setNext(shared_ptr<GNODE> p_node);
-        shared_ptr<GNODE>  getNext();
+        void    setNext(uint32_t p_node);
+        uint32_t  getNext();
 
-        void    setRight(shared_ptr<GNODE> p_right);
-        shared_ptr<GNODE>  getRight();
+        void    setRight(uint32_t p_right);
+        uint32_t  getRight();
         
-        void    setParent(shared_ptr<GNODE> p_parent);
-        shared_ptr<GNODE>  getParent();
+        void    setParent(uint32_t p_parent);
+        uint32_t  getParent();
 
         void    setType(string p_type);
         string  getType();
@@ -61,12 +63,14 @@ class GNODE {
         // A key-value store for operator specific needs
         map<string, string> info;
 
+        int id;
+
 
     private:        
-        shared_ptr<GNODE> right;
-        shared_ptr<GNODE> left;
-        shared_ptr<GNODE> next;
-        weak_ptr<GNODE> parent;
+        uint32_t right;
+        uint32_t left;
+        uint32_t next;
+        uint32_t parent;
         string type;
 };
 
@@ -75,8 +79,7 @@ class GAST {
     public:
         GAST();
         
-        bool toParent();
-        void addToCurrent(shared_ptr<GNODE> node);
+        void addToCurrent(shared_ptr<GNODE>  node);
         void openBranch();
         void closeBranch();
         void branchLeft();
@@ -84,14 +87,20 @@ class GAST {
         void setLeftAsDefault();
         void unsetLeftAsDefault();
 
+        shared_ptr<GNODE> getNode(uint32_t nodeidx);
+
         shared_ptr<GNODE> getRoot();
-        shared_ptr<GNODE> current;
-        shared_ptr<GNODE> root;
+        uint32_t current;
+        uint32_t nodecount;
+ 
         
-        stack<shared_ptr<GNODE>> branchStack;
+        stack<uint32_t> branchStack;
+        
         bool nextToLeft;
         bool nextToRight;
         bool toLeft;
+
+        vector<shared_ptr<GNODE>> nodes;
 };
 
 

@@ -273,7 +273,7 @@ void Parser::letStringStatement() {
         expected("a string when assigning to a string type");
     }
     string strConstant = look.getContent();
-    tree.current->size = strConstant.length(); // Store string len with DECLARATION
+    tree.nodes[tree.current]->size = strConstant.length(); // Store string len with DECLARATION
 
     tree.addToCurrent(make_shared<ASSIGN>(varName.getContent()));
     tree.branchLeft();
@@ -328,7 +328,7 @@ void Parser::forStatement() {
     // This will declare 'x' and assign the first value
     Parser::letIntStatement();
 
-    string name = tree.current->name;
+    string name = tree.nodes[tree.current]->name;
 
     matchToken("TOHO");
     // Looping "to" - either a integer or a variable ref
@@ -448,14 +448,15 @@ void Parser::expression() {
     // This way -3 + 3 becomes 0 - 3 + 3
 
     tree.addToCurrent(make_shared<EXPRESSION>());
-    shared_ptr<GNODE> current = tree.current;
+    uint32_t current = tree.current;
+    std::clog << "Expression parent: " << std::to_string(current) << "\n";
         
     tree.branchLeft();
         term();
     tree.closeBranch();
 
     while (lookChar == '+' | lookChar == '-' | lookChar == '*' | lookChar == '/') {
-        tree.current->setOperator(look.getContent());
+        tree.nodes[current]->setOperator(look.getContent());
         getToken();
         tree.branchRight();
         term();
@@ -463,11 +464,12 @@ void Parser::expression() {
     }
     tree.unsetLeftAsDefault();
     tree.current = current; // Return to the 'level' of this expr
+    std::clog << "Expression parent done: " << std::to_string(current) << "\n";
 
 }   
 
 void Parser::term() {
-   
+   std::clog << "term: " + look.getContent() + ". to: " + std::to_string(tree.current) + "\n";
     // If an opening parenthesis is met, start an another expression recursively
     // This works because nothing is emitted before the 'inner most' parenthesis have been met
     if (lookChar == '(') {
@@ -492,6 +494,7 @@ void Parser::term() {
 
     
     if (isDigit(lookChar)) {
+        std::clog << "digit: " + look.getContent() + ". to: " + std::to_string(tree.current) + "\n";
         tree.addToCurrent(make_shared<CONSTANT>(look.getContent(), "int"));
         getToken();
         return;
@@ -506,20 +509,24 @@ void Parser::term() {
     return;
 }   
 
-void Parser::ident() { 
+void Parser::ident() {
+    std::clog << "ident\n";
     Token name = getName();
 
     // Check if it's an indexed reference
     if (lookChar == '[') {
         matchToken("[");
-
+        
+        // Add a block to the current expression
+        // The right branch of the block will contain the expr in variable[expr]
         tree.addToCurrent(make_shared<BLOCK>());
+        std::clog << "Current before [] expr: " << std::to_string(tree.current) << "\n";
         tree.branchRight();
         expression();
         tree.closeBranch();
-
+        std::clog << "Current after [] expr: " << std::to_string(tree.current) << "\n";
         matchToken("]");
-
+        
         if (look == "=") {
             // This manipulates current BLOCK
             indexedAssignment(name);
@@ -529,8 +536,12 @@ void Parser::ident() {
 
             tree.addToCurrent(make_shared<VARIABLE>(name.getContent()));
             // Add index to the left branch of variable
-            tree.current->setRight(tree.current->getParent()->getRight());
-            tree.current->getParent()->makeRightNull();
+            // TODO: Brutal
+
+            uint32_t parent = tree.nodes[tree.current]->getParent();
+
+            tree.nodes[tree.current]->setRight( tree.nodes[ parent ]->getRight());
+            tree.nodes[tree.nodes[tree.current]->getParent()]->makeRightNull();
 
 
             return;
@@ -548,21 +559,19 @@ void Parser::ident() {
 }
 
 void Parser::indexedAssignment(Token name) {
-
+    std::clog << "indexedAssignment\n";
     matchToken("=");
 
     // Create ASSIGNment. Do some tree manipulation so
     // that this has the expr describing the index as the right
     // child (atm it is in the parent BLOCK's right branch)
-    // This is also manipulated further in ident()
     tree.addToCurrent(make_shared<ASSIGN>(name.getContent()));
 
-
-    shared_ptr<GNODE> indexExpr = tree.current->getParent()->getRight();
-    tree.current->setRight(indexExpr);
-    indexExpr->setParent(tree.current);
-    tree.current->getParent()->makeRightNull();
-    tree.current->getParent()->setNext(tree.current);
+    uint32_t indexExpr = tree.nodes[tree.nodes[tree.current]->getParent()]->getRight();
+    tree.nodes[tree.current]->setRight(indexExpr);
+    tree.nodes[indexExpr]->setParent(tree.current);
+    tree.nodes[tree.nodes[tree.current]->getParent()]->makeRightNull();
+    tree.nodes[tree.nodes[tree.current]->getParent()]->setNext(tree.nodecount);
 
     tree.branchLeft();
     expression();
@@ -613,7 +622,7 @@ void Parser::boolExpression() {
         nextTokenContent == "TAI"
     ) {
         string op = nextTokenContent == "JA" ? "and" : "or";
-        tree.current->setOperator(op);
+        tree.nodes[tree.current]->setOperator(op);
         matchToken(nextTokenContent);
         
         tree.branchRight();
@@ -631,7 +640,7 @@ void Parser::boolTerm() {
     expression();
     tree.closeBranch();
     
-    tree.current->setOperator(look.getContent());
+    tree.nodes[tree.current]->setOperator(look.getContent());
     matchToken(look.getContent());
     
     tree.branchRight();

@@ -34,7 +34,7 @@ void Javascript::traverse(shared_ptr<GNODE> node) {
 
     handleNode(node);
 
-    shared_ptr<GNODE> next  = node->getNext();
+    shared_ptr<GNODE> next  = tree->getNode(node->getNext());
 
     if (next != nullptr) {
         traverse(next);
@@ -157,32 +157,32 @@ void Javascript::handleDeclare(shared_ptr<GNODE> node) {
 
     emitVariable(node->name);
     
-    shared_ptr<GNODE> left = node->getLeft();
+    shared_ptr<GNODE> left = tree->getNode(node->getLeft());
     if (left) {
         
         if (left->getType() != "ASSIGN") {
             error("Declare expected assignment, got " + left->getType());
         }
-        checkNullPtr(node->getLeft(), node);
-        handleAssign(node->getLeft());
+        checkNullPtr(tree->getNode(node->getLeft()), node);
+        handleAssign(tree->getNode(node->getLeft()));
     }
 }
 
 void Javascript::handleWhile(shared_ptr<GNODE> node) {
 
-    checkNullPtr(node->getLeft(), node);
-    checkNullPtr(node->getRight(), node);
+    checkNullPtr(tree->getNode(node->getLeft()), node);
+    checkNullPtr(tree->getNode(node->getRight()), node);
 
     // Left-child has the condition
     // Right-child has a linked list to the operations within the block
     emitInstruction("var whileR8;");
-    traverse(node->getLeft());
+    traverse(tree->getNode(node->getLeft()));
     emitInstruction("whileR8 = stack.pop()");
     emitInstruction("while (whileR8)");
     
     emitInstruction("{");
-        traverse(node->getRight());
-        traverse(node->getLeft());
+        traverse(tree->getNode(node->getRight()));
+        traverse(tree->getNode(node->getLeft()));
         emitInstruction("whileR8 = stack.pop()");
     emitInstruction("};");
   
@@ -191,7 +191,7 @@ void Javascript::handleWhile(shared_ptr<GNODE> node) {
 void Javascript::handleFor(shared_ptr<GNODE> node) {
 
     // Right-child has a linked list to the operations within the block
-    checkNullPtr(node->getRight(), node);
+    checkNullPtr(tree->getNode(node->getRight()), node);
 
     string variableRef  = node->name;
     string step         = node->getFromInfo("step");
@@ -201,37 +201,39 @@ void Javascript::handleFor(shared_ptr<GNODE> node) {
 
     emitInstruction("var tmp = " + node->name + ";");
     emitInstruction("for (let "+node->name+" =tmp; "+node->name+" < "+to+"; "+node->name+"+="+step+") {");
-        traverse(node->getRight());
+        traverse(tree->getNode(node->getRight()));
     emitInstruction("};"); 
   
 }
 
 void Javascript::handleIf(shared_ptr<GNODE> node) {
-    checkNullPtr(node->getLeft(), node);
-    checkNullPtr(node->getRight(), node);
+    checkNullPtr(tree->getNode(node->getLeft()), node);
+    checkNullPtr(tree->getNode(node->getRight()), node);
 
     // Left-child has the condition. Traverse it to get the result onto stack
-    traverse(node->getLeft());
+    traverse(tree->getNode(node->getLeft()));
     emitInstruction("if (stack.pop()) {");
-    traverse(node->getRight()->getRight());
+    traverse(tree->getNode(tree->getNode(node->getRight())->getRight()));
     // The code to be executed if the condition evaluates TRUE is 
     // wrapped in a nested GNODE. The right branch is executed if TRUE.
     // The left branch is taken if FALSE and IF-ELSE exists
     emitInstruction("} else {");
-    if (node->getRight()->getLeft()) {
-        traverse(node->getRight()->getLeft());
+    if (tree->getNode(node->getRight())->getLeft()) {
+        traverse(
+            tree->getNode(tree->getNode(node->getRight())->getLeft())
+        );
     }
     emitInstruction("}");
 }
 
 void Javascript::handleExpression(shared_ptr<GNODE> node) {
     
-    checkNullPtr(node->getLeft(), node);
-    traverse(node->getLeft());
+    checkNullPtr(tree->getNode(node->getLeft()), node);
+    traverse(tree->getNode(node->getLeft()));
 
     if (node->hasMathOperator()) {
-        checkNullPtr(node->getRight(), node);
-        handleMathOperation(node->getRight(), node->op);
+        checkNullPtr(tree->getNode(node->getRight()), node);
+        handleMathOperation(tree->getNode(node->getRight()), node->op);
     }
 }
 
@@ -240,7 +242,7 @@ void Javascript::handleVariable(shared_ptr<GNODE> node) {
 
     // If there's a right branch, it's an indexed reference
     // The right branch has an expr that will evaluate to the index (usually an int constant)
-    shared_ptr<GNODE> right = node->getRight();
+    shared_ptr<GNODE> right = tree->getNode(node->getRight());
 
     if (right) {
         // Store the index into a register (R9) and offset
@@ -261,15 +263,15 @@ void Javascript::handleBoolExpression(shared_ptr<GNODE> node) {
     // A wrapper for bool term(s)
     // If it's a single term, just execute it
     // If there's two terms, apply approriate boolean operator
-    checkNullPtr(node->getLeft(),node);
+    checkNullPtr(tree->getNode(node->getLeft()),node);
 
-    traverse(node->getLeft());
+    traverse(tree->getNode(node->getLeft()));
 
-    if (!node->getRight()) {
+    if (!tree->getNode(node->getRight())) {
         return;
     }
     emitInstruction("var r9 = stack.pop();");
-    traverse(node->getRight());
+    traverse(tree->getNode(node->getRight()));
     emitInstruction("var r8 = stack.pop();");
 
     emitInstruction("stack.push(r8 " + node->op + " r9);");
@@ -279,9 +281,9 @@ void Javascript::handleBoolTerm(shared_ptr<GNODE> node) {
     emitComment("bool-term started");
 
     // Evaluate left expression; result is stored on the stack
-    traverse(node->getLeft());
+    traverse(tree->getNode(node->getLeft()));
     // Eval right expression
-    traverse(node->getRight());
+    traverse(tree->getNode(node->getRight()));
     // Now we have values in R8 and R9
     emitInstruction("var r9 = stack.pop();");
     emitInstruction("var r8 = stack.pop();");
@@ -305,17 +307,17 @@ void Javascript::handleAssign(shared_ptr<GNODE> node) {
     if (!variableDeclared(name)) {
         error("Assignment to an undeclared variable (" + name + ")");
     }
-    checkNullPtr(node->getLeft(), node);
+    checkNullPtr(tree->getNode(node->getLeft()), node);
 
     // If there's a right branch, it's an indexed assignment
     // The right branch has an expr that will evaluate to the index (usually an int constant)
-    shared_ptr<GNODE> right = node->getRight();
+    shared_ptr<GNODE> right = tree->getNode(node->getRight());
 
     // If it's an int:
     //  Evaluate the expression that is beign assigned, the result will be in r8
     // If it's a constant str:
     //  Handle pointer locally (do not traverse)
-    shared_ptr<GNODE> left = node->getLeft();  
+    shared_ptr<GNODE> left = tree->getNode(node->getLeft());  
 
     if (left->getType() == "CONSTANT" & left->datatype == "str") {
         emitInstruction(name + " = '" + left->value + "';");
@@ -364,8 +366,8 @@ void Javascript::handleMathOperation(shared_ptr<GNODE> node, string op) {
 
 void Javascript::handlePrintString(shared_ptr<GNODE> node) {
 
-    checkNullPtr(node->getLeft(), node);
-    shared_ptr<GNODE> left = node->getLeft();
+    checkNullPtr(tree->getNode(node->getLeft()), node);
+    shared_ptr<GNODE> left = tree->getNode(node->getLeft());
 
     if (left->getType() == "CONSTANT") {
         handlePrintASCII(left);
@@ -386,7 +388,7 @@ void Javascript::handlePrintInt(shared_ptr<GNODE> node) {
         return;
     } 
 
-    shared_ptr<GNODE> left = node->getLeft();
+    shared_ptr<GNODE> left = tree->getNode(node->getLeft());
     
     if (!node) {
         error("Expected PrintInt to have a left node!\n");

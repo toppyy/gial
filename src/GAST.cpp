@@ -6,12 +6,20 @@ GAST::GAST() :
     toLeft(false),
     nextToLeft(false),
     nextToRight(false),
-    branchStack(stack<shared_ptr<GNODE>>())
+    branchStack(stack<uint32_t>()),
+    nodes(vector<shared_ptr<GNODE>> {}),
+    current(0),
+    nodecount(0)
     {
-    current = make_shared<GNODE>();
-    current->isRoot = true;
-    current->setType("root");
-    root = current;
+    
+    nodes.push_back(nullptr);
+    current++;
+    nodecount++;
+    nodes.push_back(make_shared<GNODE>());
+    nodes[current]->id = nodecount;
+    nodes[current]->isRoot = true;
+    nodes[current]->setType("root");
+
 };
 
 
@@ -35,40 +43,41 @@ void GAST::unsetLeftAsDefault() {
 }
 
 
-void GAST::addToCurrent(shared_ptr<GNODE> node) {
+void GAST::addToCurrent(shared_ptr<GNODE>  node) {
     
-    node->setParent(current);    
-    
+
     if (nextToLeft) {
-        current->setLeft(node);
+        nodes[current]->setLeft(nodecount + 1);
         nextToLeft = false;
     }
     else if (nextToRight) {
-        current->setRight(node);
+        nodes[current]->setRight(nodecount + 1);
         nextToRight = false;
     }
     else if (toLeft) {
-        current->setLeft(node);
+        nodes[current]->setLeft(nodecount + 1);
     }  
     
     else {
-        current->setNext(node);
+        nodes[current]->setNext(nodecount + 1);
     }
-    current = node;
+    
+    node->setParent(current);
+    nodecount++;
+    current = nodecount;
+    node->id = nodecount;
+    nodes.push_back(node);
+
+    std::clog << "Added node of type " << node->getType() << " with id " << std::to_string(node->id) << "\n";
 }
 
 
-
-bool GAST::toParent() {
-    if (current->isRoot) {
-        return false;
-    }
-    current = current->getParent();
-    return true;
+shared_ptr<GNODE> GAST::getNode(uint32_t nodeidx) {
+    return nodes[nodeidx];
 }
 
 shared_ptr<GNODE> GAST::getRoot() {
-    return root;
+    return nodes[1];
 }
 
 void GAST::branchLeft() {
@@ -85,9 +94,11 @@ void GAST::branchRight() {
 
 GNODE::GNODE() : 
     isRoot(false),
-    right(nullptr),
-    next(nullptr),
-    left(nullptr),
+    right(0),
+    next(0),
+    left(0),
+    parent(0),
+    id(0),
     type("unknown"),
     op(""),
     value(""),
@@ -100,34 +111,27 @@ GNODE::GNODE() :
 }
 
 void GNODE::makeRightNull() {
-    right = nullptr;
+    right = 0;
 }
 
-void GNODE::setLeft(shared_ptr<GNODE> p_left) {
+void GNODE::setLeft(uint32_t p_left) {
     left = p_left;
 }
 
-void GNODE::setNext(shared_ptr<GNODE> p_node) {
+void GNODE::setNext(uint32_t p_node) {
     next = p_node;
 }
 
-void GNODE::setParent(shared_ptr<GNODE> p_parent) {
+void GNODE::setParent(uint32_t p_parent) {
     parent = p_parent;
 }
 
-void GNODE::setRight(shared_ptr<GNODE> p_right) {
+void GNODE::setRight(uint32_t p_right) {
     right = p_right;
 }
 
 void GNODE::setType(string p_type) {
     type = p_type;
-}
-
-string getNodeType(shared_ptr<GNODE> node) {
-    if (node == nullptr) {
-        return "null";
-    }
-    return node->getType();
 }
 
 bool GNODE::hasMathOperator() {
@@ -138,18 +142,18 @@ bool GNODE::hasMathOperator() {
     return false;
 }
 
-shared_ptr<GNODE> GNODE::getLeft() {
+uint32_t GNODE::getLeft() {
     return left;
 }
 
-shared_ptr<GNODE> GNODE::getNext() {
+uint32_t GNODE::getNext() {
     return next;
 }
-shared_ptr<GNODE> GNODE::getParent() {
-    return parent.lock();
+uint32_t GNODE::getParent() {
+    return parent;
 }
 
-shared_ptr<GNODE> GNODE::getRight() {
+uint32_t GNODE::getRight() {
     return right;
 }
 
