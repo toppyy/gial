@@ -90,6 +90,11 @@ class GAST {
         shared_ptr<GNODE> getNode(uint32_t nodeidx);
 
         shared_ptr<GNODE> getRoot();
+        shared_ptr<GNODE> getRight(shared_ptr<GNODE> ptr);
+        shared_ptr<GNODE> getLeft(shared_ptr<GNODE> ptr);
+        shared_ptr<GNODE> getParent(shared_ptr<GNODE> ptr);
+        shared_ptr<GNODE> getNext(shared_ptr<GNODE> ptr);
+        shared_ptr<GNODE> getCurrent();
         uint32_t current;
         uint32_t nodecount;
  

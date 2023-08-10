@@ -273,7 +273,7 @@ void Parser::letStringStatement() {
         expected("a string when assigning to a string type");
     }
     string strConstant = look.getContent();
-    tree.nodes[tree.current]->size = strConstant.length(); // Store string len with DECLARATION
+    tree.getCurrent()->size = strConstant.length(); // Store string len with DECLARATION
 
     tree.addToCurrent(make_shared<ASSIGN>(varName.getContent()));
     tree.branchLeft();
@@ -328,7 +328,7 @@ void Parser::forStatement() {
     // This will declare 'x' and assign the first value
     Parser::letIntStatement();
 
-    string name = tree.nodes[tree.current]->name;
+    string name = tree.getCurrent()->name;
 
     matchToken("TOHO");
     // Looping "to" - either a integer or a variable ref
@@ -455,7 +455,7 @@ void Parser::expression() {
     tree.closeBranch();
 
     while (lookChar == '+' | lookChar == '-' | lookChar == '*' | lookChar == '/') {
-        tree.nodes[current]->setOperator(look.getContent());
+        tree.getCurrent()->setOperator(look.getContent());
         getToken();
         tree.branchRight();
         term();
@@ -524,21 +524,19 @@ void Parser::ident() {
             // This manipulates current BLOCK
             indexedAssignment(name);
             return;
-        } else {
-            // It's an indexed variable ref
-
-            tree.addToCurrent(make_shared<VARIABLE>(name.getContent()));
-            // Add index to the left branch of variable
-            // TODO: Brutal
-
-            uint32_t parent = tree.nodes[tree.current]->getParent();
-
-            tree.nodes[tree.current]->setRight( tree.nodes[ parent ]->getRight());
-            tree.nodes[tree.nodes[tree.current]->getParent()]->makeRightNull();
-
-
-            return;
         }
+
+        // It's an indexed variable ref
+        tree.addToCurrent(make_shared<VARIABLE>(name.getContent()));
+
+        // Add index to the left branch of variable
+
+        shared_ptr<GNODE> current   = tree.getCurrent();
+        shared_ptr<GNODE> parent    = tree.getParent(current);
+        
+        current->setRight(parent->getRight());
+        parent->makeRightNull();
+        return;
     }        
     
     // Check if it's an assignment to a variable
@@ -559,11 +557,14 @@ void Parser::indexedAssignment(Token name) {
     // child (atm it is in the parent BLOCK's right branch)
     tree.addToCurrent(make_shared<ASSIGN>(name.getContent()));
 
-    uint32_t indexExpr = tree.nodes[tree.nodes[tree.current]->getParent()]->getRight();
-    tree.nodes[tree.current]->setRight(indexExpr);
-    tree.nodes[indexExpr]->setParent(tree.current);
-    tree.nodes[tree.nodes[tree.current]->getParent()]->makeRightNull();
-    tree.nodes[tree.nodes[tree.current]->getParent()]->setNext(tree.nodecount);
+    shared_ptr<GNODE> current   = tree.getCurrent();
+    shared_ptr<GNODE> parent    = tree.getParent(current);
+    shared_ptr<GNODE> indexExpr = tree.getRight(parent);
+    
+    current->setRight(indexExpr->id);
+    indexExpr->setParent(tree.current);
+    parent->makeRightNull();
+    parent->setNext(tree.nodecount);
 
     tree.branchLeft();
     expression();
@@ -614,7 +615,7 @@ void Parser::boolExpression() {
         nextTokenContent == "TAI"
     ) {
         string op = nextTokenContent == "JA" ? "and" : "or";
-        tree.nodes[tree.current]->setOperator(op);
+        tree.getCurrent()->setOperator(op);
         matchToken(nextTokenContent);
         
         tree.branchRight();
@@ -632,7 +633,7 @@ void Parser::boolTerm() {
     expression();
     tree.closeBranch();
     
-    tree.nodes[tree.current]->setOperator(look.getContent());
+    tree.getCurrent()->setOperator(look.getContent());
     matchToken(look.getContent());
     
     tree.branchRight();

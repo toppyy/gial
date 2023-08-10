@@ -75,6 +75,27 @@ shared_ptr<GNODE> GAST::getNode(uint32_t nodeidx) {
     return nodes[nodeidx];
 }
 
+shared_ptr<GNODE> GAST::getRight(shared_ptr<GNODE> ptr) {
+    return nodes[ptr->getRight()];
+}
+
+shared_ptr<GNODE> GAST::getLeft(shared_ptr<GNODE> ptr) {
+    return nodes[ptr->getLeft()];
+}
+
+shared_ptr<GNODE> GAST::getParent(shared_ptr<GNODE> ptr) {
+    return nodes[ptr->getParent()];
+}
+
+shared_ptr<GNODE> GAST::getNext(shared_ptr<GNODE> ptr) {
+    return nodes[ptr->getNext()];
+}
+
+shared_ptr<GNODE> GAST::getCurrent() {
+    return nodes[current];
+}
+
+
 shared_ptr<GNODE> GAST::getRoot() {
     return nodes[1];
 }
@@ -161,10 +182,13 @@ string GNODE::getType() {
 }
 
 string GNODE::getFromInfo(string key) {
-    if (auto search = info.find(key); search != info.end())
-        return search->second;
-    else
+    auto search = info.find(key);
+    
+    if (search == info.end()) {
         throw std::runtime_error("Node (" + type +  ") info does not have key " + key + "\n");
+    }
+
+    return search->second;    
 }
 
 
