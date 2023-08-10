@@ -30,3 +30,6 @@ clean:
 
 tests:
 	./test/bats/bin/bats ./test
+
+memcheck:
+	./test/bats/bin/bats ./test/memcheck
