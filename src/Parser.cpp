@@ -449,7 +449,6 @@ void Parser::expression() {
 
     tree.addToCurrent(make_shared<EXPRESSION>());
     uint32_t current = tree.current;
-    std::clog << "Expression parent: " << std::to_string(current) << "\n";
         
     tree.branchLeft();
         term();
@@ -464,12 +463,10 @@ void Parser::expression() {
     }
     tree.unsetLeftAsDefault();
     tree.current = current; // Return to the 'level' of this expr
-    std::clog << "Expression parent done: " << std::to_string(current) << "\n";
 
 }   
 
 void Parser::term() {
-   std::clog << "term: " + look.getContent() + ". to: " + std::to_string(tree.current) + "\n";
     // If an opening parenthesis is met, start an another expression recursively
     // This works because nothing is emitted before the 'inner most' parenthesis have been met
     if (lookChar == '(') {
@@ -494,7 +491,6 @@ void Parser::term() {
 
     
     if (isDigit(lookChar)) {
-        std::clog << "digit: " + look.getContent() + ". to: " + std::to_string(tree.current) + "\n";
         tree.addToCurrent(make_shared<CONSTANT>(look.getContent(), "int"));
         getToken();
         return;
@@ -510,7 +506,6 @@ void Parser::term() {
 }   
 
 void Parser::ident() {
-    std::clog << "ident\n";
     Token name = getName();
 
     // Check if it's an indexed reference
@@ -520,11 +515,9 @@ void Parser::ident() {
         // Add a block to the current expression
         // The right branch of the block will contain the expr in variable[expr]
         tree.addToCurrent(make_shared<BLOCK>());
-        std::clog << "Current before [] expr: " << std::to_string(tree.current) << "\n";
         tree.branchRight();
         expression();
         tree.closeBranch();
-        std::clog << "Current after [] expr: " << std::to_string(tree.current) << "\n";
         matchToken("]");
         
         if (look == "=") {
@@ -559,7 +552,6 @@ void Parser::ident() {
 }
 
 void Parser::indexedAssignment(Token name) {
-    std::clog << "indexedAssignment\n";
     matchToken("=");
 
     // Create ASSIGNment. Do some tree manipulation so

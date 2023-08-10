@@ -68,7 +68,6 @@ void GAST::addToCurrent(shared_ptr<GNODE>  node) {
     node->id = nodecount;
     nodes.push_back(node);
 
-    std::clog << "Added node of type " << node->getType() << " with id " << std::to_string(node->id) << "\n";
 }
 
 
