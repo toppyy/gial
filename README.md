@@ -4,7 +4,7 @@
 
 The project is actually a translator: it translates giäl to assembly for x86. The assembler targeted is [NASM](https://www.nasm.us). It is written in C++.
 
-The project follows Jack Crenshaws's [Let's Build a Compiler](https://compilers.iecc.com/crenshaw/) article series. Jack writes in Turbo Pascal and targets 68000, so code's been re-written, but I've stolen the ideas.
+The project started with Jack Crenshaws's [Let's Build a Compiler](https://compilers.iecc.com/crenshaw/) article series. Jack writes in Turbo Pascal and targets 68000, so code's been re-written, but I've stolen some of the ideas. Unlike Jack's compiler, giäl represents the parsed program as a tree-like structure before translation.
 
 # Hello, world! / Terveissi!
 
@@ -101,3 +101,7 @@ And you're done. Run the program:
 Testing is implemented with [BATS](https://github.com/bats-core/bats-core) (included as a submodule). To run all tests:
 
     make tests
+
+To test for memory leaks, use:
+
+    make memcheck
