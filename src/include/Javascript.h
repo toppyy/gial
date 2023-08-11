@@ -10,8 +10,8 @@ using std::shared_ptr, std::string, std::to_string;
 
 class Javascript: public Assembler {
     public:
-        Javascript();
-        void assemble(shared_ptr<GAST> p_tree);
+        Javascript(GAST& p_tree);
+        void assemble();
     
     private:
         void traverse(shared_ptr<GNODE> node);
@@ -43,7 +43,7 @@ class Javascript: public Assembler {
 
         bool variableDeclared(string name);
 
-        shared_ptr<GAST> tree;
+        GAST& tree;
         std::vector<string> instructions;
         std::set<string> variables;
         bool wrapToAsyncFunction;

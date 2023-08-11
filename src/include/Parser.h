@@ -14,7 +14,7 @@ using std::string, std::vector, std::shared_ptr, std::set;
 class Parser
 {
 public:
-    Parser(vector<Token> p_tokens, set<string> p_keywords, GAST &p_tree);
+    Parser(vector<Token> p_tokens, set<string> p_keywords, GAST& p_tree);
     void init();
     void mapStatementToFunction(string statement);
 
@@ -70,6 +70,6 @@ private:
     int labelCount;
     int cursor;
     int token_count;
-    GAST &tree;
+    GAST& tree;
     set<string> keywords;
 };

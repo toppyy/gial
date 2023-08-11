@@ -7,7 +7,7 @@ using std::shared_ptr, std::string, std::to_string;
 
 class Assembler {
     public:
-        virtual void assemble(shared_ptr<GAST> p_tree) = 0;        
+        virtual void assemble() = 0;        
 
     private:
         virtual void handleConstant(shared_ptr<GNODE> node) = 0;

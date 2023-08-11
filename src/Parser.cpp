@@ -3,7 +3,7 @@
 Parser::Parser(
         vector<Token> p_tokens,
         set<string> p_keywords,
-        GAST &p_tree
+        GAST& p_tree
         ) : 
         labelCount(0),
         look(Token("EOF")),
@@ -17,8 +17,6 @@ Parser::Parser(
     cursor = 0;
     token_count = tokens.size();
     keywords = p_keywords;
-    tree = p_tree;
-
 }
 
 void Parser::init() {

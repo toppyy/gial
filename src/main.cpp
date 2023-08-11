@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#include <fstream> 
+#include <fstream>
 #include <string>
 #include "./include/GAST.h"
 #include "./include/Parser.h"
@@ -31,10 +31,10 @@ void printTree(std::shared_ptr<GNODE> node, int depth, GAST& tree) {
         std::cout << "\t";
         tabs--;
     }
-    
+
     std::clog << "type is " << node->getType() << " and id is " << node->id
-        << " and left is " << node->getLeft() 
-        << " and right is " << node->getRight() 
+        << " and left is " << node->getLeft()
+        << " and right is " << node->getRight()
         << " and next is "  << node->getNext()
         << "\n";
 
@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
     char* filename;
     char* p_assembler;
 
-    char default_assembler[5] = "NASM"; 
+    char default_assembler[5] = "NASM";
     p_assembler = default_assembler;
 
     for (int i = 0; i < argc; ++i) {
@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
             p_assembler = argv[i];
         }
     }
-   
+
 
     // Read from the text file
     FILE* pFile;
@@ -92,20 +92,20 @@ int main(int argc, char *argv[]) {
     // Here's a dirty trick to change (some) scandics into ASCII with the following mapping:
     //  Ä -> A
     // (Ö,ö,å have no role in giäl, so forget about them atm)
-    // Might not work for all encodings so use with caution. 
+    // Might not work for all encodings so use with caution.
     // Also the program cannot start with a scandic.
 
     cur = getc(pFile);
     content.push_back(cur);
     do {
-        
+
         prev = cur;
         cur = getc(pFile);
         curManipulated = handleScandics(cur, prev);
         if (curManipulated > 0) {
             content.push_back(curManipulated);
         }
-        
+
     } while (cur != EOF);
     content.push_back(-1); // We want EOF
 
@@ -113,46 +113,30 @@ int main(int argc, char *argv[]) {
     fclose(pFile);
 
     std::set<std::string> keywords = getKeywords();
-    
+
     // Init scanner & parser and result data structure
     Scanner scnr = Scanner(content, keywords);
     scnr.init();
 
-    
-    GAST tree = GAST();
-    
-    //std::shared_ptr<GAST> p_tree = std::make_shared<GAST>( GAST(root) );
-    
-    Parser prsr = Parser(scnr.getTokens(), keywords, tree);
-   
 
+    GAST tree = GAST();
+    Parser prsr = Parser(scnr.getTokens(), keywords, tree);
     prsr.init();
 
 
-    printTree(tree.getRoot(), 0, tree);
-    
-    // tree.returnToRoot();
-    
-    // std::unique_ptr<Assembler> asmblr;
-    // if ( strcmp(p_assembler,"JS") == 0) {
-    //     asmblr = std::make_unique<Javascript>();
-    // } else {
-    //     asmblr = std::make_unique<NASM>();
-    // }
-    // asmblr->assemble(p_tree);
-
-    std::shared_ptr<GAST> p_tree = std::make_shared<GAST>( tree );
     if ( strcmp(p_assembler,"JS") == 0) {
-        Javascript asmblr = Javascript();
-        asmblr.assemble(p_tree);
+        Javascript asmblr = Javascript(tree);
+        asmblr.assemble();
     } else {
-        NASM asmblr = NASM();
-        asmblr.assemble(p_tree);
+        NASM asmblr = NASM(tree);
+        asmblr.assemble();
     }
 
-    // Finished  
-    std::cout << "\n\n";
     
+
+    // Finished
+    std::cout << "\n\n";
+
     return 0;
 
 }

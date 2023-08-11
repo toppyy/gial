@@ -1,17 +1,16 @@
 #include "./include/NASM.h"
 #include "./include/NASMProgram.h"
 
-NASM::NASM() {
-    tree    = nullptr;
+NASM::NASM(GAST& p_tree) : tree(p_tree) {
     program = nullptr;
 }
 
-void NASM::assemble(shared_ptr<GAST> p_tree) {
+void NASM::assemble() {
     
     program = std::make_unique<NASMProgram>(std::cout);
 
-    tree = p_tree;
-    traverse(tree->getRoot());
+
+    traverse(tree.getRoot());
     program->buildProgram();
 
 }
@@ -20,7 +19,7 @@ void NASM::traverse(shared_ptr<GNODE> node) {
 
     handleNode(node);
 
-    shared_ptr<GNODE> next  = tree->getNext(node);
+    shared_ptr<GNODE> next  = tree.getNext(node);
 
     if (next != nullptr) {
         traverse(next);
@@ -139,32 +138,32 @@ void NASM::handleDeclare(shared_ptr<GNODE> node) {
         emitVariable(node->name, "int", "qword", node->size);
     }
 
-    shared_ptr<GNODE> left = tree->getLeft(node);
+    shared_ptr<GNODE> left = tree.getLeft(node);
     if (left) {
         
         if (left->getType() != "ASSIGN") {
             error("Declare expected assignment, got " + left->getType());
         }
-        checkNullPtr(tree->getLeft(node), node);
-        handleAssign(tree->getLeft(node));
+        checkNullPtr(tree.getLeft(node), node);
+        handleAssign(tree.getLeft(node));
     }
 
 }
 
 void NASM::handleWhile(shared_ptr<GNODE> node) {
 
-    checkNullPtr(tree->getLeft(node), node);
-    checkNullPtr(tree->getRight(node), node);
+    checkNullPtr(tree.getLeft(node), node);
+    checkNullPtr(tree.getRight(node), node);
 
     // Left-child has the condition
     // Right-child has a linked list to the operations within the block
     string labelIn  = program->getNewLabel();
     string labelOut = program->getNewLabel();
     emitInstruction(labelIn + ":");
-    traverse(tree->getLeft(node));
+    traverse(tree.getLeft(node));
     emitInstruction("cmp r8, 1");
     emitInstruction("jne " + labelOut);
-    traverse(tree->getRight(node));
+    traverse(tree.getRight(node));
     emitInstruction("jmp " + labelIn);
     emitInstruction(labelOut + ":");
   
@@ -173,7 +172,7 @@ void NASM::handleWhile(shared_ptr<GNODE> node) {
 void NASM::handleFor(shared_ptr<GNODE> node) {
 
     // Right-child has a linked list to the operations within the block
-    checkNullPtr(tree->getRight(node), node);
+    checkNullPtr(tree.getRight(node), node);
 
     string loopStart    = program->getNewLabel();
     string variableRef  = "qword[" + node->name + "]";
@@ -189,7 +188,7 @@ void NASM::handleFor(shared_ptr<GNODE> node) {
     emitInstruction(loopStart + ":");            // Loop start label
     emitInstruction("push r8");                  // Push counter onto stack
     
-    traverse(tree->getRight(node));
+    traverse(tree.getRight(node));
 
     emitInstruction("pop r8");                      // Pop counter from stack
     emitInstruction("add r8, " + step);             // Increment counter from stack
@@ -202,8 +201,8 @@ void NASM::handleFor(shared_ptr<GNODE> node) {
 
 void NASM::handleIf(shared_ptr<GNODE> node) {
 
-    checkNullPtr(tree->getLeft(node), node);
-    checkNullPtr(tree->getRight(node), node);
+    checkNullPtr(tree.getLeft(node), node);
+    checkNullPtr(tree.getRight(node), node);
 
     emitComment("If started");
 
@@ -213,23 +212,23 @@ void NASM::handleIf(shared_ptr<GNODE> node) {
     string labelElse = program->getNewLabel();
     string labelOut = program->getNewLabel();
     emitInstruction(labelIn + ":");
-    traverse(tree->getLeft(node));
+    traverse(tree.getLeft(node));
     emitInstruction("cmp r8, 1");
     emitInstruction("jne " + labelElse);
     // The code to be executed if the condition evaluates TRUE is 
     // wrapped in a nested GNODE. The right branch is executed if TRUE.
     // The left branch is taken if FALSE and IF-ELSE exists
     traverse(
-        tree->getRight(
-            tree->getRight(node)
+        tree.getRight(
+            tree.getRight(node)
         )
     );
     emitInstruction("jmp " + labelOut);
     emitInstruction(labelElse + ":");
-    if (tree->getRight(node)->getLeft()) {
+    if (tree.getRight(node)->getLeft()) {
         traverse(
-            tree->getLeft(
-                tree->getRight(node)
+            tree.getLeft(
+                tree.getRight(node)
             )
         );
     }
@@ -239,12 +238,12 @@ void NASM::handleIf(shared_ptr<GNODE> node) {
 
 void NASM::handleExpression(shared_ptr<GNODE> node) {
     
-    checkNullPtr(tree->getLeft(node), node);
-    traverse(tree->getLeft(node));
+    checkNullPtr(tree.getLeft(node), node);
+    traverse(tree.getLeft(node));
 
     if (node->hasMathOperator()) {
-        checkNullPtr(tree->getRight(node), node);
-        handleMathOperation(tree->getRight(node), node->op);
+        checkNullPtr(tree.getRight(node), node);
+        handleMathOperation(tree.getRight(node), node->op);
     }
 }
 
@@ -256,7 +255,7 @@ void NASM::handleVariable(shared_ptr<GNODE> node) {
     
     // If there's a right branch, it's an indexed assignment
     // The right branch has an expr that will evaluate to the index (usually an int constant)
-    shared_ptr<GNODE> right = tree->getRight(node);
+    shared_ptr<GNODE> right = tree.getRight(node);
 
     if (right) {
         // Store the index into a register (R9) and offset
@@ -283,15 +282,15 @@ void NASM::handleBoolExpression(shared_ptr<GNODE> node) {
     // A wrapper for bool term(s)
     // If it's a single term, just execute it
     // If there's two terms, apply approriate boolean operator
-    checkNullPtr(tree->getLeft(node),node);
+    checkNullPtr(tree.getLeft(node),node);
 
-    traverse(tree->getLeft(node));
+    traverse(tree.getLeft(node));
 
-    if (!tree->getRight(node)) {
+    if (!tree.getRight(node)) {
         return;
     }
     emitInstruction("push r8");
-    traverse(tree->getRight(node));
+    traverse(tree.getRight(node));
     emitInstruction("pop r9");
 
     emitInstruction(node->op + " r8, r9");
@@ -304,17 +303,17 @@ void NASM::handleBoolTerm(shared_ptr<GNODE> node) {
     string opInstruction = mapOperatorToInstruction(node->op);
 
     // Evaluate left expression; result is stored into r8
-    traverse(tree->getLeft(node));
+    traverse(tree.getLeft(node));
     // Push result onto stack
     emitInstruction("push r8");
     // Eval right expression
-    traverse(tree->getRight(node));
+    traverse(tree.getRight(node));
     // Now we have values/pointers in R8 and R9
     emitInstruction("pop r9");
     
     // Check if we're comparing strings
-    bool leftIsStr  = checkIfExpressionIsAString(tree->getLeft(node));
-    bool rightIsStr = checkIfExpressionIsAString(tree->getRight(node));
+    bool leftIsStr  = checkIfExpressionIsAString(tree.getLeft(node));
+    bool rightIsStr = checkIfExpressionIsAString(tree.getRight(node));
 
     if (leftIsStr && rightIsStr) {
         // Strings need a bit of special interest
@@ -360,11 +359,11 @@ void NASM::handleAssign(shared_ptr<GNODE> node) {
     if (!program->inVariables(name)) {
         error("Assignment to an undeclared variable (" + name + ")");
     }
-    checkNullPtr(tree->getLeft(node), node);
+    checkNullPtr(tree.getLeft(node), node);
 
     // If there's a right branch, it's an indexed assignment
     // The right branch has an expr that will evaluate to the index (usually an int constant)
-    shared_ptr<GNODE> right = tree->getRight(node);
+    shared_ptr<GNODE> right = tree.getRight(node);
 
     if (right) {
         // We store the index into a register (R9). Later on (see below)
@@ -377,7 +376,7 @@ void NASM::handleAssign(shared_ptr<GNODE> node) {
     //  Evaluate the expression that is beign assigned, the result will be in r8
     // If it's a constant str:
     //  Handle pointer locally (do not traverse)
-    shared_ptr<GNODE> left = tree->getLeft(node);  
+    shared_ptr<GNODE> left = tree.getLeft(node);  
 
     if (left->getType() == "CONSTANT" & left->datatype == "str") {
         int byteIdx = 0;
@@ -432,8 +431,8 @@ void NASM::handleMathOperation(shared_ptr<GNODE> node, string op) {
 
 void NASM::handlePrintString(shared_ptr<GNODE> node) {
 
-    checkNullPtr(tree->getLeft(node), node);
-    shared_ptr<GNODE> left = tree->getLeft(node);
+    checkNullPtr(tree.getLeft(node), node);
+    shared_ptr<GNODE> left = tree.getLeft(node);
 
     if (left->getType() == "CONSTANT") {
                 string value = left->value;
@@ -480,7 +479,7 @@ void NASM::handlePrintInt(shared_ptr<GNODE> node) {
         emitInstruction("mov rdi, " + var.makeReferenceTo());
         emitComment("printing variable " + node->name);
     } else {
-        shared_ptr<GNODE> left = tree->getLeft(node);
+        shared_ptr<GNODE> left = tree.getLeft(node);
         if (!node) {
             error("Expected PrintInt to have a left node!\n");
         }
@@ -616,11 +615,11 @@ bool NASM::checkIfExpressionIsAString(shared_ptr<GNODE> node) {
         }
     }
     bool res = false;
-    if (tree->getLeft(node)) {
-        res = checkIfExpressionIsAString(tree->getLeft(node));
+    if (tree.getLeft(node)) {
+        res = checkIfExpressionIsAString(tree.getLeft(node));
     }
-    if (tree->getRight(node)) {
-        res = checkIfExpressionIsAString(tree->getRight(node));
+    if (tree.getRight(node)) {
+        res = checkIfExpressionIsAString(tree.getRight(node));
     }
     return res;
 }
@@ -689,23 +688,5 @@ void NASM::doStringComparison(string op) {
 	emitInstruction(loopEndFalse + ":");
 	emitInstruction("mov r8, 0");
 	emitInstruction(loopEnd + ":");
-
-
-    /*
-    emitInstruction("mov r10b, byte[r8 + r12]");
-	emitInstruction("mov r11b, byte[r9 + r12]");
-	emitInstruction("cmp r10b, r11b");
-	emitInstruction("jne " + loopEndFalse);
-	emitInstruction("cmp r10, 0");
-	emitInstruction("je " + loopEndTrue);
-	emitInstruction("inc r12");
-	emitInstruction("jmp " + loopStart);
-	emitInstruction(loopEndTrue + ":");
-	emitInstruction("mov r8,1");
-	emitInstruction("jmp " + loopEnd);
-	emitInstruction(loopEndFalse + ":");
-	emitInstruction("mov r8, 0");
-	emitInstruction(loopEnd + ":");
-    */
 
 }
