@@ -98,7 +98,13 @@ And you're done. Run the program:
 
 ## Testing
 
-Testing is implemented with [BATS](https://github.com/bats-core/bats-core) (included as a submodule). To run all tests:
+Testing is implemented with [BATS](https://github.com/bats-core/bats-core) (included as a submodule). 
+
+Get submodule
+
+    git submodule update --init --recursive
+
+To run all tests:
 
     make tests
 
