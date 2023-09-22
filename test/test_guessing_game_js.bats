@@ -3,7 +3,7 @@
 setup_file() {
 
     mkdir -p ./test/build
-    ./build/gl example/guessingGame.gl JS > ./test/build/guessingGame.js
+    ./build/gl example/guessingGame.gl -a JS > ./test/build/guessingGame.js
     
 }
 

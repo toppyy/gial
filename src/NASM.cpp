@@ -5,13 +5,13 @@ NASM::NASM(GAST& p_tree) : tree(p_tree) {
     program = nullptr;
 }
 
-void NASM::assemble() {
+std::vector<string> NASM::assemble() {
     
     program = std::make_unique<NASMProgram>(std::cout);
 
 
     traverse(tree.getRoot());
-    program->buildProgram();
+    return program->buildProgram();
 
 }
 

@@ -3,7 +3,7 @@
 setup_file() {
 
     mkdir -p ./test/build
-    ./build/gl test/test_gl/expressions.gl JS > ./test/build/expressions.js
+    ./build/gl test/test_gl/expressions.gl -a JS > ./test/build/expressions.js
 }
 
 @test "expressions is correct" {

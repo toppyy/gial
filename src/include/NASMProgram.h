@@ -41,7 +41,7 @@ class NASMProgram {
         void addVariable(string identifier, string type, string size, int length);
         void addConstant(string identifier, string value, string type);
         Variable getVariable(string identifier);
-        void buildProgram();
+        std::vector<string> buildProgram();
         void outputLine(string s);
         
         bool inVariables(string variable);

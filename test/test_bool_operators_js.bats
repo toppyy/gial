@@ -3,7 +3,7 @@
 setup_file() {
 
     mkdir -p ./test/build
-    ./build/gl test/test_gl/bool_operators.gl JS > ./test/build/bool_operators.js
+    ./build/gl test/test_gl/bool_operators.gl -a JS > ./test/build/bool_operators.js
 }
 
 @test "bool_operators is correct" {

@@ -99,9 +99,6 @@ bool NASMProgram::inVariables(string variable) {
     return variables.count(variable) > 0;
 }
 
-void NASMProgram::outputLine(string s) {
-    output_stream << s << "\n";
-}
 
 Variable NASMProgram::getVariable(string identifier) {
     if (auto search = variables.find(identifier); search != variables.end()) {
@@ -129,31 +126,33 @@ string NASMProgram::getNewLabel() {
     return "LBL_" + std::to_string(labelCount);
 }
 
-void NASMProgram::buildProgram() {
+std::vector<string> NASMProgram::buildProgram() {
     // Responsible for putting instructions and variable declarations in their place
     // to create a complete program
 
+    std::vector<std::string> program;
+
     // Constants and libraries
-    outputLine("STDIN       equ 0");
-    outputLine("STDOUT      equ 1");
-    outputLine("SYS_READ    equ 0");
-    outputLine("LF equ 10");
+    program.push_back("STDIN       equ 0");
+    program.push_back("STDOUT      equ 1");
+    program.push_back("SYS_READ    equ 0");
+    program.push_back("LF equ 10");
 
     // Standard macro to print n bytes to stdout
-    outputLine("%macro printBytes 3");
-    outputLine("\tmov       rax, 1");
-    outputLine("\tmov       rdi, 1");
-    outputLine("\tmov       rsi, %1");
-    outputLine("\tadd       rsi, %2");
-    outputLine("\tmov       rdx, %3");
-    outputLine("\tsyscall");
-    outputLine("%endmacro");
+    program.push_back("%macro printBytes 3");
+    program.push_back("\tmov       rax, 1");
+    program.push_back("\tmov       rdi, 1");
+    program.push_back("\tmov       rsi, %1");
+    program.push_back("\tadd       rsi, %2");
+    program.push_back("\tmov       rdx, %3");
+    program.push_back("\tsyscall");
+    program.push_back("%endmacro");
 
 
-    outputLine("extern PrintInteger");
-    outputLine("extern PrintASCII");
+    program.push_back("extern PrintInteger");
+    program.push_back("extern PrintASCII");
 
-    outputLine("section .bss");
+    program.push_back("section .bss");
 
     // Variable declarations
     for (auto& variable: variables) {
@@ -166,30 +165,31 @@ void NASMProgram::buildProgram() {
         string variableDeclaration = variable.second.identifier + " " + sizeReserveUnit + " ";
         variableDeclaration  += std::to_string(variable.second.length);
 
-        output_stream << "\t" + variableDeclaration + "\n";
+        program.push_back("\t" + variableDeclaration);
     }
 
-    outputLine("section .data");
+    program.push_back("section .data");
     // Variable declarations
     for (auto& constant: constants) {
 
         string constantDeclaration = constant.second.identifier + " db " + "\"" + constant.second.value +  "\""   ;
 
-        outputLine("\t" + constantDeclaration);
+        program.push_back("\t" + constantDeclaration);
     }
 
 
-    outputLine("section .text");
-    outputLine("global _start");
-    outputLine("_start:");
+    program.push_back("section .text");
+    program.push_back("global _start");
+    program.push_back("_start:");
     
 
     // Print instructions
     for (auto instruction: instructions) {
-        output_stream << "\t" + instruction + "\n";
+        program.push_back("\t" + instruction);
     }
-    outputLine("\n");
-    outputLine("\tmov rax, 60");
-    outputLine("\txor rdi, 0");
-    outputLine("\tsyscall");
+    program.push_back("\n");
+    program.push_back("\tmov rax, 60");
+    program.push_back("\txor rdi, 0");
+    program.push_back("\tsyscall");
+    return program;
 }

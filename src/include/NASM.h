@@ -10,7 +10,7 @@ using std::shared_ptr, std::unique_ptr, std::string, std::to_string;
 class NASM: public Assembler {
     public:
         NASM(GAST& p_tree);
-        void assemble();
+        vector<string> assemble();
 
     private:
         void traverse(shared_ptr<GNODE> node);

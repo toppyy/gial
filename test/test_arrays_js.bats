@@ -3,7 +3,7 @@
 setup_file() {
 
     mkdir -p ./test/build
-    ./build/gl example/arrays.gl JS > ./test/build/arrays.js    
+    ./build/gl example/arrays.gl -a JS > ./test/build/arrays.js    
 }
 
 @test "assigning an iterating works on arrays" {

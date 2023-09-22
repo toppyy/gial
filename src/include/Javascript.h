@@ -11,7 +11,7 @@ using std::shared_ptr, std::string, std::to_string;
 class Javascript: public Assembler {
     public:
         Javascript(GAST& p_tree);
-        void assemble();
+        vector<string> assemble();
     
     private:
         void traverse(shared_ptr<GNODE> node);

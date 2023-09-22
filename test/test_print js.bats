@@ -3,7 +3,7 @@
 setup_file() {
 
     mkdir -p ./test/build
-    ./build/gl test/test_gl/print.gl JS > ./test/build/print.js    
+    ./build/gl test/test_gl/print.gl -a JS > ./test/build/print.js    
 }
 
 @test "print is correct" {

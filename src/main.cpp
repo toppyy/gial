@@ -69,12 +69,30 @@ int main(int argc, char *argv[]) {
     char default_assembler[5] = "NASM";
     p_assembler = default_assembler;
 
+    bool optimise = false;
+
     for (int i = 0; i < argc; ++i) {
         if (i == 1) {
             filename = argv[i];
         }
-        if (i == 2) {
-            p_assembler = argv[i];
+        // It's a flag
+        if (argv[i][0] == '-') {
+            if (strcmp(argv[i], "-o") == 0) {
+                optimise = true;
+                continue;
+            }
+
+            if (strcmp(argv[i], "-a") == 0) {
+                if (argc < i + 1) {
+                    // Should not happen
+                    printf("Flag '-a' needs an assembler\n");
+                    continue;
+                }
+                i++;
+                p_assembler =  argv[i];
+                continue;
+            }
+
         }
     }
 
@@ -123,17 +141,19 @@ int main(int argc, char *argv[]) {
     Parser prsr = Parser(scnr.getTokens(), keywords, tree);
     prsr.init();
 
-
+    vector<string> instructions;
     if ( strcmp(p_assembler,"JS") == 0) {
         Javascript asmblr = Javascript(tree);
-        asmblr.assemble();
+        instructions = asmblr.assemble();
     } else {
         NASM asmblr = NASM(tree);
-        asmblr.assemble();
+        instructions = asmblr.assemble();
     }
 
+    for (auto instr: instructions) {
+        std::cout << instr << "\n";
+    }
     
-
     // Finished
     std::cout << "\n\n";
 

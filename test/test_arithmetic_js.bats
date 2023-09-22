@@ -3,7 +3,7 @@
 setup_file() {
 
     mkdir -p ./test/build
-    ./build/gl test/test_gl/arithmetic.gl JS > ./test/build/arithmetic.js
+    ./build/gl test/test_gl/arithmetic.gl -a JS > ./test/build/arithmetic.js
 }
 
 @test "arithmetic is correct" {
