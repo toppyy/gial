@@ -6,10 +6,10 @@ ODIR=build
 SRC=./src/
 
 
-_DEPS = Parser.h NASMProgram.h Scanner.h Token.h GAST.h NASM.h Assembler.h Javascript.h
+_DEPS = Parser.h NASMProgram.h Scanner.h Token.h GAST.h NASM.h Assembler.h Javascript.h Optimiser.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = main.o Parser.o NASMProgram.o Scanner.o Token.o GAST.o NASM.o Javascript.o
+_OBJ = main.o Parser.o NASMProgram.o Scanner.o Token.o GAST.o NASM.o Javascript.o Optimiser.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 

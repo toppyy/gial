@@ -7,6 +7,7 @@
 #include "./include/NASM.h"
 #include "./include/Javascript.h"
 #include "./include/Assembler.h"
+#include "./include/Optimiser.h"
 #include "./include/Scanner.h"
 #include "./keywords.cpp"
 
@@ -69,7 +70,7 @@ int main(int argc, char *argv[]) {
     char default_assembler[5] = "NASM";
     p_assembler = default_assembler;
 
-    bool optimise = false;
+    bool do_optimisation = false;
 
     for (int i = 0; i < argc; ++i) {
         if (i == 1) {
@@ -78,7 +79,7 @@ int main(int argc, char *argv[]) {
         // It's a flag
         if (argv[i][0] == '-') {
             if (strcmp(argv[i], "-o") == 0) {
-                optimise = true;
+                do_optimisation = true;
                 continue;
             }
 
@@ -150,9 +151,15 @@ int main(int argc, char *argv[]) {
         instructions = asmblr.assemble();
     }
 
+    if (do_optimisation) {
+        instructions = optimise(instructions);
+    }
+
     for (auto instr: instructions) {
         std::cout << instr << "\n";
     }
+
+
     
     // Finished
     std::cout << "\n\n";
