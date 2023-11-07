@@ -341,6 +341,9 @@ void Parser::forStatement() {
         error("Expected a number or a variable name after TOHO. Got: " + look);
     }
 
+    // Eat the 'to'
+    getToken();
+
     string step = "1";
     if (look == "HYBYIL") {
         getToken();

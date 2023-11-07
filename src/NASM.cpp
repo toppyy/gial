@@ -204,8 +204,6 @@ void NASM::handleIf(shared_ptr<GNODE> node) {
     checkNullPtr(tree.getLeft(node), node);
     checkNullPtr(tree.getRight(node), node);
 
-    emitComment("If started");
-
     // Left-child has the condition
     // Right-child has a linked list to the operations within the block
     string labelIn  = program->getNewLabel();
@@ -233,7 +231,6 @@ void NASM::handleIf(shared_ptr<GNODE> node) {
         );
     }
     emitInstruction(labelOut + ":");
-    emitComment("If done");
 }
 
 void NASM::handleExpression(shared_ptr<GNODE> node) {
@@ -248,7 +245,7 @@ void NASM::handleExpression(shared_ptr<GNODE> node) {
 }
 
 void NASM::handleVariable(shared_ptr<GNODE> node) {
-    // Moves a variable reference to r8
+    // Pushes a variable reference to the stack
     // We need to pull the variable to know whether to read a byte or ..?
     Variable var = program->getVariable(node->name);
 
@@ -258,27 +255,28 @@ void NASM::handleVariable(shared_ptr<GNODE> node) {
     shared_ptr<GNODE> right = tree.getRight(node);
 
     if (right) {
-        // Store the index into a register (R9) and offset
+        // Store the index into a register and offset
         // the MOV-operation with the value in this register
-        traverse(right);            // The value is now in R8
+        traverse(right);            // The index-value is now on the stack
+        emitInstruction("pop r8");
         string offset = "r8";
         emitInstruction("mov " + var.getRegister8Size() + ", " + var.makeReferenceTo(offset));
+        emitInstruction("push r8");
         return;
     }
     
 
     // If it's a (non-indexed) string ref, move the address of the pointer to R8
     if (program->isStringVariable(var.identifier)) {
-        emitInstruction("mov r8, " + var.identifier);
+        emitInstruction("push " + var.identifier);
         return;
     }
 
-    emitInstruction("mov " + var.getRegister8Size() + ", " + var.makeReferenceTo());
-
+    emitInstruction("push " + var.makeReferenceTo());
+    return;
 }
 
 void NASM::handleBoolExpression(shared_ptr<GNODE> node) {
-
     // A wrapper for bool term(s)
     // If it's a single term, just execute it
     // If there's two terms, apply approriate boolean operator
@@ -289,26 +287,25 @@ void NASM::handleBoolExpression(shared_ptr<GNODE> node) {
     if (!tree.getRight(node)) {
         return;
     }
-    emitInstruction("push r8");
     traverse(tree.getRight(node));
     emitInstruction("pop r9");
+    emitInstruction("pop r8");
 
     emitInstruction(node->op + " r8, r9");
-
+    emitInstruction("push r8");
 }
 
 void NASM::handleBoolTerm(shared_ptr<GNODE> node) {
-    emitComment("bool-term started");
 
     string opInstruction = mapOperatorToInstruction(node->op);
 
-    // Evaluate left expression; result is stored into r8
+    // Evaluate left expression; result is stored onto the stack
     traverse(tree.getLeft(node));
     // Push result onto stack
-    emitInstruction("push r8");
     // Eval right expression
     traverse(tree.getRight(node));
     // Now we have values/pointers in R8 and R9
+    emitInstruction("pop r8");
     emitInstruction("pop r9");
     
     // Check if we're comparing strings
@@ -320,7 +317,6 @@ void NASM::handleBoolTerm(shared_ptr<GNODE> node) {
         // Reduce comparison to a single value with a helper function
         // R8 is a pointer to the beginning of *right* string of expr
         // R9 is a pointer to the beginnning of *left* string of expr
-        emitComment("comparing strings!");
         doStringComparison(opInstruction);
         return;
     }
@@ -331,7 +327,7 @@ void NASM::handleBoolTerm(shared_ptr<GNODE> node) {
     emitInstruction(opInstruction + " " + labelFalse);
     emitInstruction("mov r8, 0");
     emitInstruction(labelFalse + ":");
-    emitComment("done with bool-term");
+    emitInstruction("push r8");
     // R8 = 1 if the expression is true, 0 if not
 }
 
@@ -339,11 +335,13 @@ void NASM::handleConstant(shared_ptr<GNODE> node) {
 
     if (node->datatype == "int") {
         emitInstruction("mov r8, " + node->value);
+        emitInstruction("push r8");
         return;
     }
 
     if (node->datatype == "chr") {
         emitInstruction("mov r8, '" + node->value + "'");
+        emitInstruction("push r8");
         return;
     }
 
@@ -368,12 +366,11 @@ void NASM::handleAssign(shared_ptr<GNODE> node) {
     if (right) {
         // We store the index into a register (R9). Later on (see below)
         // Well offset the MOV-operation with the value in this register
-        traverse(right);            // The value is now in R8
-        emitInstruction("push r8"); // Onto stack
+        traverse(right);                     // The value is now on the stack
     }
 
     // If it's an int:
-    //  Evaluate the expression that is beign assigned, the result will be in r8
+    //  Evaluate the expression that is beign assigned, the result will be on the stack
     // If it's a constant str:
     //  Handle pointer locally (do not traverse)
     shared_ptr<GNODE> left = tree.getLeft(node);  
@@ -387,46 +384,51 @@ void NASM::handleAssign(shared_ptr<GNODE> node) {
         emitInstruction("mov byte[" + name + " + " + to_string(byteIdx) + "], 0" ); // NULL-termination
         return;
     }
-
     traverse(left);
-    Variable var = program->getVariable(name);
+    
+    // Pop the result of the expression that is being assigned to
+    emitInstruction("pop r8"); 
 
+    Variable var = program->getVariable(name);
     string offset = "";
+
     if (right) { 
         // Indexed assignment. Pop the index from stack
         emitInstruction("pop r9");
         offset = "r9";
     }
-
+   
     emitInstruction("mov " + var.makeReferenceTo(offset) + ", " + var.getRegister8Size());
 }
 
 void NASM::handleMathOperation(shared_ptr<GNODE> node, string op) {
-    emitInstruction("push r8"); // Store result of previous node
-    traverse(node);           // Content will be R8 after this
+    traverse(node);           // Content will be on the stack after this
     
     if (op == "+") {
-        emitInstruction("mov r9, r8");
         emitInstruction("pop r8");
+        emitInstruction("pop r9");
         emitInstruction("add r8, r9");
     }
     if (op == "-") {
-        emitInstruction("mov r9, r8");
+        emitInstruction("pop r9");
         emitInstruction("pop r8");
         emitInstruction("sub r8, r9");
         
     }
     if (op == "*") {
+        emitInstruction("pop r8");
         emitInstruction("pop rax");      // The other operand is now in rax
         emitInstruction("imul rax, r8"); // (signed) multiplication
         emitInstruction("mov r8, rax");  // Store result into r8 like all calculations
     }
     if (op == "/") {
+        emitInstruction("pop r8");
         emitInstruction("pop rax");    // Pop the value we want to divided from stack (stack uses 64 bits, so we must use rax)
         emitInstruction("cdq");        // convert qword in eax to qword in edx:eax
         emitInstruction("idiv r8");    // divisor. Now rax has the quotient. We forget the remainder
         emitInstruction("mov r8, rax");// Store quotient into r8 like all calculations
     }
+    emitInstruction("push r8");
 }
 
 void NASM::handlePrintString(shared_ptr<GNODE> node) {
@@ -477,14 +479,13 @@ void NASM::handlePrintInt(shared_ptr<GNODE> node) {
     if (node->name != "") {
         Variable var = program->getVariable(node->name);
         emitInstruction("mov rdi, " + var.makeReferenceTo());
-        emitComment("printing variable " + node->name);
     } else {
         shared_ptr<GNODE> left = tree.getLeft(node);
         if (!node) {
             error("Expected PrintInt to have a left node!\n");
         }
         handleNode(left);
-        emitInstruction("mov rdi, r8");
+        emitInstruction("pop rdi");
     }
     emitInstruction("call PrintInteger");
 }
@@ -652,7 +653,6 @@ void NASM::doStringComparison(string op) {
 	emitInstruction("mov r11b, byte[r9 + r12]");
 	emitInstruction("cmp r10b, r11b");
     // Operations start
-    emitComment("op is " + op);
     if (op == "je") {  
         emitInstruction("jne " + loopEndFalse);
         emitInstruction("cmp r10b, 0");
