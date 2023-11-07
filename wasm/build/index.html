@@ -1,10 +1,12 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
     <head>
+        <title>Gial compiler</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
         <script src="gial.js"></script>
         <script>
-
-            // 
-
             // Bind exported function from wasm
             let compile_to_gial;
             Module['onRuntimeInitialized'] = function() { 
@@ -37,10 +39,7 @@
              }
 
 
-
-
-
-             const execute = () => {
+            const execute = () => {
 
                 // Clear preivous results
                 document.getElementById('execResult').innerText = "";
@@ -51,54 +50,97 @@
                 compile(target);
 
                 const code = document.getElementById('compilationResult').innerText;
-   
+
                 if (code.length == 0) {
                     process.stdout.write("No code to run!");
                     return;
                 }
 
                 if (target == 'JS') {
-                    eval(code);
+                    try {
+                        eval(code);
+                    } catch(e) {
+                        process.stdout.write("Runtime error: " + e.message);
+                    }
                 } else {
                     process.stdout.write("The browser cannot execute " + target);
                 }
                 
-             }
+            }
 
 
-             const getTarget = () => document.getElementById('targetJS').checked ? 'JS' : 'ASM';
+            const getTarget = () => document.getElementById('targetJS').checked ? 'JS' : 'ASM';
 
         </script>
-        <style>
-            .column {
-                width: 33%;
-                height: 100%;
-                
-                float: left;
-            }
-
-            #result {
-                border: 1px solid black;
-            }
-        </style>
+       
     </head>
     <body>
-        <div class="column">
-            <textarea id="input" rows="50" cols="50"></textarea>
-        </div>
-        <div class="column">
-            <input type="radio" id="targetJS" name="target"  checked="true">
-            <label for="targetJS">Javascript</label><br>
-            <input type="radio" id="targetASM" name="target" >
-            <label for="targetASM">Assembly (NASM x86)</label><br>  
-         
-            <button onclick="compile(getTarget())">Compile!</button>
-            <div id="compilationResult" contenteditable="true"></div>
-        </div>
-        <div class="column">
-            <button onclick="execute()">Execute (and compile)!</button>
-            <div id="execResult"></div>
+        
+            <div class="jumbotron text-center">
+                <h2>Gial compiler</h2>
+                    <label class="control-label" for="target-radio"> Target:</label>
+                    <div class="form-group" id="target-radio">
+                        
+                        <label class="radio-inline" for="targetJS">
+                            <input type="radio" id="targetJS" name="target"  checked="true">
+                            Javascript
+                        </label>
+                        <label class="radio-inline" for="targetASM">
+                            <input type="radio" id="targetASM" name="target" >
+                            Assembly (NASM x86)
+                        </label>
+                    </div>
+                    
+                        <button onclick="execute()" class="btn btn-primary">Execute and compile</button>
+            
+            </div>
+            <div class="row">
+                <div class="col-lg-2"></div>
+                <div class="col-lg-3">
+                    <h4>Code</h4>
+                    <textarea id="input" rows="30" cols="50"></textarea>
+                </div>
+                <div class="col-lg-3">
+                    <h4>Compiled</h4>
+                    <div class="panel panel-default">
+
+                        <code id="compilationResult" contenteditable="true"></code>
+                    </div>
+                </div>
+                <div class="col-lg-3 ">
+                    <h4>Output</h4>
+                    <div class="panel panel-default">
+                    <div id="execResult"></div>
+                    </div>
+                </div>
+                <div class="col-lg-1"></div>
+            </div>
         </div>
         
     </body>
+    <script>
+        const example = "LUGU numbers[3]\n" +
+                        "numbers[0]  = 1000\n" +
+                        "numbers[1]  = 400\n" +
+                        "numbers[2]  = 42\n" +
+                        "\n" +
+                        "LUGU sum = 0\n" +
+                        "\n" +
+                        "SAN NY '0'\n" +
+                        "\n" +
+                        "TOST x = 0 TOHO 3\n" +
+                        "\tsum = sum + numbers[x]\n" +
+                        "\tSAN NY ' + '\n" +
+                        "\tSAN LUGU numbers[x]\n" +
+                        "NYLOPPUS\n" +
+                        "\n" +
+                        "SAN NY ' = '\n" +
+                        "SAN LUGU sum\n" +
+                        "SIKSES\n" +
+                        "SIKSES";
+
+            
+            document.getElementById('input').value = example;
+
+    </script>
 </html>
