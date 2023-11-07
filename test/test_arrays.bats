@@ -9,7 +9,7 @@ setup_file() {
     
 }
 
-@test "assigning an iterating works on arrays" {
+@test "assigning and iterating works on arrays" {
     run ./test/build/arrays.out
 
     [[ $"${lines[0]}" == "0 + 1000 + 400 + 42 = 1442" ]]
