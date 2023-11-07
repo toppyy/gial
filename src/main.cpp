@@ -77,11 +77,9 @@ int main(int argc, char *argv[]) {
    
 
     // Actual compilation
-    vector<string> instructions = compile(p_assembler, content, do_optimisation);
+    string instructions = compile(p_assembler, content, do_optimisation);
 
-    for (auto instr: instructions) {
-        std::cout << instr << "\n";
-    }
+    std::cout << instructions << "\n";
 
     // Finished
     std::cout << "\n\n";
