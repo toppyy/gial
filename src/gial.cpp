@@ -13,7 +13,7 @@ char handleScandics(char cur, char prev) {
 
 
     
-string compile(char* p_assembler, string content, bool p_optimise) {
+char* compile(char* p_assembler, char* content, int p_optimise) {
     
     std::set<std::string> keywords = getKeywords();
 
@@ -39,7 +39,7 @@ string compile(char* p_assembler, string content, bool p_optimise) {
         instructions = optimise(instructions);
     }
 
-    // Concat instructions to strings
+    // Concat instructions to a string
     string instr_str = "";
 
     for (auto s: instructions) {
@@ -47,5 +47,9 @@ string compile(char* p_assembler, string content, bool p_optimise) {
         instr_str += "\n";
     }
 
-    return instr_str;
+    // string to char* (for wasm)
+    char* instr_char_p = new char[instr_str.size() + 1]; 
+    strcpy(instr_char_p, instr_str.c_str());
+
+    return instr_char_p;
 }

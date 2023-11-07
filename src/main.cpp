@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
     char default_assembler[5] = "NASM";
     p_assembler = default_assembler;
 
-    bool do_optimisation = false;
+    int do_optimisation = 0;
 
     for (int i = 0; i < argc; ++i) {
         if (i == 1) {
@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
         // It's a flag
         if (argv[i][0] == '-') {
             if (strcmp(argv[i], "-o") == 0) {
-                do_optimisation = true;
+                do_optimisation = 1;
                 continue;
             }
 
@@ -74,10 +74,12 @@ int main(int argc, char *argv[]) {
     content.push_back(-1); // We want EOF
     fclose(pFile);
 
-   
+    // Content to char poitner
+    char* code = new char[content.size() + 1]; 
+    strcpy(code, content.c_str());
 
     // Actual compilation
-    string instructions = compile(p_assembler, content, do_optimisation);
+    char* instructions = compile(p_assembler, code, do_optimisation);
 
     std::cout << instructions << "\n";
 
