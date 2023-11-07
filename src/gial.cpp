@@ -12,41 +12,9 @@ char handleScandics(char cur, char prev) {
 }
 
 
-
-vector<string> compile(char* p_assembler, char* p_filename, bool p_optimise) {
-    // Read from the text file
-    FILE* pFile;
-    pFile = fopen(p_filename,"r");
-    if (pFile==NULL) perror("Error opening file");
-
-    std::string content = "";
-    char cur, prev, curManipulated;
-
-    // Read the file line by line into a single string
-
-    // Here's a dirty trick to change (some) scandics into ASCII with the following mapping:
-    //  Ä -> A
-    // (Ö,ö,å have no role in giäl, so forget about them atm)
-    // Might not work for all encodings so use with caution.
-    // Also the program cannot start with a scandic.
-
-    cur = getc(pFile);
-    content.push_back(cur);
-    do {
-
-        prev = cur;
-        cur = getc(pFile);
-        curManipulated = handleScandics(cur, prev);
-        if (curManipulated > 0) {
-            content.push_back(curManipulated);
-        }
-
-    } while (cur != EOF);
-    content.push_back(-1); // We want EOF
-
-    // Close the file
-    fclose(pFile);
-
+    
+vector<string> compile(char* p_assembler, string content, bool p_optimise) {
+    
     std::set<std::string> keywords = getKeywords();
 
     // Init scanner & parser and result data structure

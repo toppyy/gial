@@ -3,6 +3,7 @@
 #include <vector>
 #include <fstream>
 #include <string>
+#include <cstring>
 #include "./GAST.h"
 #include "./Parser.h"
 #include "./NASM.h"
@@ -14,6 +15,6 @@
 
 using std::vector, std::string;
 
-vector<string> compile(char* p_assembler, char* p_filename, bool p_optimise);
+vector<string> compile(char* p_assembler, string content, bool p_optimise);
 char handleScandics(char cur, char prev);
 
