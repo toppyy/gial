@@ -1,5 +1,4 @@
-#include<string>
-#include<set>
+#include "./include/keywords.h"
 
 std::set<std::string> getKeywords() {
     std::set<std::string> keywords;
