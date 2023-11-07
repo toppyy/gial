@@ -15,6 +15,6 @@
 
 using std::vector, std::string;
 
-char* compile(char* p_assembler, char* content, int p_optimise);
+char* compile(char* p_assembler, string content, int p_optimise);
 char handleScandics(char cur, char prev);
 

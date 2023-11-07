@@ -279,7 +279,6 @@ void Javascript::handleBoolExpression(shared_ptr<GNODE> node) {
 }
 
 void Javascript::handleBoolTerm(shared_ptr<GNODE> node) {
-    emitComment("bool-term started");
 
     // Evaluate left expression; result is stored on the stack
     traverse(tree.getLeft(node));

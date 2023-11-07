@@ -1,0 +1,104 @@
+<html>
+    <head>
+        <script src="gial.js"></script>
+        <script>
+
+            // 
+
+            // Bind exported function from wasm
+            let compile_to_gial;
+            Module['onRuntimeInitialized'] = function() { 
+                compile_to_gial = Module.cwrap('compile_to_gial', 'string', ['string', 'string','number']);
+             }; 
+
+            // Compiler assumes we're running in node so override writing to std.out
+            const process = {
+                stdout: {
+                    write:  txt => document.getElementById('execResult').innerText += txt
+                }
+            }
+           
+            const compile = target => {
+                const resContainer = document.getElementById('compilationResult');
+
+                let code = document.getElementById('input').value;
+                let result;
+                try {
+                    result = compile_to_gial(target, code, 0);
+                    if (target == "JS") {
+                        // Compiler uses console.log for delimiter rows. Won't work here so turn into \n
+                        result = result.replaceAll("console.log('')","process.stdout.write('\\n')")
+                    }
+                } catch(e) {
+                    result = 'Syntax error: ' + e.message;
+                }
+
+                resContainer.innerText = result;
+             }
+
+
+
+
+
+             const execute = () => {
+
+                // Clear preivous results
+                document.getElementById('execResult').innerText = "";
+
+                const target = getTarget();
+                
+                // Always recompile
+                compile(target);
+
+                const code = document.getElementById('compilationResult').innerText;
+   
+                if (code.length == 0) {
+                    process.stdout.write("No code to run!");
+                    return;
+                }
+
+                if (target == 'JS') {
+                    eval(code);
+                } else {
+                    process.stdout.write("The browser cannot execute " + target);
+                }
+                
+             }
+
+
+             const getTarget = () => document.getElementById('targetJS').checked ? 'JS' : 'ASM';
+
+        </script>
+        <style>
+            .column {
+                width: 33%;
+                height: 100%;
+                
+                float: left;
+            }
+
+            #result {
+                border: 1px solid black;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="column">
+            <textarea id="input" rows="50" cols="50"></textarea>
+        </div>
+        <div class="column">
+            <input type="radio" id="targetJS" name="target"  checked="true">
+            <label for="targetJS">Javascript</label><br>
+            <input type="radio" id="targetASM" name="target" >
+            <label for="targetASM">Assembly (NASM x86)</label><br>  
+         
+            <button onclick="compile(getTarget())">Compile!</button>
+            <div id="compilationResult" contenteditable="true"></div>
+        </div>
+        <div class="column">
+            <button onclick="execute()">Execute (and compile)!</button>
+            <div id="execResult"></div>
+        </div>
+        
+    </body>
+</html>

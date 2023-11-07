@@ -74,12 +74,12 @@ int main(int argc, char *argv[]) {
     content.push_back(-1); // We want EOF
     fclose(pFile);
 
-    // Content to char poitner
-    char* code = new char[content.size() + 1]; 
-    strcpy(code, content.c_str());
+    // // Content to char poitner
+    // char* code = new char[content.size() + 1]; 
+    // strcpy(code, content.c_str());
 
     // Actual compilation
-    char* instructions = compile(p_assembler, code, do_optimisation);
+    char* instructions = compile(p_assembler, content, do_optimisation);
 
     std::cout << instructions << "\n";
 
