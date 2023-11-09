@@ -127,6 +127,11 @@ void Javascript::handleNode(shared_ptr<GNODE> node) {
         return;
     }
 
+    if (type == "FUNCTIONCALL") {
+        handleFunctionCall(node);
+        return;
+    }
+
     error("dont know how to handle type " + type);
 
 }
@@ -147,7 +152,48 @@ void Javascript::handlePrintASCII(shared_ptr<GNODE> node) {
 void Javascript::handleDeclare(shared_ptr<GNODE> node) {
 
     if (node->datatype == "int" && node->size > 1) {
+        
         emitInstruction("var " + node->name + " = Array("+std::to_string(node->size)+");");
+
+    } else if (node->datatype == "function") {
+
+        // In contract with Javascript::handleFunctionCall
+
+        // Parameters are passed in an array, because in JS
+        // arrays are pass by reference, which is what GIAL is
+        emitInstruction("const " + node->name + " = function(params) {");
+
+        int n = node->infoVector.size();
+        string paramName, params;
+        int paramIdx = 0;
+        for (int i = 0; i < n; i += 2) {
+            // even elements are parameter names, odds are datatypes
+            paramName = node->infoVector[i];
+            params = "var " + paramName + " = params['p" + to_string(paramIdx) + "'];";
+            emitInstruction(params);
+            emitVariable(paramName);
+            paramIdx++;
+        }
+        
+
+        checkNullPtr(tree.getRight(node), node);
+        traverse(tree.getRight(node));
+        
+        // Alter the parameter object to create illusion of 
+        // pass by ref
+        paramIdx = 0;
+        for (int i = 0; i < n; i += 2) {
+            // even elements are parameter names, odds are datatypes
+            params = "params['p" + to_string(paramIdx) + "'] = " + node->infoVector[i] + ";";
+            emitInstruction(params);
+            emitVariable(paramName);
+            paramIdx++;
+        }
+        
+        emitInstruction("}");
+        return;
+
+
     } else {
         emitInstruction("var " + node->name + ";");
     }
@@ -407,6 +453,37 @@ void Javascript::handleInput(shared_ptr<GNODE> node) {
     emitInstruction(node->name  + " = await readline.question('');");
 
 }
+
+
+void Javascript::handleFunctionCall(shared_ptr<GNODE> node) {
+    // Pack parameters into an object, because it's 
+    // pass by ref
+    string args;
+    int i = 0;
+    for (auto arg: node->infoVector) {
+        args += "p" + to_string(i) + ":" + arg + ",";
+        i++;
+    }
+    if (args.size() > 0) {
+        args.pop_back();
+    }
+    emitInstruction("var params = {" + args + "};");
+    emitInstruction(node->name + "(params);");
+
+
+    // Unpack parameter object
+    i = 0;
+    for (auto arg: node->infoVector) {
+        emitInstruction(arg + " = params['p" + to_string(i) + "'];" );
+        i++;
+    }
+
+
+    
+    // emitInstruction(node->name + "(" + args + ");");
+
+}
+
 
 void Javascript::emitInstruction(string inst) {
     instructions.push_back(inst);

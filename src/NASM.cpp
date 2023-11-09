@@ -156,8 +156,6 @@ void NASM::handleDeclare(shared_ptr<GNODE> node) {
             program->addVariable(paramName, paramDatatype, "qword", 1);
         }
 
-
-
         program->inFunction(node->name);
         checkNullPtr(tree.getRight(node), node);
         traverse(tree.getRight(node));

@@ -37,6 +37,7 @@ class Javascript: public Assembler {
         void handleExpression(shared_ptr<GNODE> node);
         void handleVariable(shared_ptr<GNODE> node);
         void handleAssign(shared_ptr<GNODE> node);
+        void handleFunctionCall(shared_ptr<GNODE> node);
         void handleInput(shared_ptr<GNODE> node);
         void handleMathOperation(shared_ptr<GNODE> node, string op);
 

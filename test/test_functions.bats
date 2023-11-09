@@ -24,8 +24,6 @@ setup_file() {
 }
 
 
-
-
 teardown_file() {
     rm ./test/build/functions.*
 }

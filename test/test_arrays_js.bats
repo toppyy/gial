@@ -14,5 +14,5 @@ setup_file() {
 
 
 teardown_file() {
-    rm -f ./test/build/arrayz.*
+    rm -f ./test/build/array.*
 }
