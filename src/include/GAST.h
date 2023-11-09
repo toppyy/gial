@@ -63,6 +63,9 @@ class GNODE {
         // A key-value store for operator specific needs
         map<string, string> info;
 
+        // A vector for operator specific needs
+        vector<string> infoVector;
+
         int id;
 
 
@@ -205,5 +208,5 @@ class CONSTANT: public GNODE {
 
 class FUNCTIONCALL: public GNODE {
     public:
-        FUNCTIONCALL(string p_name, map<string,string> p_arguments) ;
+        FUNCTIONCALL(string p_name, vector<string> p_arguments) ;
 };

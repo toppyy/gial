@@ -14,7 +14,7 @@ Variable::Variable(string p_identifier, string p_type, string p_size, int p_leng
 Function::Function(string p_identifier) :
     identifier(""),
     instructions(std::vector<string> {}),
-    parameters(std::unordered_map<string, string > {})
+    parameters(std::vector<std::pair<string, string>> {})
     {
     identifier = p_identifier;
 };
@@ -24,7 +24,7 @@ void Function::addInstruction(string instruction) {
 }
 
 void Function::addParameter(string parameter, string type) {
-    parameters[parameter] = type;
+    parameters.push_back(make_pair(parameter,type));
 }
 
 
@@ -240,12 +240,18 @@ std::vector<string> NASMProgram::buildProgram() {
         std::vector<string> registers = {"rdi","rsi","rdx","rcx","r8","r9"};
         std::vector<std::pair<string,string>> registerParameterMap;
         int i = 0;
-        for (auto& param: function.second.parameters) {
+        for (auto param: function.second.parameters) {
             program.push_back("\tmov r8, qword[" + registers[i] + "]");
             program.push_back("\tmov qword[" + param.first + "], r8");
             program.push_back("\tpush " + registers[i]);
             registerParameterMap.push_back(make_pair(param.first,registers[i]));
             i++;
+            if (i >= registers.size()) {
+                string errorMsg = "Gial supports only ";
+                errorMsg += registers.size();
+                errorMsg += " parameters";
+                throw std::runtime_error(errorMsg);
+            }
         }
 
         for (auto instr: function.second.instructions) {

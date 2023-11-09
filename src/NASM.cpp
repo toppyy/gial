@@ -146,26 +146,18 @@ void NASM::handleDeclare(shared_ptr<GNODE> node) {
     if (node->datatype == "function") {
         emitFunction(node->name);
 
-        string params = node->info["parameters"];
-        size_t pos = 0;
-        pos = params.find(":");
-        string paramName = params.substr(0,pos);
-
-        program->addParameterToFunction(paramName, "int", node->name);
-        program->addVariable(paramName,"int", "qword", 1);
-
-
-        // Parsing parameters
-        /*
-        string delimiter = ",";
-        size_t pos = 0;
-        string token;
-        while ((pos = s.find(delimiter)) != string::npos) {
-            token = s.substr(0, pos);
-            std::cout << token << std::endl;
-            s.erase(0, pos + delimiter.length());
+        int n = node->infoVector.size();
+        string paramName, paramDatatype;
+        for (int i = 0; i < n; i += 2) {
+            // even elements are parameter names, odds are datatypes
+            paramName = node->infoVector[i];
+            paramDatatype = node->infoVector[i + 1];
+            program->addParameterToFunction(paramName, paramDatatype, node->name);
+            program->addVariable(paramName, paramDatatype, "qword", 1);
         }
-        */
+
+
+
         program->inFunction(node->name);
         checkNullPtr(tree.getRight(node), node);
         traverse(tree.getRight(node));
@@ -196,6 +188,7 @@ void NASM::handleWhile(shared_ptr<GNODE> node) {
     string labelOut = program->getNewLabel();
     emitInstruction(labelIn + ":");
     traverse(tree.getLeft(node));
+    emitInstruction("pop r8");
     emitInstruction("cmp r8, 1");
     emitInstruction("jne " + labelOut);
     traverse(tree.getRight(node));
@@ -331,7 +324,6 @@ void NASM::handleBoolExpression(shared_ptr<GNODE> node) {
 }
 
 void NASM::handleBoolTerm(shared_ptr<GNODE> node) {
-
     string opInstruction = mapOperatorToInstruction(node->op);
 
     // Evaluate left expression; result is stored onto the stack
@@ -514,8 +506,20 @@ void NASM::handlePrintString(shared_ptr<GNODE> node) {
 
 void NASM::handleFunctionCall(shared_ptr<GNODE> node) {
 
-    string args = node->info["arguments"];
-    emitInstruction("mov rdi, " + args);
+    std::vector<string> registers = {"rdi","rsi","rdx","rcx","r8","r9"};
+    int i = 0;
+    for (auto arg: node->infoVector) {
+        emitInstruction("mov "+registers[i]+", " + arg);
+        if (i >= registers.size()) {
+            string errorMsg = "Gial supports only ";
+            errorMsg += registers.size();
+            errorMsg += " parameters";
+            throw std::runtime_error(errorMsg);
+        }
+        i++;
+    }
+
+    
     emitInstruction("call _" + node->name);
 
 }

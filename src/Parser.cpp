@@ -423,18 +423,13 @@ void Parser::functionDeclarationStatement() {
     }
 
     // TODO: better data structure
-    // ATM: parameters are stored in a string
-    // name:datatype,name:datatype,..
+    // ATM: parameters are stored in a vector
+    // even elements are names, odds are datatypes
     string parameterString;
     for (auto a: params) {
-        parameterString += a.first + ":" + a.second + ",";
+        tree.getCurrent()->infoVector.push_back(a.first);
+        tree.getCurrent()->infoVector.push_back(a.second);
     }
-
-    // Remove last comma
-    if (parameterString.size() > 0) {
-        parameterString.pop_back();
-    }
-    tree.getCurrent()->info["parameters"] = parameterString;
 
     matchEndStatement();
 }
@@ -662,23 +657,19 @@ void Parser::assignment(Token name) {
 
 void Parser::functionCall(Token name) {
     matchToken("(");
-    string arguments;
+    vector<string> arguments;
     while (lookChar != ')') {
-        arguments += getName().getContent() + ",";
+        arguments.push_back(getName().getContent());
         if (lookChar == ',') {
             matchToken(",");
         }
     }
     matchToken(")");
 
-    if (arguments.size() > 0) {
-        arguments.pop_back();
-    }
-
     tree.addToCurrent(
         make_shared<FUNCTIONCALL>(
             name.getContent(),
-            map<string, string> { {"arguments", arguments } }
+            arguments
         )
     );
 }

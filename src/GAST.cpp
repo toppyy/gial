@@ -125,7 +125,8 @@ GNODE::GNODE() :
     datatype(""),
     name(""),
     size(1),
-    info(map<string,string>())
+    info(map<string,string>()),
+    infoVector(vector<string>())
     {
 
 }
@@ -288,8 +289,8 @@ VARIABLE::VARIABLE(string p_name) {
     setType("VARIABLE");
 }
 
-FUNCTIONCALL::FUNCTIONCALL(string p_name, map<string,string> p_arguments)  {
+FUNCTIONCALL::FUNCTIONCALL(string p_name, vector<string> p_arguments)  {
     setType("FUNCTIONCALL");
     name = p_name;
-    info = p_arguments;
+    infoVector = p_arguments;
 }

@@ -29,7 +29,7 @@ class Function {
         Function(string identifier);
         string identifier;
         std::vector<string> instructions;
-        std::unordered_map<string, string> parameters;
+        std::vector<std::pair<string, string>> parameters;
 
         void addInstruction(string instruction);
         void addParameter(string parameter, string type);
