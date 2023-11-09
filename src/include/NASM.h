@@ -24,6 +24,7 @@ class NASM: public Assembler {
         void emitInstruction(string inst);
         void emitConstant(string out, string value, string varType);
         void emitVariable(string out, string varType, string size, int length);
+        void emitFunction(string name);
         void emitComment(std::string comment);
         
 
@@ -43,6 +44,7 @@ class NASM: public Assembler {
         void handleVariable(shared_ptr<GNODE> node);
         void handleAssign(shared_ptr<GNODE> node);
         void handleInput(shared_ptr<GNODE> node);
+        void handleFunctionCall(shared_ptr<GNODE> node);
         void handleMathOperation(shared_ptr<GNODE> node, string op);
 
 

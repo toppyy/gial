@@ -76,6 +76,11 @@ void Parser::mapStatementToFunction(string statement ) {
         return;
     }
 
+    if (statement == "FUNKTIO") {
+        functionDeclarationStatement();
+        return;
+    }
+
 }
 
 void Parser::block() {
@@ -298,11 +303,20 @@ void Parser::repeatStatement() {
     } else {
         error("Expected a number or a variable name after TOIST. Got: " + look);
     }
+    getToken();
+   
 
     // Create an internal variable for FOR-loop
     // Must be unique so construct a string based on tree state
-    string name = "GIALREP" + std::to_string(cursor);
+    string name = "gialvar" + std::to_string(cursor);
     tree.addToCurrent(make_shared<DECLARE>(name,"int"));
+    // Assign 0 to it
+    tree.branchLeft();
+    tree.addToCurrent(make_shared<ASSIGN>(name));
+    tree.branchLeft();
+    tree.addToCurrent(make_shared<CONSTANT>("0", "int"));
+    tree.closeBranch();
+    tree.closeBranch();
 
     // REPEAT is represented as a FOR-loop internally
     tree.addToCurrent(
@@ -364,6 +378,65 @@ void Parser::forStatement() {
     tree.closeBranch();
     matchEndStatement();
 
+}
+
+void Parser::functionDeclarationStatement() {
+    // Expects:
+    //  FUNKTIO nameoffunction(params)
+    //      block
+    //  NYLOPPUS
+
+    // Get function name
+    Token funName = getName();
+
+    tree.addToCurrent(make_shared<DECLARE>(funName.getContent(),"function"));
+
+
+    vector<pair<string,string>> params;
+    string name, datatype = "fail";
+    // Get arguments
+    if (lookChar == '(') {
+        matchToken("(");
+        while (lookChar != ')') {
+            if (look == "LUGU") {
+                datatype = "int";
+            } else if (look == "SANAMBATK") {
+                datatype = "string";
+            } else {
+                expected("argument type (LUGU or SANAMBATK). Got: " + look);
+            }
+            getToken();
+            Token funName = getName();
+            params.push_back(std::make_pair(funName.getContent(), datatype));
+            if (lookChar == ',') {
+                getToken();
+            }
+        }
+        matchToken(")");
+
+        tree.branchRight();
+        block();
+        tree.closeBranch();
+    } else {
+        expected("(");
+        return;
+    }
+
+    // TODO: better data structure
+    // ATM: parameters are stored in a string
+    // name:datatype,name:datatype,..
+    string parameterString;
+    for (auto a: params) {
+        parameterString += a.first + ":" + a.second + ",";
+    }
+
+    // Remove last comma
+    if (parameterString.size() > 0) {
+        parameterString.pop_back();
+    }
+    tree.getCurrent()->info["parameters"] = parameterString;
+
+    matchEndStatement();
 }
 
 
@@ -435,7 +508,7 @@ void Parser::matchToken(string expected_content) {
         getToken();
         return;
     }
-    expected("character " + expected_content + ", got: " + look);
+    expected("token '" + expected_content + "', got: " + look);
 }
 
 void Parser::matchEndStatement() {
@@ -477,7 +550,7 @@ void Parser::term() {
         return;
     }
     
-     if (look.isString & look.length() == 1) {
+     if (look.isString & (look.length() == 1)) {
         // Single character
         tree.addToCurrent(make_shared<CONSTANT>(look.getContent(), "chr"));
         getToken();
@@ -508,6 +581,13 @@ void Parser::term() {
 
 void Parser::ident() {
     Token name = getName();
+
+    
+    // Check if it's a function call 
+    if (lookChar == '(') {
+        functionCall(name);
+        return;
+    }
 
     // Check if it's an indexed reference
     if (lookChar == '[') {
@@ -578,6 +658,29 @@ void Parser::assignment(Token name) {
     tree.branchLeft();
     expression();
     tree.closeBranch();
+}
+
+void Parser::functionCall(Token name) {
+    matchToken("(");
+    string arguments;
+    while (lookChar != ')') {
+        arguments += getName().getContent() + ",";
+        if (lookChar == ',') {
+            matchToken(",");
+        }
+    }
+    matchToken(")");
+
+    if (arguments.size() > 0) {
+        arguments.pop_back();
+    }
+
+    tree.addToCurrent(
+        make_shared<FUNCTIONCALL>(
+            name.getContent(),
+            map<string, string> { {"arguments", arguments } }
+        )
+    );
 }
 
 bool Parser::isAlpha(char x) {

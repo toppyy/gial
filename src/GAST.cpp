@@ -287,3 +287,9 @@ VARIABLE::VARIABLE(string p_name) {
     name = p_name;
     setType("VARIABLE");
 }
+
+FUNCTIONCALL::FUNCTIONCALL(string p_name, map<string,string> p_arguments)  {
+    setType("FUNCTIONCALL");
+    name = p_name;
+    info = p_arguments;
+}

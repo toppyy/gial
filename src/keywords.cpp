@@ -15,5 +15,6 @@ std::set<std::string> getKeywords() {
     keywords.insert("SAN SNAA");
     keywords.insert("SAN LUGU");
     keywords.insert("TOST");
+    keywords.insert("FUNKTIO");
     return keywords;
 }

@@ -115,6 +115,11 @@ void NASM::handleNode(shared_ptr<GNODE> node) {
         return;
     }
 
+    if (type == "FUNCTIONCALL") {
+        handleFunctionCall(node);
+        return;
+    }
+
     error("dont know how to handle type " + type);
 
 }
@@ -136,6 +141,36 @@ void NASM::handleDeclare(shared_ptr<GNODE> node) {
 
     if (node->datatype == "int") {
         emitVariable(node->name, "int", "qword", node->size);
+    }
+
+    if (node->datatype == "function") {
+        emitFunction(node->name);
+
+        string params = node->info["parameters"];
+        size_t pos = 0;
+        pos = params.find(":");
+        string paramName = params.substr(0,pos);
+
+        program->addParameterToFunction(paramName, "int", node->name);
+        program->addVariable(paramName,"int", "qword", 1);
+
+
+        // Parsing parameters
+        /*
+        string delimiter = ",";
+        size_t pos = 0;
+        string token;
+        while ((pos = s.find(delimiter)) != string::npos) {
+            token = s.substr(0, pos);
+            std::cout << token << std::endl;
+            s.erase(0, pos + delimiter.length());
+        }
+        */
+        program->inFunction(node->name);
+        checkNullPtr(tree.getRight(node), node);
+        traverse(tree.getRight(node));
+        program->notInFunction();
+        return;
     }
 
     shared_ptr<GNODE> left = tree.getLeft(node);
@@ -354,7 +389,12 @@ void NASM::handleConstant(shared_ptr<GNODE> node) {
 void NASM::handleAssign(shared_ptr<GNODE> node) {
     string name = node->name;
 
-    if (!program->inVariables(name)) {
+    // TODO: this means that you can do assignments to undeclared
+    // variables within function declarations. Should really
+    // check if the variable has been declarated in the function
+    // definition. And throw only then it's not a declarad variable
+    // or a function parameter
+    if (!program->inVariables(name) && !program->instructionsToFunction) {
         error("Assignment to an undeclared variable (" + name + ")");
     }
     checkNullPtr(tree.getLeft(node), node);
@@ -469,8 +509,15 @@ void NASM::handlePrintString(shared_ptr<GNODE> node) {
         error("Expected 'str', got '" + variable.type + "'");
 
     }
-
     
+}
+
+void NASM::handleFunctionCall(shared_ptr<GNODE> node) {
+
+    string args = node->info["arguments"];
+    emitInstruction("mov rdi, " + args);
+    emitInstruction("call _" + node->name);
+
 }
 
 void NASM::handlePrintInt(shared_ptr<GNODE> node) {
@@ -564,6 +611,7 @@ void NASM::emitInstruction(string inst) {
     program->addInstruction(inst);
 }
 
+
 void NASM::emitConstant(string out, string value, string varType = "str") {
     program->addConstant(out, value, varType);
     
@@ -578,6 +626,11 @@ void NASM::emitVariable(string name, string varType, string size, int length) {
             program->addVariable(name, varType, size, length);
     }
 }
+
+void NASM::emitFunction(string name) {
+    program->addFunction(name);
+}
+
 
 void NASM::error(string error_message) {
     throw std::runtime_error(error_message);
@@ -690,3 +743,4 @@ void NASM::doStringComparison(string op) {
 	emitInstruction(loopEnd + ":");
 
 }
+

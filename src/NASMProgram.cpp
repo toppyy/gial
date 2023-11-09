@@ -11,6 +11,22 @@ Variable::Variable(string p_identifier, string p_type, string p_size, int p_leng
     length = p_length;
 }
 
+Function::Function(string p_identifier) :
+    identifier(""),
+    instructions(std::vector<string> {}),
+    parameters(std::unordered_map<string, string > {})
+    {
+    identifier = p_identifier;
+};
+
+void Function::addInstruction(string instruction) {
+    instructions.push_back(instruction);
+}
+
+void Function::addParameter(string parameter, string type) {
+    parameters[parameter] = type;
+}
+
 
 int Variable::sizeInBytes() {
     if (size == "qword") {
@@ -70,7 +86,10 @@ NASMProgram::NASMProgram(std::ostream& p_output_stream) :
         icount(0),
         labelCount(0),
         variables(std::unordered_map<string, Variable > {}),
-        output_stream(p_output_stream)
+        functions(std::unordered_map<string, Function > {}),
+        output_stream(p_output_stream),
+        instructionsToFunction(false),
+        instructionsToFunctionName("")
         {
         
         int icount = 0;
@@ -82,6 +101,10 @@ std::vector<string> NASMProgram::getInstructions() {
 }
 
 void NASMProgram::addInstruction(string instruction) {
+    if (instructionsToFunction) {
+        addInstructionToFunction(instruction,instructionsToFunctionName);
+        return;
+    }
     instructions.push_back(instruction);
     icount++;
 }
@@ -93,6 +116,11 @@ void NASMProgram::addConstant(string identifier, string value,string type) {
 
 void NASMProgram::addVariable(string identifier, string type, string size, int length) {
     variables.insert({ identifier, Variable(identifier, type, size, length) });
+}
+
+
+void NASMProgram::addFunction(string identifier) {
+    functions.insert({ identifier, Function(identifier) });
 }
 
 bool NASMProgram::inVariables(string variable) {
@@ -119,6 +147,32 @@ bool NASMProgram::isStringVariable(string variable) {
 
     return false;
  
+}
+
+void NASMProgram::inFunction(string functionName) {
+    instructionsToFunction = true;
+    instructionsToFunctionName = functionName;
+}
+void NASMProgram::notInFunction() {
+    instructionsToFunction = false;
+    instructionsToFunctionName = "";
+}
+
+void NASMProgram::addInstructionToFunction(string instruction, string identifier) {
+    if (auto search = functions.find(identifier); search != functions.end()) {
+        search->second.addInstruction(instruction);
+    } else {
+        throw std::runtime_error("Function " + identifier + " has not been declared");
+    }
+}
+
+void NASMProgram::addParameterToFunction(string parameter, string type, string identifier) {
+    if (auto search = functions.find(identifier); search != functions.end()) {
+        search->second.addParameter(parameter,type);
+    } else {
+        throw std::runtime_error("Function " + identifier + " has not been declared");
+    }
+
 }
 
 string NASMProgram::getNewLabel() {
@@ -169,16 +223,49 @@ std::vector<string> NASMProgram::buildProgram() {
     }
 
     program.push_back("section .data");
-    // Variable declarations
+    // Constant declarations
     for (auto& constant: constants) {
-
-        string constantDeclaration = constant.second.identifier + " db " + "\"" + constant.second.value +  "\""   ;
-
+        string constantDeclaration = constant.second.identifier + " db " + "\"" + constant.second.value +  "\"";
         program.push_back("\t" + constantDeclaration);
     }
 
 
     program.push_back("section .text");
+    // Function declarations
+    for (auto& function: functions) {
+        program.push_back("global _" + function.second.identifier);
+        program.push_back("_" + function.second.identifier + ":");
+        // Load values from registes (determined by the calling convention)
+        // to memory allocated in bss
+        std::vector<string> registers = {"rdi","rsi","rdx","rcx","r8","r9"};
+        std::vector<std::pair<string,string>> registerParameterMap;
+        int i = 0;
+        for (auto& param: function.second.parameters) {
+            program.push_back("\tmov r8, qword[" + registers[i] + "]");
+            program.push_back("\tmov qword[" + param.first + "], r8");
+            program.push_back("\tpush " + registers[i]);
+            registerParameterMap.push_back(make_pair(param.first,registers[i]));
+            i++;
+        }
+
+        for (auto instr: function.second.instructions) {
+            program.push_back("\t" + instr);
+        }
+
+        // Alter the arguments based on register-parameters mapping
+        i = registerParameterMap.size() - 1;
+        while (i >= 0) {
+            // Get the memory address of argument i
+            program.push_back("\tpop " + registerParameterMap[i].second);
+            // Store the value of the corresponding parameter to it
+            program.push_back("\tmov r8, qword[" + registerParameterMap[i].first + "]" );
+            program.push_back("\tmov qword[" + registerParameterMap[i].second + "],  r8");
+            i--;
+        }
+        //program.push_back("pop");
+        program.push_back("ret");
+    }
+
     program.push_back("global _start");
     program.push_back("_start:");
     

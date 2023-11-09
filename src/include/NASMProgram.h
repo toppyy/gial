@@ -24,6 +24,18 @@ class Variable {
         string getRegister8Size();
 };
 
+class Function {
+    public:
+        Function(string identifier);
+        string identifier;
+        std::vector<string> instructions;
+        std::unordered_map<string, string> parameters;
+
+        void addInstruction(string instruction);
+        void addParameter(string parameter, string type);
+        
+};
+
 class Constant {
     public:
         Constant(string identifier, string value, string type);
@@ -38,7 +50,10 @@ class NASMProgram {
         NASMProgram(std::ostream &p_output_stream);
         std::vector<string> getInstructions();
         void addInstruction(string instruction);
+        void addParameterToFunction(string parameter, string type, string identifier);
+        void addInstructionToFunction(string instruction, string identifier);
         void addVariable(string identifier, string type, string size, int length);
+        void addFunction(string identifier);
         void addConstant(string identifier, string value, string type);
         Variable getVariable(string identifier);
         std::vector<string> buildProgram();
@@ -48,12 +63,17 @@ class NASMProgram {
         bool isStringVariable(string variable);
         string getNewLabel();
 
+        void inFunction(string functionName);
+        void notInFunction();
 
+        bool instructionsToFunction;
     private:
         std::vector<string> instructions;
+        string instructionsToFunctionName;
         int icount;
         int labelCount;
         std::ostream &output_stream;
         std::unordered_map<string, Variable> variables;
+        std::unordered_map<string, Function> functions;
         std::unordered_map<string, Constant> constants;
 };

@@ -8,7 +8,7 @@
 #include "./Token.h"
 #include "./GAST.h"
 
-using std::string, std::vector, std::shared_ptr, std::set;
+using std::string, std::vector, std::shared_ptr, std::set, std::pair;
 
 class Parser
 {
@@ -39,6 +39,7 @@ public:
     void expression();
     void printLookInfo(char info);
     void assignment(Token name);
+    void functionCall(Token name);
     void indexedAssignment(Token name);
     bool isDigit(char x);
     bool isAlpha(char x);
@@ -60,6 +61,7 @@ public:
     void letStringStatement();
     void letIntStatement();
     void repeatStatement();
+    void functionDeclarationStatement();
     void letIntArray(Token var);
 
 private:

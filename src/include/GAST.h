@@ -202,3 +202,8 @@ class CONSTANT: public GNODE {
     public:
         CONSTANT(string p_value, string p_datatype);
 };
+
+class FUNCTIONCALL: public GNODE {
+    public:
+        FUNCTIONCALL(string p_name, map<string,string> p_arguments) ;
+};

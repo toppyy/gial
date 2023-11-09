@@ -13,7 +13,7 @@ char handleScandics(char cur, char prev) {
 
 
     
-char* compile(char* p_assembler, string content, int p_optimise) {
+string compile(char* p_assembler, string content, int p_optimise) {
     
     std::set<std::string> keywords = getKeywords();
 
@@ -47,9 +47,5 @@ char* compile(char* p_assembler, string content, int p_optimise) {
         instr_str += "\n";
     }
 
-    // string to char* (for wasm)
-    char* instr_char_p = new char[instr_str.size() + 1]; 
-    strcpy(instr_char_p, instr_str.c_str());
-
-    return instr_char_p;
+    return instr_str;
 }
