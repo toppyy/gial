@@ -1,0 +1,17 @@
+FUNKTIO power(LUGU base, LUGU exponent)
+    LUGU p = base
+    GUHA (exponent > 1)
+        base = base * p
+        exponent = exponent - 1
+    NYLOPPUS
+NYLOPPUS
+
+LUGU a = 2
+LUGU b = 6
+
+SAN LUGU a
+SAN NY ' ^ '
+SAN LUGU b
+power(a,b)
+SAN NY ' = '
+SAN LUGU a 
