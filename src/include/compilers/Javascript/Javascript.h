@@ -1,6 +1,6 @@
 #pragma once
-#include "../GAST.h"
-#include "../Assembler.h"
+#include "../../GAST.h"
+#include "../../Assembler.h"
 #include<memory>
 #include<vector>
 #include<iostream>
@@ -11,7 +11,6 @@ class Javascript: public Assembler {
     public:
         Javascript(GAST& p_tree);
         vector<string> assemble(int optimise);
-        vector<string> optimise(vector<string> p_instructions);
     
     private:
         void traverse(shared_ptr<GNODE> node);

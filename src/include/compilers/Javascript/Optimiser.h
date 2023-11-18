@@ -6,6 +6,8 @@
 
 using std::vector, std::string, std::set;
 
-namespace NASMOptimise {
+
+namespace JSOptimiser {
     vector<string> optimise(vector<string> instructions);
 }
+

@@ -1,4 +1,5 @@
-#include "../include/compilers/Javascript.h"
+#include "../../include/compilers/Javascript/Javascript.h"
+#include "../../include/compilers/Javascript/Optimiser.h"
 
 Javascript::Javascript(GAST& p_tree)
     : 
@@ -23,6 +24,10 @@ std::vector<string> Javascript::assemble(int p_optimise) {
     }
     if (wrapToAsyncFunction) { // TODO ? 
         emitInstruction("}();");
+    }
+
+    if (p_optimise) {
+        return JSOptimiser::optimise(instructions);
     }
     return instructions;
 }

@@ -15,7 +15,7 @@ std::vector<string> NASM::assemble(int p_optimise) {
     vector<string> instructions = program->buildProgram();
 
     if (p_optimise) {
-        return optimise(instructions);
+        return NASMOptimise::optimise(instructions);
     }
 
     return instructions;

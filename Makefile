@@ -8,7 +8,12 @@ OBJ = $(patsubst src/%, $(ODIR)/%, $(_OBJ))
 
 
 # Define a target to compile all source files
-all: ascii gl
+all: folders ascii gl
+
+folders:
+	mkdir -p build/compilers/NASM
+	mkdir -p build/compilers/Javascript
+	
 
 gl: $(OBJ)
 	$(CC)  $(OBJ) -o $(ODIR)/gl
