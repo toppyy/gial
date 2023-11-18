@@ -1,17 +1,24 @@
-#include "../include/compilers/NASM.h"
-#include "../include/compilers/NASMProgram.h"
+#include "../../include/compilers/NASM/NASM.h"
+#include "../../include/compilers/NASM/NASMProgram.h"
+#include "../../include/compilers/NASM/Optimiser.h"
 
 NASM::NASM(GAST& p_tree) : tree(p_tree) {
     program = nullptr;
 }
 
-std::vector<string> NASM::assemble() {
+std::vector<string> NASM::assemble(int p_optimise) {
     
     program = std::make_unique<NASMProgram>(std::cout);
 
 
     traverse(tree.getRoot());
-    return program->buildProgram();
+    vector<string> instructions = program->buildProgram();
+
+    if (p_optimise) {
+        return optimise(instructions);
+    }
+
+    return instructions;
 
 }
 

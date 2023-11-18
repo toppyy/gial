@@ -2,7 +2,7 @@ CC=g++
 SRC=./src/
 ODIR=build
 
-__OBJ = $(wildcard -r src/*.cpp) $(wildcard -r src/**/*.cpp)
+__OBJ = $(wildcard -r src/*.cpp) $(wildcard -r src/**/*.cpp) $(wildcard -r src/**/**/*.cpp)
 _OBJ = $(patsubst %.cpp, %.o, $(__OBJ))
 OBJ = $(patsubst src/%, $(ODIR)/%, $(_OBJ))
 

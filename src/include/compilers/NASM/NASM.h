@@ -1,6 +1,6 @@
 #pragma once
-#include "../GAST.h"
-#include "../Assembler.h"
+#include "../../GAST.h"
+#include "../../Assembler.h"
 #include "./NASMProgram.h"
 #include<memory>
 #include<iostream>
@@ -10,7 +10,7 @@ using std::shared_ptr, std::unique_ptr, std::string, std::to_string;
 class NASM: public Assembler {
     public:
         NASM(GAST& p_tree);
-        vector<string> assemble();
+        vector<string> assemble(int optimise);
 
     private:
         void traverse(shared_ptr<GNODE> node);

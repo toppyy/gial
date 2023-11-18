@@ -10,7 +10,7 @@ Javascript::Javascript(GAST& p_tree)
     wrapToAsyncFunction = false;
 }
 
-std::vector<string> Javascript::assemble() {
+std::vector<string> Javascript::assemble(int p_optimise) {
 
     // Init instruction set with a stack
     emitInstruction("const stack = [];");
@@ -26,6 +26,7 @@ std::vector<string> Javascript::assemble() {
     }
     return instructions;
 }
+
 
 void Javascript::traverse(shared_ptr<GNODE> node) {
 

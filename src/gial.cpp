@@ -27,17 +27,16 @@ string compile(char* p_assembler, string content, int p_optimise) {
     prsr.init();
 
     vector<string> instructions;
+    // Assembler* p_asmlbr;
     if ( strcmp(p_assembler,"JS") == 0) {
         Javascript asmblr = Javascript(tree);
-        instructions = asmblr.assemble();
+        instructions = asmblr.assemble(p_optimise);
     } else {
         NASM asmblr = NASM(tree);
-        instructions = asmblr.assemble();
+        instructions = asmblr.assemble(p_optimise);
     }
 
-    if (p_optimise) {
-        instructions = optimise(instructions);
-    }
+
 
     // Concat instructions to a string
     string instr_str = "";

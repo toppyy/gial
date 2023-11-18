@@ -6,12 +6,12 @@
 #include <cstring>
 #include "./GAST.h"
 #include "./Parser.h"
-#include "./compilers/NASM.h"
+#include "./compilers/NASM/NASM.h"
 #include "./compilers/Javascript.h"
 #include "./Assembler.h"
-#include "./Optimiser.h"
 #include "./Scanner.h"
 #include "./keywords.h"
+
 
 using std::vector, std::string;
 

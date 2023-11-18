@@ -1,4 +1,4 @@
-#include "../include/compilers/NASMProgram.h"
+#include "../../include/compilers/NASM/NASMProgram.h"
 
 Variable::Variable(string p_identifier, string p_type, string p_size, int p_length) :
     identifier(""),

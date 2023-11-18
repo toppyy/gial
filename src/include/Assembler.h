@@ -7,7 +7,7 @@ using std::shared_ptr, std::string, std::to_string;
 
 class Assembler {
     public:
-        virtual vector<string> assemble() = 0;        
+        virtual vector<string> assemble(int optimise) = 0;
 
     private:
         virtual void handleConstant(shared_ptr<GNODE> node) = 0;
@@ -26,5 +26,6 @@ class Assembler {
         virtual void handleAssign(shared_ptr<GNODE> node) = 0;
         virtual void handleInput(shared_ptr<GNODE> node) = 0;
         virtual void handleMathOperation(shared_ptr<GNODE> node, string op) = 0;
+        
 
 };

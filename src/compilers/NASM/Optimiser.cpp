@@ -1,4 +1,4 @@
-#include "./include/Optimiser.h"
+#include "../../include/compilers/NASM/Optimiser.h"
 
 #define ASCII_ZERO 48
 #define ASCII_NINE 57
@@ -173,25 +173,14 @@ vector<string> remove_push_pop_pattern(vector<string> instructions) {
 
 vector<string> optimise(vector<string> instructions) {
     
-    std::clog << "Optimising!\n";
-    // std::clog << "operand: " << find_first_operand("push r8") << "\n";
+    std::clog << "Optimising " << instructions.size() << " instructions\n";
 
     set<string>     regs = find_registers(instructions);
     vector<string>  vars = get_variables(instructions);
 
-
-
     instructions = remove_push_pop_pattern(instructions);
 
-    // for (auto v: vars) {
-    //     std::clog << v << ", ";
-    // }
-    // std::clog << "\n";
-    // std::for_each(regs.cbegin(), regs.cend(), [](string r) {
-    //     std::clog << "" << r << ", ";
-    // });
-    // std::clog << "\n";
 
-    
+    std::clog << "Got it down to " << instructions.size() << " instructions\n";    
     return instructions;
 }
