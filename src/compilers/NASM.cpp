@@ -1,5 +1,5 @@
-#include "./include/NASM.h"
-#include "./include/NASMProgram.h"
+#include "../include/compilers/NASM.h"
+#include "../include/compilers/NASMProgram.h"
 
 NASM::NASM(GAST& p_tree) : tree(p_tree) {
     program = nullptr;

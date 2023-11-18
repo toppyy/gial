@@ -6,8 +6,8 @@
 #include <cstring>
 #include "./GAST.h"
 #include "./Parser.h"
-#include "./NASM.h"
-#include "./Javascript.h"
+#include "./compilers/NASM.h"
+#include "./compilers/Javascript.h"
 #include "./Assembler.h"
 #include "./Optimiser.h"
 #include "./Scanner.h"

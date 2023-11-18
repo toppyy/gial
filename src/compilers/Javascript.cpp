@@ -1,4 +1,4 @@
-#include "./include/Javascript.h"
+#include "../include/compilers/Javascript.h"
 
 Javascript::Javascript(GAST& p_tree)
     : 

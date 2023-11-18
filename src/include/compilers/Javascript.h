@@ -1,34 +1,28 @@
 #pragma once
-#include "./GAST.h"
-#include "./Assembler.h"
-#include "./NASMProgram.h"
+#include "../GAST.h"
+#include "../Assembler.h"
 #include<memory>
+#include<vector>
 #include<iostream>
+#include<set>
+using std::shared_ptr, std::string, std::to_string;
 
-using std::shared_ptr, std::unique_ptr, std::string, std::to_string;
-
-class NASM: public Assembler {
+class Javascript: public Assembler {
     public:
-        NASM(GAST& p_tree);
+        Javascript(GAST& p_tree);
         vector<string> assemble();
-
+    
     private:
         void traverse(shared_ptr<GNODE> node);
         void handleNode(shared_ptr<GNODE> node);
         void error(string error_message);
-        string mapOperatorToInstruction(string op);
         void checkNullPtr(shared_ptr<GNODE> node, shared_ptr<GNODE> from);
-        bool checkIfExpressionIsAString(shared_ptr<GNODE> node);
-        void doStringComparison(string op);
+        void writeToStdout(string tolog, bool quote = false);
 
         void emitInstruction(string inst);
-        void emitConstant(string out, string value, string varType);
-        void emitVariable(string out, string varType, string size, int length);
-        void emitFunction(string name);
+        void emitVariable(string name);
         void emitComment(std::string comment);
         
-
-        // Operator handlers
         void handleConstant(shared_ptr<GNODE> node);
         void handleDeclare(shared_ptr<GNODE> node);
         void handleFor(shared_ptr<GNODE> node);
@@ -43,13 +37,14 @@ class NASM: public Assembler {
         void handleExpression(shared_ptr<GNODE> node);
         void handleVariable(shared_ptr<GNODE> node);
         void handleAssign(shared_ptr<GNODE> node);
-        void handleInput(shared_ptr<GNODE> node);
         void handleFunctionCall(shared_ptr<GNODE> node);
+        void handleInput(shared_ptr<GNODE> node);
         void handleMathOperation(shared_ptr<GNODE> node, string op);
 
+        bool variableDeclared(string name);
 
-    
         GAST& tree;
-        unique_ptr<NASMProgram> program;
-
+        std::vector<string> instructions;
+        std::set<string> variables;
+        bool wrapToAsyncFunction;
 };
