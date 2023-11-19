@@ -27,6 +27,7 @@ echo
 echo "GIAL-loop optimised:"
 time ./perf/build/gial_loop_optim.out
 
+
 echo
 echo "C-loop:"
 time ./perf/build/c_loop.out

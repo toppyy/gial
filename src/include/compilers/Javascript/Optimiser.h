@@ -7,7 +7,7 @@
 using std::vector, std::string, std::set;
 
 
-namespace JSOptimiser {
+namespace JSOptimise {
     vector<string> optimise(vector<string> instructions);
 }
 

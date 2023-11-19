@@ -27,7 +27,7 @@ std::vector<string> Javascript::assemble(int p_optimise) {
     }
 
     if (p_optimise) {
-        return JSOptimiser::optimise(instructions);
+        return JSOptimise::optimise(instructions);
     }
     return instructions;
 }
