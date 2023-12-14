@@ -232,7 +232,7 @@ void Parser::letIntStatement() {
     
     if (look == "[") {
         // It's an array
-        letIntArray(varName);
+        letArray(varName, "int");
         return;
     }
 
@@ -250,17 +250,23 @@ void Parser::letIntStatement() {
     return;
 }
 
-void Parser::letIntArray(Token varName) {
+void Parser::letArray(Token varName, string type) {
     
     matchToken("[");
     int arraySize = stoi(getNumber().getContent()); // TODO: Catch non-numbers
     matchToken("]");
 
-    tree.addToCurrent(make_shared<DECLARE>(varName.getContent(),"int",arraySize));
+    tree.addToCurrent(make_shared<DECLARE>(varName.getContent(),type,arraySize));
 }
 
 void Parser::letStringStatement() {
     Token varName = getName();
+    if (look == "[") {
+        // It's an array
+        letArray(varName, "str");
+        return;
+    }
+
     tree.addToCurrent(make_shared<DECLARE>(varName.getContent(),"str"));
     tree.branchLeft();
     if (look != "=") {
@@ -286,6 +292,9 @@ void Parser::letStringStatement() {
 
     getToken();
 }
+
+
+
 
 void Parser::repeatStatement() {
     // implements

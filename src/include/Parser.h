@@ -62,7 +62,7 @@ public:
     void letIntStatement();
     void repeatStatement();
     void functionDeclarationStatement();
-    void letIntArray(Token var);
+    void letArray(Token var, string type);
 
 private:
     vector<Token> tokens;
