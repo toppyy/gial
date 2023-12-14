@@ -524,6 +524,11 @@ void NASM::handleFunctionCall(shared_ptr<GNODE> node) {
         i++;
     }
 
+    if (node->name == "AVAA") {
+        handleOpenFile();
+        return;
+    }
+
     
     emitInstruction("call _" + node->name);
 
@@ -753,3 +758,28 @@ void NASM::doStringComparison(string op) {
 
 }
 
+void NASM::handleOpenFile() {
+
+    /* Emit a function that
+        - opens a file specified in rdi
+        - assigns the file descriptor to rsi
+
+        Assuming that
+        - rdi is a pointer to a string containing the filename
+        - rsi is a pointer to a 64-bit integer
+     */
+    emitComment("Opening file");
+    emitInstruction("push rsi");
+
+    // Don't need to do "mov rdi, filename", just reuse rdi from function call    
+    emitInstruction("mov rsi, O_RDONLY");
+    emitInstruction("mov rax, SYS_OPEN");
+    emitInstruction("syscall");
+    emitInstruction("cmp rax, 0");
+    emitInstruction("jl IOError");
+
+    emitInstruction("pop rsi");
+    emitInstruction("mov qword[rsi], rax");
+    emitComment("Done with opening file");
+    
+}

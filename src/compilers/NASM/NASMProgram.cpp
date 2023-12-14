@@ -187,10 +187,16 @@ std::vector<string> NASMProgram::buildProgram() {
     std::vector<std::string> program;
 
     // Constants and libraries
-    program.push_back("STDIN       equ 0");
-    program.push_back("STDOUT      equ 1");
-    program.push_back("SYS_READ    equ 0");
-    program.push_back("LF equ 10");
+    program.push_back("STDIN        equ 0");
+    program.push_back("STDOUT       equ 1");
+    program.push_back("SYS_READ     equ 0");
+    program.push_back("SYS_OPEN     equ 2");
+    program.push_back("SYS_CLOSE    equ 3");
+    program.push_back("SYS_LSEEK    equ 8");
+    program.push_back("O_RDONLY     equ 000000q");
+    program.push_back("LF           equ 10");
+
+
 
     // Standard macro to print n bytes to stdout
     program.push_back("%macro printBytes 3");
@@ -224,6 +230,11 @@ std::vector<string> NASMProgram::buildProgram() {
 
     program.push_back("section .data");
     // Constant declarations
+
+    // Always included variables
+    program.push_back("\tioerr_msg:      db      'IO-error!'");
+    program.push_back("\tioerr_msg_size  equ     $-ioerr_msg");
+
     for (auto& constant: constants) {
         string constantDeclaration = constant.second.identifier + " db " + "\"" + constant.second.value +  "\"";
         program.push_back("\t" + constantDeclaration);
@@ -281,8 +292,15 @@ std::vector<string> NASMProgram::buildProgram() {
         program.push_back("\t" + instruction);
     }
     program.push_back("\n");
+    program.push_back("Exit:");
     program.push_back("\tmov rax, 60");
     program.push_back("\txor rdi, 0");
+    program.push_back("\tsyscall");
+
+    program.push_back("IOError:");
+    program.push_back("\tprintBytes ioerr_msg, 0, ioerr_msg_size");
+    program.push_back("\tmov     rdi, 1" );
+    program.push_back("\tmov     rax, 60");
     program.push_back("\tsyscall");
     return program;
 }

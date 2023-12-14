@@ -70,7 +70,7 @@ vector<string> removeConstantsToStack(vector<string> instructions) {
     
     for (int i = 0; i < instructions.size(); i++) {
         instr = instructions[i];
-        if (instr.rfind("stack.push(",0) == 0) {
+        if (instr.find("stack.push(",0) == 0) {
             string num = getNumberBetweenBracketsAsString(instr);
             if (num.size() > 0) {
                 previousStackPushWasConstant = true;

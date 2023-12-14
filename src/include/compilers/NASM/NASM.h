@@ -48,6 +48,9 @@ class NASM: public Assembler {
         void handleMathOperation(shared_ptr<GNODE> node, string op);
 
 
+        // Special
+        void handleOpenFile();
+
     
         GAST& tree;
         unique_ptr<NASMProgram> program;
