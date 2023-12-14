@@ -48,8 +48,10 @@ class NASM: public Assembler {
         void handleMathOperation(shared_ptr<GNODE> node, string op);
 
 
-        // Special
+        // IO
         void handleOpenFile();
+        void handleReadFromFile(string fd);
+        void handleCloseFile(string fd);
 
     
         GAST& tree;

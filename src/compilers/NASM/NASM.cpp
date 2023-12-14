@@ -529,6 +529,20 @@ void NASM::handleFunctionCall(shared_ptr<GNODE> node) {
         return;
     }
 
+    if (node->name == "LUE") {
+        // Need to pass the identifier for the file descriptor
+        // Need to read it's value from memory
+        handleReadFromFile(node->infoVector[0]);
+        return;
+    }
+
+    if (node->name == "SULJE") {
+        // Need to pass the identifier for the file descriptor
+        // Need to read it's value from memory
+        handleCloseFile(node->infoVector[0]);
+        return;
+    }
+
     
     emitInstruction("call _" + node->name);
 
@@ -760,7 +774,7 @@ void NASM::doStringComparison(string op) {
 
 void NASM::handleOpenFile() {
 
-    /* Emit a function that
+    /* Make syscall to open file
         - opens a file specified in rdi
         - assigns the file descriptor to rsi
 
@@ -782,4 +796,44 @@ void NASM::handleOpenFile() {
     emitInstruction("mov qword[rsi], rax");
     emitComment("Done with opening file");
     
+}
+
+void NASM::handleReadFromFile(string fd) {
+
+    /* Make syscall to read from file
+        - reading from a file descriptor in rdi
+        - into a buffer in rsi
+        - number of bytes to read in rdx
+        - stores number of bytes read in rcx
+
+        Assuming that
+        - rdi is a pointer to a file descriptor
+        - rsi is a pointer to a string array
+        - rdx is a pointer to a 64-bit int
+        - rcx is a pointer to a 64-bit int
+     */
+    emitComment("Reading from a file");
+    emitInstruction("push rcx");
+
+    // Read fd
+    emitInstruction("mov rdi, qword["+fd+"]");
+
+    // Don't need to do speficy rsi, just reuse  from the function call
+    emitInstruction("mov rax, SYS_READ");
+    emitInstruction("syscall");
+
+    emitInstruction("cmp rax, 0");
+    emitInstruction("jl IOError");
+
+    emitInstruction("pop rcx");
+    emitInstruction("mov qword[rcx], rax");
+    emitComment("Done with reading from a file");
+    
+}
+
+
+void NASM::handleCloseFile(string fd) {
+    emitInstruction("mov rax, SYS_CLOSE");
+    emitInstruction("mov rdi, qword ["+fd+"]");
+    emitInstruction("syscall");
 }

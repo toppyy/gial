@@ -1,0 +1,12 @@
+SANAMBATK teksti[100]
+SANAMBATK tiedosto = './test/data/truth.txt'
+LUGU f = 0
+LUGU r = 0
+LUGU b = 100
+
+AVAA(tiedosto,f)
+LUE(f,teksti,b,r)
+SULJE(f)
+
+SAN NY teksti
+SIKSES
