@@ -291,8 +291,9 @@ void NASM::handleVariable(shared_ptr<GNODE> node) {
         // Store the index into a register and offset
         // the MOV-operation with the value in this register
         traverse(right);            // The index-value is now on the stack
-        emitInstruction("pop r8");
-        string offset = "r8";
+        emitInstruction("pop r10");
+        string offset = "r10";
+        emitInstruction("mov r8, 0");
         emitInstruction("mov " + var.getRegister8Size() + ", " + var.makeReferenceTo(offset));
         emitInstruction("push r8");
         return;
@@ -818,7 +819,7 @@ void NASM::handleReadFromFile(string fd) {
     // Read fd
     emitInstruction("mov rdi, qword["+fd+"]");
 
-    // Don't need to do speficy rsi, just reuse  from the function call
+    // Don't need to do speficy rsi, just reuse from the function call
     emitInstruction("mov rax, SYS_READ");
     emitInstruction("syscall");
 
@@ -827,6 +828,11 @@ void NASM::handleReadFromFile(string fd) {
 
     emitInstruction("pop rcx");
     emitInstruction("mov qword[rcx], rax");
+
+    // Null termination
+    emitInstruction("inc rax");
+    emitInstruction("add rax, rsi");
+    emitInstruction("mov byte[rax], 0");
     emitComment("Done with reading from a file");
     
 }
