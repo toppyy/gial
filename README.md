@@ -6,6 +6,11 @@ The project is actually a translator: it translates giäl to assembly for x86. T
 
 The project started with Jack Crenshaws's [Let's Build a Compiler](https://compilers.iecc.com/crenshaw/) article series. Jack writes in Turbo Pascal and targets 68000, so code's been re-written, but I've stolen some of the ideas. Unlike Jack's compiler, giäl represents the parsed program as a tree-like structure before translation.
 
+# Online compiler
+
+You can try gial using the online compiler [here](https://toppyy.github.io/gial/). The online compiler is possible with WASM (see [`./wasm/`](./wasm/)).
+
+
 # Hello, world! / Terveissi!
 
 The canonical [hello world! -example](https://en.wikipedia.org/wiki/%22Hello,_World!%22_program) in *giäl* is simply:
